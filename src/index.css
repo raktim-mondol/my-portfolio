@@ -44,12 +44,28 @@ body {
   flex-shrink: 0;
 }
 
+@media (max-width: 640px) {
+  .words-wrapper {
+    margin-left: 0;
+    margin: 0 auto;
+  }
+}
+
 .word {
-  @apply absolute left-0 text-[#94c973] text-2xl sm:text-3xl font-semibold whitespace-nowrap;
+  @apply absolute left-0 text-[#94c973] text-2xl sm:text-3xl font-semibold;
   opacity: 0;
   transform: translateY(50px);
   transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   line-height: 1.5em;
+  width: 100%;
+  text-align: center;
+}
+
+@media (min-width: 640px) {
+  .word {
+    text-align: left;
+    width: auto;
+  }
 }
 
 .word.active {
