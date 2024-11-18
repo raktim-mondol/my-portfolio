@@ -36,16 +36,18 @@ export default function Education() {
         <div className="mt-12 space-y-12">
           {education.map((edu, index) => (
             <div key={index} className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
                 <div className="flex items-center">
                   <GraduationCap className="h-8 w-8 text-[#94c973]" />
                   <h3 className="ml-4 text-2xl font-bold text-gray-900">{edu.degree}</h3>
                 </div>
-                <img 
-                  src={edu.logo} 
-                  alt={`${edu.institution} logo`}
-                  className="h-16 w-auto object-contain min-w-[64px]"
-                />
+                <div className="flex justify-center sm:justify-end w-full sm:w-auto">
+                  <img 
+                    src={edu.logo} 
+                    alt={`${edu.institution} logo`}
+                    className="h-16 w-auto object-contain min-w-[120px] max-w-[200px]"
+                  />
+                </div>
               </div>
               
               <div className="ml-12">
