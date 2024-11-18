@@ -41,11 +41,12 @@ export default function Education() {
                   <GraduationCap className="h-8 w-8 text-[#94c973]" />
                   <h3 className="ml-4 text-2xl font-bold text-gray-900">{edu.degree}</h3>
                 </div>
-                <div className="flex justify-center sm:justify-end w-full sm:w-auto">
+                <div className="flex justify-center sm:justify-end">
                   <img 
                     src={edu.logo} 
                     alt={`${edu.institution} logo`}
-                    className="h-16 w-auto object-contain min-w-[120px] max-w-[200px]"
+                    className="h-16 w-[160px] object-contain"
+                    style={{ objectFit: 'contain' }}
                   />
                 </div>
               </div>
