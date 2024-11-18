@@ -44,7 +44,7 @@ export default function Education() {
                 <img 
                   src={edu.logo} 
                   alt={`${edu.institution} logo`}
-                  className="h-16 object-contain"
+                  className="h-16 w-auto object-contain min-w-[64px]"
                 />
               </div>
               
