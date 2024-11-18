@@ -38,13 +38,15 @@ export default function Education() {
             <div key={index} className="bg-white p-8 rounded-lg shadow-lg hover:shadow-xl transition">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
-                  <GraduationCap className="h-8 w-8 text-[#94c973]" />
+                  <div className="flex-shrink-0 w-8 h-8">
+                    <GraduationCap className="w-full h-full text-[#94c973]" />
+                  </div>
                   <h3 className="ml-4 text-2xl font-bold text-gray-900">{edu.degree}</h3>
                 </div>
                 <img 
                   src={edu.logo} 
                   alt={`${edu.institution} logo`}
-                  className="h-16 object-contain"
+                  className="h-16 w-auto object-contain"
                 />
               </div>
               
