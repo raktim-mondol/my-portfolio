@@ -20,7 +20,7 @@ const education = [
     description: "Graduated with High Distinction",
     certUrl: "https://www.myequals.net/sharelink/78e7c7d7-5a73-4e7c-9711-f163f5dd1604/af0d807a-8392-45be-9104-d26b95f5aa7a",
     thesisUrl: "https://research-repository.rmit.edu.au/articles/thesis/Deep_learning_in_classifying_cancer_subtypes_extracting_relevant_genes_and_identifying_novel_mutations/27589272",
-    audioSummary: "https://drive.google.com/file/d/1h7jjRoo924kKWphK7FNbnTRzFfGj_aMt/view?usp=sharing",
+    audioSummary: "/assets/audio/masters-thesis-summary.mp3",
     logo: "/assets/images/rmit-logo.png"
   }
 ];
