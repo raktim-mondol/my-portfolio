@@ -9,7 +9,7 @@ const education = [
     year: "2020-2024 (Expected)",
     thesis: "Histopathology image and genetic data analysis using AI",
     description: "Developing advanced AI models for analyzing histopathology images and genetic data in cancer research.",
-    audioSummary: "https://www2.cs.uic.edu/~i101/SoundFiles/StarWars60.wav",
+    audioSummary: "/assets/audio/phd-thesis-summary.wav",
     logo: "/assets/images/unsw-logo.png"
   },
   {
