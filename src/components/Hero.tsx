@@ -38,7 +38,7 @@ export default function Hero() {
           <div className="max-w-2xl text-center sm:text-left">
             <h1 className="text-4xl tracking-tight font-bold text-gray-900 sm:text-5xl">
               <span className="block">Raktim <strong>Mondol</strong></span>
-              <div className="flex items-center justify-center sm:justify-start mt-2">
+              <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start mt-2">
                 <span className="text-2xl sm:text-3xl">I'm a</span>
                 <div className="words-wrapper">
                   {words.map((word, index) => (
