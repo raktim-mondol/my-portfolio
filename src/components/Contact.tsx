@@ -3,13 +3,14 @@ import { Mail, MapPin, Phone } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 import toast, { Toaster } from 'react-hot-toast';
 
-const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+// Email service credentials
+const SERVICE_ID = 'service_pf60vvq';
+const TEMPLATE_ID = 'template_khtz52h';
+const PUBLIC_KEY = 'YNARHMC0iqRPaRFIf';
 
 export default function Contact() {
-  const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -27,11 +28,6 @@ export default function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
-      toast.error('Email service is not configured properly');
-      return;
-    }
-
     // Ask for confirmation before sending
     if (!window.confirm('Are you sure you want to send this message?')) {
       return;
@@ -57,8 +53,8 @@ export default function Contact() {
       }
     } catch (error) {
       toast.dismiss();
-      console.error('Email error:', error);
       toast.error('Failed to send message. Please try again.');
+      console.error('Email error:', error);
     } finally {
       setIsSubmitting(false);
     }
