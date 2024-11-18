@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Play, Pause } from 'lucide-react';
 
 interface AudioPlayerProps {
@@ -11,15 +11,30 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
+  const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Reset state when src changes
+    setIsPlaying(false);
+    setProgress(0);
+    setCurrentTime(0);
+    setError(null);
+  }, [src]);
 
   const togglePlay = () => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play();
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.error('Playback error:', error);
+            setError('Failed to play audio. Please try again.');
+          });
+        }
       }
       setIsPlaying(!isPlaying);
     }
@@ -37,7 +52,13 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
   const handleLoadedMetadata = () => {
     if (audioRef.current) {
       setDuration(audioRef.current.duration);
+      setError(null);
     }
+  };
+
+  const handleError = () => {
+    setError('Failed to load audio file');
+    setIsPlaying(false);
   };
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -62,7 +83,8 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
       <div className="flex items-center gap-3">
         <button
           onClick={togglePlay}
-          className="p-2 rounded-full bg-[#94c973] hover:bg-[#7fb95e] text-white transition-colors flex-shrink-0"
+          disabled={!!error}
+          className="p-2 rounded-full bg-[#94c973] hover:bg-[#7fb95e] text-white transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label={isPlaying ? 'Pause' : 'Play'}
         >
           {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
@@ -77,22 +99,27 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
         </span>
       </div>
 
-      <div 
-        ref={progressRef}
-        className="h-2 bg-gray-100 rounded-full cursor-pointer relative overflow-hidden"
-        onClick={handleProgressClick}
-      >
+      {error ? (
+        <p className="text-xs text-red-500">{error}</p>
+      ) : (
         <div 
-          className="absolute top-0 left-0 h-full bg-[#94c973] rounded-full transition-all duration-100"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+          ref={progressRef}
+          className="h-2 bg-gray-100 rounded-full cursor-pointer relative overflow-hidden"
+          onClick={handleProgressClick}
+        >
+          <div 
+            className="absolute top-0 left-0 h-full bg-[#94c973] rounded-full transition-all duration-100"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
 
       <audio
         ref={audioRef}
         src={src}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        onError={handleError}
         onEnded={() => setIsPlaying(false)}
       />
     </div>

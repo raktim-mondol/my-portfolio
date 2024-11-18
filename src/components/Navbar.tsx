@@ -5,10 +5,10 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = React.useState(false);
 
   const handleDownloadCV = () => {
-    const cvUrl = '/assets/raktim-mondol-cv.pdf';
+    const cvUrl = '/assets/docs/raktim_cv.pdf';
     const link = document.createElement('a');
     link.href = cvUrl;
-    link.download = 'raktim-mondol-cv.pdf';
+    link.download = 'raktim_cv.pdf';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -34,7 +34,7 @@ export default function Navbar() {
               href="#about"
               className="ml-2 text-xl hover:text-[#94c973] transition-colors"
             >
-              Dr. Raktim <strong>Mondol</strong>
+              Raktim <strong>Mondol</strong>
             </a>
           </div>
           

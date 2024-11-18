@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Mail, MapPin, Phone } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 import toast, { Toaster } from 'react-hot-toast';
 
+const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
 export default function Contact() {
+  const formRef = useRef<HTMLFormElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -21,26 +26,39 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
+      toast.error('Email service is not configured properly');
+      return;
+    }
+
+    // Ask for confirmation before sending
+    if (!window.confirm('Are you sure you want to send this message?')) {
+      return;
+    }
+
     setIsSubmitting(true);
+    toast.loading('Sending message...');
 
     try {
-      await emailjs.send(
-        'YOUR_SERVICE_ID',
-        'YOUR_TEMPLATE_ID',
-        {
-          from_name: formData.name,
-          from_email: formData.email,
-          message: formData.message,
-          to_name: 'Dr. Raktim Mondol',
-        },
-        'YOUR_PUBLIC_KEY'
+      const result = await emailjs.sendForm(
+        SERVICE_ID,
+        TEMPLATE_ID,
+        formRef.current!,
+        PUBLIC_KEY
       );
 
-      toast.success('Message sent successfully!');
-      setFormData({ name: '', email: '', message: '' });
+      if (result.text === 'OK') {
+        toast.dismiss();
+        toast.success('Message sent successfully! We will get back to you soon.');
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        throw new Error('Failed to send message');
+      }
     } catch (error) {
-      toast.error('Failed to send message. Please try again.');
+      toast.dismiss();
       console.error('Email error:', error);
+      toast.error('Failed to send message. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -58,7 +76,7 @@ export default function Contact() {
 
         <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-2">
           <div className="relative bg-white rounded-lg shadow-md p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                   Your Name

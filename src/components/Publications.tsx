@@ -10,7 +10,7 @@ const publications = [
     authors: "Mondol, R.K.; Millar, E.K.A.; Sowmya, A.; Meijering, E.",
     paperUrl: "https://ieeexplore.ieee.org/document/10568932",
     codeUrl: "https://github.com/raktim-mondol/BioFusionNet",
-    audioSummary: "/assets/audio/biofusionnet-summary.mp3"
+    audioSummary: "/assets/audio/biofusionnet-summary.wav"
   },
   {
     title: "hist2RNA: An Efficient Deep Learning Architecture to Predict Gene Expression from Breast Cancer Histopathology Images",
@@ -19,7 +19,7 @@ const publications = [
     authors: "Mondol, R.K.; Millar, E.K.A.; Graham, P.H.; Browne, L.; Sowmya, A.; Meijering, E.",
     paperUrl: "https://www.mdpi.com/2072-6694/15/9/2569",
     codeUrl: "https://github.com/raktim-mondol/hist2RNA",
-    audioSummary: "/assets/audio/hist2rna-summary.mp3"
+    audioSummary: "/assets/audio/hist2rna-summary.wav"
   },
   {
     title: "AFExNet: An Adversarial Autoencoder for Differentiating Breast Cancer Sub-types and Extracting Biologically Relevant Genes",
@@ -28,7 +28,7 @@ const publications = [
     authors: "Mondol, R.K., N. D. Truong, M. Reza, S. Ippolito, E. Ebrahimie, and O. Kavehei",
     paperUrl: "https://ieeexplore.ieee.org/document/9378938",
     codeUrl: "https://github.com/NeuroSyd/breast-cancer-sub-types",
-    audioSummary: "/assets/audio/afexnet-summary.mp3"
+    audioSummary: "/assets/audio/afexnet-summary.wav"
   }
 ];
 

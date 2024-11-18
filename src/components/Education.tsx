@@ -9,7 +9,6 @@ const education = [
     year: "2020-2024 (Expected)",
     thesis: "Histopathology image and genetic data analysis using AI",
     description: "Developing advanced AI models for analyzing histopathology images and genetic data in cancer research.",
-    audioSummary: "/assets/audio/phd-thesis-summary.wav",
     logo: "/assets/images/unsw-logo.png"
   },
   {
@@ -70,9 +69,11 @@ export default function Education() {
                       View Full Thesis
                     </a>
                   )}
-                  <div className="mt-4">
-                    <AudioPlayer src={edu.audioSummary} title="Thesis Summary" />
-                  </div>
+                  {edu.audioSummary && (
+                    <div className="mt-4">
+                      <AudioPlayer src={edu.audioSummary} title="Thesis Summary" />
+                    </div>
+                  )}
                 </div>
                 
                 <div className="mt-4">

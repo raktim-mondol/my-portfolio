@@ -21,7 +21,7 @@ export default function Hero() {
             <img
               className="h-48 w-48 rounded-full object-cover shadow-lg"
               src="/assets/images/profile.jpg"
-              alt="Dr. Raktim Mondol"
+              alt="Raktim Mondol"
             />
             <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center bg-white px-4 py-2 rounded-full shadow-md">
               <a 
@@ -37,7 +37,7 @@ export default function Hero() {
 
           <div className="max-w-2xl text-center sm:text-left">
             <h1 className="text-4xl tracking-tight font-bold text-gray-900 sm:text-5xl">
-              <span className="block">Dr. Raktim <strong>Mondol</strong></span>
+              <span className="block">Raktim <strong>Mondol</strong></span>
               <div className="flex items-center justify-center sm:justify-start mt-2">
                 <span className="text-2xl sm:text-3xl">I'm a</span>
                 <div className="words-wrapper">
@@ -54,13 +54,6 @@ export default function Hero() {
                 </div>
               </div>
             </h1>
-            
-            <p className="mt-4 text-lg text-gray-600 leading-relaxed">
-              I am an experienced data scientist, with deep expertise in artificial intelligence (AI), 
-              bioinformatics, computer vision (CV), and high-performance computing (HPC). My solid research background 
-              includes advanced data analytics, statistical modeling, and developing AI-driven solutions that address 
-              complex, real-world challenges.
-            </p>
             
             <div className="mt-6">
               <a
