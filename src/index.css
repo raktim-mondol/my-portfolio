@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 4rem;
+  }
+
+  /* Add base styles for form elements */
+  input, textarea {
+    @apply border border-gray-300 rounded-md;
+  }
+}
+
+body {
+  @apply text-gray-900 antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-400 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
+}
+
+/* Enhanced Sliding text animation */
+.words-wrapper {
+  @apply relative inline-flex items-center overflow-hidden;
+  height: 1.5em;
+  margin-left: 0.5rem;
+  min-width: 320px; /* Increased from 280px to 320px to ensure text fits */
+}
+
+.word {
+  @apply absolute left-0 text-[#94c973] text-2xl sm:text-3xl font-semibold whitespace-nowrap;
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1.5em;
+}
+
+.word.active {
+  @apply opacity-100;
+  transform: translateY(0);
+}
+
+.word.exit {
+  @apply opacity-0;
+  transform: translateY(-50px);
+}
