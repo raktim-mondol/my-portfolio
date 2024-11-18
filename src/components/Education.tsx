@@ -7,8 +7,8 @@ const education = [
     degree: "PhD in Computer Science & Engineering",
     institution: "UNSW Sydney",
     year: "2020-2024 (Expected)",
-    thesis: "Histopathology image and genetic data analysis using AI",
-    description: "Developing advanced AI models for analyzing histopathology images and genetic data in cancer research.",
+    thesis: "Deep learning models for histopathology image analysis",
+    description: "Developing advanced AI models for analyzing histopathology images and genetic data in breast cancer research.",
     logo: "/assets/images/unsw-logo.png"
   },
   {
