@@ -12,8 +12,8 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
+    user_name: '',
+    user_email: '',
     message: ''
   });
 
@@ -28,13 +28,12 @@ export default function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Ask for confirmation before sending
     if (!window.confirm('Are you sure you want to send this message?')) {
       return;
     }
 
     setIsSubmitting(true);
-    toast.loading('Sending message...');
+    const loadingToast = toast.loading('Sending message...');
 
     try {
       const result = await emailjs.sendForm(
@@ -45,14 +44,14 @@ export default function Contact() {
       );
 
       if (result.text === 'OK') {
-        toast.dismiss();
+        toast.dismiss(loadingToast);
         toast.success('Message sent successfully! We will get back to you soon.');
-        setFormData({ name: '', email: '', message: '' });
+        setFormData({ user_name: '', user_email: '', message: '' });
       } else {
         throw new Error('Failed to send message');
       }
     } catch (error) {
-      toast.dismiss();
+      toast.dismiss(loadingToast);
       toast.error('Failed to send message. Please try again.');
       console.error('Email error:', error);
     } finally {
@@ -74,28 +73,28 @@ export default function Contact() {
           <div className="relative bg-white rounded-lg shadow-md p-8">
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="user_name" className="block text-sm font-medium text-gray-700">
                   Your Name
                 </label>
                 <input
                   type="text"
-                  name="name"
-                  id="name"
-                  value={formData.name}
+                  name="user_name"
+                  id="user_name"
+                  value={formData.user_name}
                   onChange={handleChange}
                   required
                   className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973]"
                 />
               </div>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="user_email" className="block text-sm font-medium text-gray-700">
                   Your Email Address
                 </label>
                 <input
                   type="email"
-                  name="email"
-                  id="email"
-                  value={formData.email}
+                  name="user_email"
+                  id="user_email"
+                  value={formData.user_email}
                   onChange={handleChange}
                   required
                   className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973]"
