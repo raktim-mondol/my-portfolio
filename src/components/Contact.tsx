@@ -36,10 +36,10 @@ export default function Contact() {
   });
 
   const validateEmail = (email: string) => {
-    // Basic format check
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(email)) {
-      return { isValid: false, message: 'Please enter a valid email address format' };
+    // Strict email format check including complete domain requirement
+    const strictEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!strictEmailRegex.test(email)) {
+      return { isValid: false, message: 'Please enter a complete email address including domain (e.g., @gmail.com)' };
     }
 
     // Split email into local part and domain
@@ -59,15 +59,20 @@ export default function Contact() {
       return { isValid: false, message: 'Email cannot contain consecutive special characters' };
     }
 
+    // Check for invalid characters in local part
+    if (!/^[a-zA-Z0-9][a-zA-Z0-9._%+-]*[a-zA-Z0-9]$/.test(localPart)) {
+      return { isValid: false, message: 'Email username contains invalid characters or format' };
+    }
+
     // Check domain
-    if (domain.length > 255) {
-      return { isValid: false, message: 'Email domain is too long' };
+    if (domain.length > 255 || domain.length < 4) { // Minimum domain length (e.g., a.com)
+      return { isValid: false, message: 'Invalid email domain length' };
     }
 
     // Check if domain has at least one period and valid TLD
     const domainParts = domain.split('.');
     if (domainParts.length < 2) {
-      return { isValid: false, message: 'Invalid email domain format' };
+      return { isValid: false, message: 'Email must include a complete domain (e.g., gmail.com)' };
     }
 
     // Validate TLD (Top Level Domain)
@@ -78,10 +83,10 @@ export default function Contact() {
 
     // Check for common typos in popular domains
     const domainTypos = {
-      'gmail.com': ['gamil.com', 'gmial.com', 'gmal.com', 'gmall.com', 'gmil.com', 'gmaill.com'],
-      'yahoo.com': ['yaho.com', 'yahooo.com', 'yahhoo.com', 'yhoo.com'],
-      'hotmail.com': ['hotmal.com', 'hotmial.com', 'hotmall.com', 'hotmai.com'],
-      'outlook.com': ['outlok.com', 'outlook.co', 'outlock.com']
+      'gmail.com': ['gamil.com', 'gmial.com', 'gmal.com', 'gmall.com', 'gmil.com', 'gmaill.com', 'gmail'],
+      'yahoo.com': ['yaho.com', 'yahooo.com', 'yahhoo.com', 'yhoo.com', 'yahoo'],
+      'hotmail.com': ['hotmal.com', 'hotmial.com', 'hotmall.com', 'hotmai.com', 'hotmail'],
+      'outlook.com': ['outlok.com', 'outlook.co', 'outlock.com', 'outlook']
     };
 
     for (const [correctDomain, typos] of Object.entries(domainTypos)) {
@@ -189,7 +194,7 @@ export default function Contact() {
                   onChange={handleChange}
                   required
                   pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-                  title="Please enter a valid email address"
+                  title="Please enter a valid email address with a complete domain (e.g., example@gmail.com)"
                   className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973]"
                 />
               </div>
