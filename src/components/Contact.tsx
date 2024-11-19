@@ -18,6 +18,11 @@ export default function Contact() {
     message: ''
   });
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -29,6 +34,11 @@ export default function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!validateEmail(formData.from_email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
     if (!window.confirm('Are you sure you want to send this message?')) {
       return;
     }
@@ -46,7 +56,7 @@ export default function Contact() {
 
       if (result.text === 'OK') {
         toast.dismiss(loadingToast);
-        toast.success('Message sent successfully! I will get back to you soon.');
+        toast.success('Email sent successfully! I will get back to you soon.');
         setFormData({ to_name: 'Raktim', from_name: '', from_email: '', message: '' });
       } else {
         throw new Error('Failed to send message');
@@ -99,6 +109,8 @@ export default function Contact() {
                   value={formData.from_email}
                   onChange={handleChange}
                   required
+                  pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+                  title="Please enter a valid email address"
                   className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973]"
                 />
               </div>
