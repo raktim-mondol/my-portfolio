@@ -8,23 +8,6 @@ const SERVICE_ID = 'service_pf60vvq';
 const TEMPLATE_ID = 'template_khtz52h';
 const PUBLIC_KEY = 'YNARHMC0iqRPaRFIf';
 
-// Common email domains for validation
-const commonEmailDomains = [
-  'gmail.com',
-  'yahoo.com',
-  'hotmail.com',
-  'outlook.com',
-  'live.com',
-  'aol.com',
-  'icloud.com',
-  'proton.me',
-  'protonmail.com',
-  'unsw.edu.au',
-  'student.unsw.edu.au',
-  'rmit.edu.au',
-  'student.rmit.edu.au'
-];
-
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -36,71 +19,23 @@ export default function Contact() {
   });
 
   const validateEmail = (email: string) => {
-    // Strict email format check including complete domain requirement
-    const strictEmailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!strictEmailRegex.test(email)) {
-      return { isValid: false, message: 'Please enter a complete email address including domain (e.g., @gmail.com)' };
+    // Basic format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return { isValid: false, message: 'Please enter a valid email address (e.g., name@example.com)' };
     }
 
     // Split email into local part and domain
-    const [localPart, domain] = email.toLowerCase().split('@');
+    const [localPart] = email.split('@');
 
-    // Check local part
-    if (localPart.length < 3) {
-      return { isValid: false, message: 'Email username must be at least 3 characters long' };
-    }
-
-    if (localPart.length > 64) {
-      return { isValid: false, message: 'Email username is too long' };
+    // Check local part length
+    if (localPart.length < 1) {
+      return { isValid: false, message: 'Email username cannot be empty' };
     }
 
     // Check for consecutive special characters
     if (/[._%+-]{2,}/.test(localPart)) {
       return { isValid: false, message: 'Email cannot contain consecutive special characters' };
-    }
-
-    // Check for invalid characters in local part
-    if (!/^[a-zA-Z0-9][a-zA-Z0-9._%+-]*[a-zA-Z0-9]$/.test(localPart)) {
-      return { isValid: false, message: 'Email username contains invalid characters or format' };
-    }
-
-    // Check domain
-    if (domain.length > 255 || domain.length < 4) { // Minimum domain length (e.g., a.com)
-      return { isValid: false, message: 'Invalid email domain length' };
-    }
-
-    // Check if domain has at least one period and valid TLD
-    const domainParts = domain.split('.');
-    if (domainParts.length < 2) {
-      return { isValid: false, message: 'Email must include a complete domain (e.g., gmail.com)' };
-    }
-
-    // Validate TLD (Top Level Domain)
-    const tld = domainParts[domainParts.length - 1];
-    if (tld.length < 2 || tld.length > 6) {
-      return { isValid: false, message: 'Invalid top-level domain' };
-    }
-
-    // Check for common typos in popular domains
-    const domainTypos = {
-      'gmail.com': ['gamil.com', 'gmial.com', 'gmal.com', 'gmall.com', 'gmil.com', 'gmaill.com', 'gmail'],
-      'yahoo.com': ['yaho.com', 'yahooo.com', 'yahhoo.com', 'yhoo.com', 'yahoo'],
-      'hotmail.com': ['hotmal.com', 'hotmial.com', 'hotmall.com', 'hotmai.com', 'hotmail'],
-      'outlook.com': ['outlok.com', 'outlook.co', 'outlock.com', 'outlook']
-    };
-
-    for (const [correctDomain, typos] of Object.entries(domainTypos)) {
-      if (typos.includes(domain)) {
-        return { isValid: false, message: `Did you mean ${correctDomain}?` };
-      }
-    }
-
-    // Suggest common domains if the domain is not recognized
-    if (!commonEmailDomains.includes(domain)) {
-      // Allow educational and business domains to pass
-      if (!domain.endsWith('.edu') && !domain.endsWith('.edu.au') && !domain.endsWith('.com.au') && !domain.endsWith('.org') && !domain.endsWith('.gov')) {
-        return { isValid: false, message: 'Please verify your email domain' };
-      }
     }
 
     return { isValid: true, message: '' };
@@ -193,8 +128,8 @@ export default function Contact() {
                   value={formData.from_email}
                   onChange={handleChange}
                   required
-                  pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-                  title="Please enter a valid email address with a complete domain (e.g., example@gmail.com)"
+                  pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+                  title="Please enter a valid email address (e.g., name@example.com)"
                   className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973]"
                 />
               </div>
