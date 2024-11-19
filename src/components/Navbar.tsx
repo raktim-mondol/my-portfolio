@@ -1,22 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Menu, X, BookOpen } from 'lucide-react';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isNameActive, setIsNameActive] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
-      setIsNameActive(false);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
 
   const handleDownloadCV = () => {
     const cvUrl = '/assets/docs/raktim_cv.pdf';
@@ -45,14 +32,14 @@ export default function Navbar() {
   const handleNameClick = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Show active state
+    // Show active state very briefly for visual feedback
     setIsNameActive(true);
     
-    // Immediately schedule the color release
+    // Release color immediately
     requestAnimationFrame(() => {
       setIsNameActive(false);
     });
-
+    
     // Handle navigation
     const element = document.getElementById('about');
     if (element) {
