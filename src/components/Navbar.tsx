@@ -5,6 +5,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isNameActive, setIsNameActive] = useState(false);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -12,13 +13,40 @@ export default function Navbar() {
       if (isOpen) {
         setIsOpen(false);
       }
-      // Reset name color when scrolling
       setIsNameActive(false);
     };
 
+    const handleTouchStart = (e: TouchEvent) => {
+      setTouchStartY(e.touches[0].clientY);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (touchStartY !== null) {
+        const touchDiff = Math.abs(e.touches[0].clientY - touchStartY);
+        if (touchDiff > 5) { // Small threshold to detect intentional scroll
+          setIsNameActive(false);
+        }
+      }
+    };
+
+    const handleTouchEnd = () => {
+      setTouchStartY(null);
+    };
+
+    // Add all event listeners
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isOpen]);
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isOpen, touchStartY]);
 
   const handleDownloadCV = () => {
     const cvUrl = '/assets/docs/raktim_cv.pdf';
@@ -54,6 +82,24 @@ export default function Navbar() {
       element.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  // Handle any interaction outside the name
+  useEffect(() => {
+    const handleInteraction = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('a[href="#about"]')) {
+        setIsNameActive(false);
+      }
+    };
+
+    document.addEventListener('touchstart', handleInteraction);
+    document.addEventListener('mousedown', handleInteraction);
+
+    return () => {
+      document.removeEventListener('touchstart', handleInteraction);
+      document.removeEventListener('mousedown', handleInteraction);
+    };
+  }, []);
 
   return (
     <nav className={`fixed w-full bg-white/90 backdrop-blur-sm z-50 shadow-sm transition-all duration-200 ${isOpen ? 'bg-white' : ''}`}>
