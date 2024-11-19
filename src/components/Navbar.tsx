@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, BookOpen } from 'lucide-react';
 
 export default function Navbar() {
@@ -6,14 +6,33 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isNameActive, setIsNameActive] = useState(false);
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
+  const lastScrollTop = useRef(0);
+  const scrollTimeout = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
-      if (isOpen) {
-        setIsOpen(false);
+      const st = window.scrollY;
+      
+      // Clear any existing timeout
+      if (scrollTimeout.current) {
+        clearTimeout(scrollTimeout.current);
       }
-      setIsNameActive(false);
+
+      // Detect scroll direction and movement
+      if (Math.abs(st - lastScrollTop.current) > 2) { // Small threshold to detect actual scroll
+        setIsNameActive(false);
+        if (isOpen) {
+          setIsOpen(false);
+        }
+      }
+
+      lastScrollTop.current = st;
+      setIsScrolled(st > 0);
+
+      // Set a timeout to ensure we catch momentum scrolling
+      scrollTimeout.current = setTimeout(() => {
+        setIsNameActive(false);
+      }, 150);
     };
 
     const handleTouchStart = (e: TouchEvent) => {
@@ -22,9 +41,14 @@ export default function Navbar() {
 
     const handleTouchMove = (e: TouchEvent) => {
       if (touchStartY !== null) {
-        const touchDiff = Math.abs(e.touches[0].clientY - touchStartY);
+        const currentY = e.touches[0].clientY;
+        const touchDiff = Math.abs(currentY - touchStartY);
+        
         if (touchDiff > 5) { // Small threshold to detect intentional scroll
           setIsNameActive(false);
+          if (isOpen) {
+            setIsOpen(false);
+          }
         }
       }
     };
@@ -33,7 +57,7 @@ export default function Navbar() {
       setTouchStartY(null);
     };
 
-    // Add all event listeners
+    // Add event listeners with passive option for better scroll performance
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('touchstart', handleTouchStart, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
@@ -41,12 +65,15 @@ export default function Navbar() {
 
     // Cleanup
     return () => {
+      if (scrollTimeout.current) {
+        clearTimeout(scrollTimeout.current);
+      }
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('touchstart', handleTouchStart);
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [isOpen, touchStartY]);
+  }, [isOpen]);
 
   const handleDownloadCV = () => {
     const cvUrl = '/assets/docs/raktim_cv.pdf';
@@ -92,12 +119,15 @@ export default function Navbar() {
       }
     };
 
-    document.addEventListener('touchstart', handleInteraction);
-    document.addEventListener('mousedown', handleInteraction);
+    // Use capture phase to ensure we catch events before they propagate
+    document.addEventListener('touchstart', handleInteraction, { capture: true });
+    document.addEventListener('mousedown', handleInteraction, { capture: true });
+    document.addEventListener('wheel', () => setIsNameActive(false), { passive: true });
 
     return () => {
-      document.removeEventListener('touchstart', handleInteraction);
-      document.removeEventListener('mousedown', handleInteraction);
+      document.removeEventListener('touchstart', handleInteraction, { capture: true });
+      document.removeEventListener('mousedown', handleInteraction, { capture: true });
+      document.removeEventListener('wheel', () => setIsNameActive(false));
     };
   }, []);
 
