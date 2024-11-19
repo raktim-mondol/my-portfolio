@@ -51,19 +51,15 @@ export default function Research() {
               key={index}
               className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-[#94c973] rounded-lg shadow-md hover:shadow-lg transition"
             >
-              <div>
-                <span className="rounded-lg inline-flex p-3 bg-[#94c973]/10 text-[#94c973] ring-4 ring-white">
+              <div className="flex items-center gap-4">
+                <span className="flex-shrink-0 rounded-lg inline-flex p-3 bg-[#94c973]/10 text-[#94c973] ring-4 ring-white">
                   <area.icon className="h-6 w-6" aria-hidden="true" />
                 </span>
+                <h3 className="text-lg font-medium text-gray-900">{area.title}</h3>
               </div>
-              <div className="mt-8">
-                <h3 className="text-lg font-medium">
-                  {area.title}
-                </h3>
-                <p className="mt-2 text-sm text-gray-500">
-                  {area.description}
-                </p>
-              </div>
+              <p className="mt-4 text-sm text-gray-500">
+                {area.description}
+              </p>
             </div>
           ))}
         </div>
