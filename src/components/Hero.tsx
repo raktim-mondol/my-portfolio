@@ -4,6 +4,10 @@ import { Linkedin } from 'lucide-react';
 export default function Hero() {
   const [activeIndex, setActiveIndex] = useState(0);
   const words = ['Researcher', 'Data Scientist', 'Bioinformatician', 'Computational Biologist', 'Engineer'];
+  
+  const getArticle = (word: string) => {
+    return /^[aeiouAEIOU]/.test(word) ? 'an' : 'a';
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -39,7 +43,7 @@ export default function Hero() {
             <h1 className="text-4xl tracking-tight font-bold text-gray-900 sm:text-5xl">
               <span className="block">Raktim <strong>Mondol</strong></span>
               <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start mt-2">
-                <span className="text-2xl sm:text-3xl">I'm a</span>
+                <span className="text-2xl sm:text-3xl">I'm {getArticle(words[activeIndex])}</span>
                 <div className="words-wrapper mt-2 sm:mt-0">
                   {words.map((word, index) => (
                     <span
