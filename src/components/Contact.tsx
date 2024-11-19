@@ -8,6 +8,23 @@ const SERVICE_ID = 'service_pf60vvq';
 const TEMPLATE_ID = 'template_khtz52h';
 const PUBLIC_KEY = 'YNARHMC0iqRPaRFIf';
 
+// Common email domains for validation
+const commonEmailDomains = [
+  'gmail.com',
+  'yahoo.com',
+  'hotmail.com',
+  'outlook.com',
+  'live.com',
+  'aol.com',
+  'icloud.com',
+  'proton.me',
+  'protonmail.com',
+  'unsw.edu.au',
+  'student.unsw.edu.au',
+  'rmit.edu.au',
+  'student.rmit.edu.au'
+];
+
 export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -19,8 +36,69 @@ export default function Contact() {
   });
 
   const validateEmail = (email: string) => {
+    // Basic format check
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    return emailRegex.test(email);
+    if (!emailRegex.test(email)) {
+      return { isValid: false, message: 'Please enter a valid email address format' };
+    }
+
+    // Split email into local part and domain
+    const [localPart, domain] = email.toLowerCase().split('@');
+
+    // Check local part
+    if (localPart.length < 3) {
+      return { isValid: false, message: 'Email username must be at least 3 characters long' };
+    }
+
+    if (localPart.length > 64) {
+      return { isValid: false, message: 'Email username is too long' };
+    }
+
+    // Check for consecutive special characters
+    if (/[._%+-]{2,}/.test(localPart)) {
+      return { isValid: false, message: 'Email cannot contain consecutive special characters' };
+    }
+
+    // Check domain
+    if (domain.length > 255) {
+      return { isValid: false, message: 'Email domain is too long' };
+    }
+
+    // Check if domain has at least one period and valid TLD
+    const domainParts = domain.split('.');
+    if (domainParts.length < 2) {
+      return { isValid: false, message: 'Invalid email domain format' };
+    }
+
+    // Validate TLD (Top Level Domain)
+    const tld = domainParts[domainParts.length - 1];
+    if (tld.length < 2 || tld.length > 6) {
+      return { isValid: false, message: 'Invalid top-level domain' };
+    }
+
+    // Check for common typos in popular domains
+    const domainTypos = {
+      'gmail.com': ['gamil.com', 'gmial.com', 'gmal.com', 'gmall.com', 'gmil.com', 'gmaill.com'],
+      'yahoo.com': ['yaho.com', 'yahooo.com', 'yahhoo.com', 'yhoo.com'],
+      'hotmail.com': ['hotmal.com', 'hotmial.com', 'hotmall.com', 'hotmai.com'],
+      'outlook.com': ['outlok.com', 'outlook.co', 'outlock.com']
+    };
+
+    for (const [correctDomain, typos] of Object.entries(domainTypos)) {
+      if (typos.includes(domain)) {
+        return { isValid: false, message: `Did you mean ${correctDomain}?` };
+      }
+    }
+
+    // Suggest common domains if the domain is not recognized
+    if (!commonEmailDomains.includes(domain)) {
+      // Allow educational and business domains to pass
+      if (!domain.endsWith('.edu') && !domain.endsWith('.edu.au') && !domain.endsWith('.com.au') && !domain.endsWith('.org') && !domain.endsWith('.gov')) {
+        return { isValid: false, message: 'Please verify your email domain' };
+      }
+    }
+
+    return { isValid: true, message: '' };
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -34,8 +112,9 @@ export default function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateEmail(formData.from_email)) {
-      toast.error('Please enter a valid email address');
+    const emailValidation = validateEmail(formData.from_email);
+    if (!emailValidation.isValid) {
+      toast.error(emailValidation.message);
       return;
     }
 
