@@ -52,25 +52,25 @@ export default function Experience() {
         <div className="mt-12 space-y-8">
           {experiences.map((exp, index) => (
             <div key={index} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-100">
-              <div className="flex flex-col md:flex-row md:items-start gap-4">
+              <div className="flex flex-row items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="p-3 bg-[#94c973]/10 rounded-lg">
                     <Briefcase className="h-6 w-6 text-[#94c973]" />
                   </div>
                 </div>
                 
-                <div className="flex-grow">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-                    <h3 className="text-xl font-semibold text-gray-900">{exp.title}</h3>
-                    <div className="flex items-center text-[#94c973]">
+                <div className="flex-grow min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <h3 className="text-xl font-semibold text-gray-900 truncate">{exp.title}</h3>
+                    <div className="flex items-center text-[#94c973] flex-shrink-0">
                       <Calendar className="h-4 w-4 mr-1" />
-                      <span className="text-sm">{exp.period}</span>
+                      <span className="text-sm whitespace-nowrap">{exp.period}</span>
                     </div>
                   </div>
                   
-                  <div className="mt-1 flex flex-col md:flex-row md:items-center gap-2 text-gray-600">
+                  <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-2 text-gray-600">
                     <span className="font-medium">{exp.company}</span>
-                    <span className="hidden md:block">•</span>
+                    <span className="hidden sm:block">•</span>
                     <span>{exp.location}</span>
                   </div>
                   
