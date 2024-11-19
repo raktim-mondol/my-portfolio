@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Linkedin } from 'lucide-react';
-import ParticlesBackground from './ParticlesBackground';
 
 export default function Hero() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -16,8 +15,7 @@ export default function Hero() {
 
   return (
     <div id="about" className="relative bg-white overflow-hidden py-12">
-      <ParticlesBackground />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-8">
           <div className="relative">
             <img
