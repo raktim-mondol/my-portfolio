@@ -42,9 +42,9 @@ export default function Education() {
           <p className="mt-4 text-xl text-gray-600 dark:text-gray-300">Academic journey</p>
         </div>
 
-        <div className="mt-12 space-y-12">
+        <div className="mt-12 space-y-8">
           {education.map((edu, index) => (
-            <div key={index} className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg hover:shadow-xl transition">
+            <div key={index} className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md hover:shadow-lg transition border border-gray-100 dark:border-gray-700">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 w-8 h-8">
