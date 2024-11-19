@@ -1,6 +1,7 @@
 import React from 'react';
 import { GraduationCap, BookOpen, ExternalLink } from 'lucide-react';
 import AudioPlayer from './AudioPlayer';
+import { useTheme } from './ThemeContext';
 
 const education = [
   {
@@ -9,7 +10,10 @@ const education = [
     year: "2020-2024 (Expected)",
     thesis: "Deep learning models for histopathology image analysis",
     description: "Developing advanced AI models for analyzing histopathology images and genetic data in breast cancer research.",
-    logo: "/assets/images/unsw-logo.png"
+    logo: {
+      light: "/assets/images/unsw-logo.png",
+      dark: "/assets/images/unsw-logo-dm.png"
+    }
   },
   {
     degree: "MS by Research in Computer Science & Bioinformatics",
@@ -20,11 +24,16 @@ const education = [
     certUrl: "https://www.myequals.net/sharelink/78e7c7d7-5a73-4e7c-9711-f163f5dd1604/af0d807a-8392-45be-9104-d26b95f5aa7a",
     thesisUrl: "https://research-repository.rmit.edu.au/articles/thesis/Deep_learning_in_classifying_cancer_subtypes_extracting_relevant_genes_and_identifying_novel_mutations/27589272",
     audioSummary: "/assets/audio/masters-thesis-summary.mp3",
-    logo: "/assets/images/rmit-logo.png"
+    logo: {
+      light: "/assets/images/rmit-logo.png",
+      dark: "/assets/images/rmit-logo-dm.png"
+    }
   }
 ];
 
 export default function Education() {
+  const { theme } = useTheme();
+
   return (
     <section id="education" className="py-20 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,9 +54,9 @@ export default function Education() {
                 </div>
                 <div className="flex-shrink-0 w-32 h-16 flex items-center justify-center">
                   <img 
-                    src={edu.logo} 
+                    src={theme === 'dark' ? edu.logo.dark : edu.logo.light}
                     alt={`${edu.institution} logo`}
-                    className="max-w-full max-h-full object-contain dark:filter dark:brightness-90"
+                    className="max-w-full max-h-full object-contain"
                   />
                 </div>
               </div>
