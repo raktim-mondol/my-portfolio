@@ -10,7 +10,7 @@ const publications = [
     authors: "Mondol, R.K.; Millar, E.K.A.; Sowmya, A.; Meijering, E.",
     paperUrl: "https://ieeexplore.ieee.org/document/10568932",
     codeUrl: "https://github.com/raktim-mondol/BioFusionNet",
-    audioSummary: "/assets/audio/biofusionnet-summary.mp3"
+    audioSummary: "/assets/audio/biofusionnet-summary.wav"
   },
   {
     title: "hist2RNA: An Efficient Deep Learning Architecture to Predict Gene Expression from Breast Cancer Histopathology Images",
@@ -19,7 +19,7 @@ const publications = [
     authors: "Mondol, R.K.; Millar, E.K.A.; Graham, P.H.; Browne, L.; Sowmya, A.; Meijering, E.",
     paperUrl: "https://www.mdpi.com/2072-6694/15/9/2569",
     codeUrl: "https://github.com/raktim-mondol/hist2RNA",
-    audioSummary: "/assets/audio/hist2rna-summary.mp3"
+    audioSummary: "/assets/audio/hist2rna-summary.wav"
   },
   {
     title: "AFExNet: An Adversarial Autoencoder for Differentiating Breast Cancer Sub-types and Extracting Biologically Relevant Genes",
@@ -28,30 +28,30 @@ const publications = [
     authors: "Mondol, R.K., N. D. Truong, M. Reza, S. Ippolito, E. Ebrahimie, and O. Kavehei",
     paperUrl: "https://ieeexplore.ieee.org/document/9378938",
     codeUrl: "https://github.com/NeuroSyd/breast-cancer-sub-types",
-    audioSummary: "/assets/audio/afexnet-summary.mp3"
+    audioSummary: "/assets/audio/afexnet-summary.wav"
   }
 ];
 
 export default function Publications() {
   return (
-    <section id="publications" className="py-20 bg-gray-50">
+    <section id="publications" className="py-20 bg-gray-50 dark:bg-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Publications</h2>
-          <p className="mt-4 text-xl text-gray-600">Selected peer-reviewed research papers</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Publications</h2>
+          <p className="mt-4 text-xl text-gray-600 dark:text-gray-300">Selected peer-reviewed research papers</p>
         </div>
 
         <div className="mt-12 space-y-8">
           {publications.map((pub, index) => (
-            <div key={index} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+            <div key={index} className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md hover:shadow-lg transition">
               <div className="flex items-start space-x-4">
                 <BookText className="h-6 w-6 text-[#94c973] mt-1" />
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-gray-900">{pub.title}</h3>
-                  <p className="mt-2 text-gray-600">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{pub.title}</h3>
+                  <p className="mt-2 text-gray-600 dark:text-gray-300">
                     {pub.authors}
                   </p>
-                  <p className="mt-1 text-gray-600">
+                  <p className="mt-1 text-gray-600 dark:text-gray-400">
                     {pub.journal} ({pub.year})
                   </p>
                   

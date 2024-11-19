@@ -48,29 +48,29 @@ const awards = [
 
 export default function Awards() {
   return (
-    <section id="awards" className="py-20 bg-gray-50">
+    <section id="awards" className="py-20 bg-gray-50 dark:bg-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Awards & Honors</h2>
-          <p className="mt-4 text-xl text-gray-600">Recognition for academic excellence and research achievements</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Awards & Honors</h2>
+          <p className="mt-4 text-xl text-gray-600 dark:text-gray-300">Recognition for academic excellence and research achievements</p>
         </div>
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {awards.map((award, index) => (
-            <div key={index} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div key={index} className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="flex items-center space-x-3 mb-4">
                 <span className="p-2 bg-[#94c973]/10 rounded-lg">
                   <award.icon className="h-6 w-6 text-[#94c973]" />
                 </span>
-                <h3 className="text-lg font-semibold text-gray-900">{award.title}</h3>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{award.title}</h3>
               </div>
               
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-[#94c973] font-medium">{award.organization}</p>
-                  <p className="text-gray-500 text-sm">{award.year}</p>
+                  <p className="text-[#94c973]">{award.organization}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">{award.year}</p>
                 </div>
-                <p className="text-gray-700 text-sm mt-2">{award.description}</p>
+                <p className="text-gray-700 dark:text-gray-300 text-sm mt-2">{award.description}</p>
               </div>
             </div>
           ))}

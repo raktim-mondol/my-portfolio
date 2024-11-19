@@ -8,25 +8,30 @@ import Research from './components/Research';
 import Publications from './components/Publications';
 import Awards from './components/Awards';
 import Contact from './components/Contact';
+import ScrollProgress from './components/ScrollProgress';
 import { AudioProvider } from './components/AudioContext';
+import { ThemeProvider } from './components/ThemeContext';
 
 function App() {
   return (
-    <AudioProvider>
-      <div className="min-h-screen bg-white">
-        <Navbar />
-        <div className="pt-16">
-          <Hero />
-          <Education />
-          <Experience />
-          <Skills />
-          <Research />
-          <Publications />
-          <Awards />
-          <Contact />
+    <ThemeProvider>
+      <AudioProvider>
+        <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
+          <ScrollProgress />
+          <Navbar />
+          <div className="pt-16">
+            <Hero />
+            <Education />
+            <Experience />
+            <Skills />
+            <Research />
+            <Publications />
+            <Awards />
+            <Contact />
+          </div>
         </div>
-      </div>
-    </AudioProvider>
+      </AudioProvider>
+    </ThemeProvider>
   );
 }
 

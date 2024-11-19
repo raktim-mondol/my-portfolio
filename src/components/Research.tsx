@@ -36,11 +36,11 @@ const researchAreas = [
 
 export default function Research() {
   return (
-    <section id="research" className="py-20">
+    <section id="research" className="py-20 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Research Areas</h2>
-          <p className="mt-4 text-xl text-gray-600">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Research Areas</h2>
+          <p className="mt-4 text-xl text-gray-600 dark:text-gray-300">
             Exploring the frontiers of AI and computational biology
           </p>
         </div>
@@ -49,15 +49,15 @@ export default function Research() {
           {researchAreas.map((area, index) => (
             <div
               key={index}
-              className="relative group bg-white p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-[#94c973] rounded-lg shadow-md hover:shadow-lg transition"
+              className="relative group bg-white dark:bg-gray-800 p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-[#94c973] rounded-lg shadow-md hover:shadow-lg transition"
             >
               <div className="flex items-center gap-4">
-                <span className="flex-shrink-0 rounded-lg inline-flex p-3 bg-[#94c973]/10 text-[#94c973] ring-4 ring-white">
+                <span className="flex-shrink-0 rounded-lg inline-flex p-3 bg-[#94c973]/10 text-[#94c973] ring-4 ring-white dark:ring-gray-800">
                   <area.icon className="h-6 w-6" aria-hidden="true" />
                 </span>
-                <h3 className="text-lg font-medium text-gray-900">{area.title}</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">{area.title}</h3>
               </div>
-              <p className="mt-4 text-sm text-gray-500">
+              <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
                 {area.description}
               </p>
             </div>

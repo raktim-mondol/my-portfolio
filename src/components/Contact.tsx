@@ -3,7 +3,6 @@ import { Mail, MapPin, Phone } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 import toast, { Toaster } from 'react-hot-toast';
 
-// Email service credentials
 const SERVICE_ID = 'service_pf60vvq';
 const TEMPLATE_ID = 'template_khtz52h';
 const PUBLIC_KEY = 'YNARHMC0iqRPaRFIf';
@@ -19,21 +18,17 @@ export default function Contact() {
   });
 
   const validateEmail = (email: string) => {
-    // Basic format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return { isValid: false, message: 'Please enter a valid email address (e.g., name@example.com)' };
     }
 
-    // Split email into local part and domain
     const [localPart] = email.split('@');
 
-    // Check local part length
     if (localPart.length < 1) {
       return { isValid: false, message: 'Email username cannot be empty' };
     }
 
-    // Check for consecutive special characters
     if (/[._%+-]{2,}/.test(localPart)) {
       return { isValid: false, message: 'Email cannot contain consecutive special characters' };
     }
@@ -90,21 +85,21 @@ export default function Contact() {
   };
 
   return (
-    <section id="contact" className="py-20 bg-gray-50">
+    <section id="contact" className="py-20 bg-gray-50 dark:bg-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Get in Touch</h2>
-          <p className="mt-4 text-xl text-gray-600">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Get in Touch</h2>
+          <p className="mt-4 text-xl text-gray-600 dark:text-gray-300">
             Interested in collaboration? Let's discuss your research ideas.
           </p>
         </div>
 
         <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-2">
-          <div className="relative bg-white rounded-lg shadow-md p-8">
+          <div className="relative bg-white dark:bg-gray-900 rounded-lg shadow-md p-8">
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
               <input type="hidden" name="to_name" value={formData.to_name} />
               <div>
-                <label htmlFor="from_name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="from_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Your Name
                 </label>
                 <input
@@ -114,11 +109,11 @@ export default function Contact() {
                   value={formData.from_name}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973]"
+                  className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973] dark:text-white"
                 />
               </div>
               <div>
-                <label htmlFor="from_email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="from_email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Your Email Address
                 </label>
                 <input
@@ -130,11 +125,11 @@ export default function Contact() {
                   required
                   pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
                   title="Please enter a valid email address (e.g., name@example.com)"
-                  className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973]"
+                  className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973] dark:text-white"
                 />
               </div>
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Message
                 </label>
                 <textarea
@@ -144,7 +139,7 @@ export default function Contact() {
                   value={formData.message}
                   onChange={handleChange}
                   required
-                  className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973] resize-none"
+                  className="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973] resize-none dark:text-white"
                 />
               </div>
               <div>
@@ -159,13 +154,13 @@ export default function Contact() {
             </form>
           </div>
 
-          <div className="relative bg-white rounded-lg shadow-md p-8">
+          <div className="relative bg-white dark:bg-gray-900 rounded-lg shadow-md p-8">
             <div className="space-y-8">
               <div className="flex items-start space-x-4">
                 <MapPin className="h-6 w-6 text-[#94c973]" />
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">Location</h3>
-                  <p className="mt-2 text-gray-600">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Location</h3>
+                  <p className="mt-2 text-gray-600 dark:text-gray-300">
                     School of Computer Science and Engineering<br />
                     Building K17<br />
                     UNSW Sydney, NSW 2052
@@ -176,16 +171,16 @@ export default function Contact() {
               <div className="flex items-start space-x-4">
                 <Mail className="h-6 w-6 text-[#94c973]" />
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">Email</h3>
-                  <p className="mt-2 text-gray-600">r.mondol@unsw.edu.au</p>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Email</h3>
+                  <p className="mt-2 text-gray-600 dark:text-gray-300">r.mondol@unsw.edu.au</p>
                 </div>
               </div>
 
               <div className="flex items-start space-x-4">
                 <Phone className="h-6 w-6 text-[#94c973]" />
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">Phone</h3>
-                  <p className="mt-2 text-gray-600">+61 412 936 237</p>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">Phone</h3>
+                  <p className="mt-2 text-gray-600 dark:text-gray-300">+61 412 936 237</p>
                 </div>
               </div>
             </div>

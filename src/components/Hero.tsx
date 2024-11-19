@@ -14,7 +14,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <div id="about" className="relative bg-white overflow-hidden py-12">
+    <div id="about" className="relative bg-white dark:bg-gray-900 overflow-hidden py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-8">
           <div className="relative">
@@ -23,7 +23,7 @@ export default function Hero() {
               src="/assets/images/profile.jpg"
               alt="Raktim Mondol"
             />
-            <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center bg-white px-4 py-2 rounded-full shadow-md">
+            <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-md">
               <a 
                 href="https://www.linkedin.com/in/rmondol/"
                 target="_blank"
@@ -36,10 +36,10 @@ export default function Hero() {
           </div>
 
           <div className="max-w-2xl text-center sm:text-left">
-            <h1 className="text-4xl tracking-tight font-bold text-gray-900 sm:text-5xl">
+            <h1 className="text-4xl tracking-tight font-bold text-gray-900 dark:text-white sm:text-5xl">
               <span className="block">Raktim <strong>Mondol</strong></span>
               <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start mt-2">
-                <span className="text-2xl sm:text-3xl">I'm</span>
+                <span className="text-2xl sm:text-3xl dark:text-gray-200">I'm</span>
                 <div className="words-wrapper mt-2 sm:mt-0">
                   {words.map((word, index) => (
                     <span

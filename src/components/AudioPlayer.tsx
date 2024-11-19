@@ -18,7 +18,6 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
   const { currentlyPlaying, setCurrentlyPlaying } = useAudioContext();
 
   useEffect(() => {
-    // Reset state when src changes
     setIsPlaying(false);
     setProgress(0);
     setCurrentTime(0);
@@ -26,7 +25,6 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
   }, [src]);
 
   useEffect(() => {
-    // Stop this audio if another audio starts playing
     if (currentlyPlaying && currentlyPlaying !== src && isPlaying) {
       audioRef.current?.pause();
       setIsPlaying(false);
@@ -59,7 +57,6 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
     if (isPlaying) {
       pauseAudio();
     } else {
-      // If another audio is playing, stop it first
       if (currentlyPlaying && currentlyPlaying !== src) {
         const event = new CustomEvent('stopAllAudio', { detail: { except: src } });
         window.dispatchEvent(event);
@@ -126,7 +123,7 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
   };
 
   return (
-    <div className="flex flex-col gap-2 p-3 bg-white rounded-lg border border-gray-200">
+    <div className="flex flex-col gap-2 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
       <div className="flex items-center gap-3">
         <button
           onClick={togglePlay}
@@ -141,7 +138,7 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
           {title}
         </span>
 
-        <span className="text-xs text-gray-500 ml-auto flex-shrink-0">
+        <span className="text-xs text-gray-500 dark:text-gray-400 ml-auto flex-shrink-0">
           {formatTime(currentTime)} / {formatTime(duration)}
         </span>
       </div>
@@ -151,7 +148,7 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
       ) : (
         <div 
           ref={progressRef}
-          className="h-2 bg-gray-100 rounded-full cursor-pointer relative overflow-hidden"
+          className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full cursor-pointer relative overflow-hidden"
           onClick={handleProgressClick}
         >
           <div 

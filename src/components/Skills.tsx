@@ -36,21 +36,21 @@ const skillCategories = [
 
 export default function Skills() {
   return (
-    <section id="skills" className="py-20 bg-gray-50">
+    <section id="skills" className="py-20 bg-gray-50 dark:bg-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Technical Skills</h2>
-          <p className="mt-4 text-xl text-gray-600">Expertise across computational biology and data science</p>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Technical Skills</h2>
+          <p className="mt-4 text-xl text-gray-600 dark:text-gray-300">Expertise across computational biology and data science</p>
         </div>
 
         <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {skillCategories.map((category, index) => (
-            <div key={index} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <div key={index} className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="flex items-center space-x-3 mb-4">
                 <span className="p-2 bg-[#94c973]/10 rounded-lg">
                   <category.icon className="h-6 w-6 text-[#94c973]" />
                 </span>
-                <h3 className="text-xl font-semibold text-gray-900">{category.title}</h3>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{category.title}</h3>
               </div>
               
               <div className="flex flex-wrap gap-2">
