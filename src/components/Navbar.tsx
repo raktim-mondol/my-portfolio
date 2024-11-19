@@ -31,13 +31,8 @@ export default function Navbar() {
   const handleNameClick = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Show active state very briefly for visual feedback
+    // Set active state
     setIsNameActive(true);
-    
-    // Release color immediately
-    requestAnimationFrame(() => {
-      setIsNameActive(false);
-    });
     
     // Handle navigation
     const element = document.getElementById('about');
@@ -45,7 +40,23 @@ export default function Navbar() {
       element.scrollIntoView({ behavior: 'smooth' });
     }
     
+    // Release active state after a very short delay
+    setTimeout(() => {
+      setIsNameActive(false);
+    }, 100);
+    
     setIsOpen(false);
+  };
+
+  // Handle touch events for mobile
+  const handleTouchStart = () => {
+    setIsNameActive(true);
+  };
+
+  const handleTouchEnd = () => {
+    setTimeout(() => {
+      setIsNameActive(false);
+    }, 100);
   };
 
   return (
@@ -58,6 +69,9 @@ export default function Navbar() {
               href="#about"
               className={`ml-2 text-xl transition-colors ${isNameActive ? 'text-[#94c973]' : 'hover:text-[#94c973]'}`}
               onClick={handleNameClick}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              onTouchCancel={handleTouchEnd}
             >
               Raktim <strong>Mondol</strong>
             </a>
