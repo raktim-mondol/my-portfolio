@@ -46,7 +46,7 @@ export default function Contact() {
 
       if (result.text === 'OK') {
         toast.dismiss(loadingToast);
-        toast.success('Message sent successfully! We will get back to you soon.');
+        toast.success('Message sent successfully! I will get back to you soon.');
         setFormData({ to_name: 'Raktim', from_name: '', from_email: '', message: '' });
       } else {
         throw new Error('Failed to send message');
