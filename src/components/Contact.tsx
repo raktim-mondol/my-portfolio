@@ -12,8 +12,9 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const [formData, setFormData] = useState({
-    user_name: '',
-    user_email: '',
+    to_name: 'Raktim',
+    from_name: '',
+    from_email: '',
     message: ''
   });
 
@@ -21,7 +22,7 @@ export default function Contact() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name === 'user_name' ? 'from_name' : name === 'user_email' ? 'from_email' : name]: value
     }));
   };
 
@@ -46,7 +47,7 @@ export default function Contact() {
       if (result.text === 'OK') {
         toast.dismiss(loadingToast);
         toast.success('Message sent successfully! We will get back to you soon.');
-        setFormData({ user_name: '', user_email: '', message: '' });
+        setFormData({ to_name: 'Raktim', from_name: '', from_email: '', message: '' });
       } else {
         throw new Error('Failed to send message');
       }
@@ -72,29 +73,30 @@ export default function Contact() {
         <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-2">
           <div className="relative bg-white rounded-lg shadow-md p-8">
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
+              <input type="hidden" name="to_name" value={formData.to_name} />
               <div>
-                <label htmlFor="user_name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="from_name" className="block text-sm font-medium text-gray-700">
                   Your Name
                 </label>
                 <input
                   type="text"
-                  name="user_name"
-                  id="user_name"
-                  value={formData.user_name}
+                  name="from_name"
+                  id="from_name"
+                  value={formData.from_name}
                   onChange={handleChange}
                   required
                   className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973]"
                 />
               </div>
               <div>
-                <label htmlFor="user_email" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="from_email" className="block text-sm font-medium text-gray-700">
                   Your Email Address
                 </label>
                 <input
                   type="email"
-                  name="user_email"
-                  id="user_email"
-                  value={formData.user_email}
+                  name="from_email"
+                  id="from_email"
+                  value={formData.from_email}
                   onChange={handleChange}
                   required
                   className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973]"
