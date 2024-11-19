@@ -20,7 +20,7 @@ export default function Hero() {
           <div className="relative">
             <img
               className="h-48 w-48 rounded-full object-cover shadow-lg"
-              src="/assets/images/raktim.jpg"
+              src="/assets/images/profile.jpg"
               alt="Raktim Mondol"
             />
             <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-md">
