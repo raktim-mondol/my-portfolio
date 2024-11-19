@@ -9,7 +9,7 @@ const education = [
     institution: "UNSW Sydney",
     year: "2020-2024 (Expected)",
     thesis: "Deep learning models for histopathology image analysis",
-    description: "Developing advanced AI models for analyzing histopathology images and genetic data to advance breast cancer research.",
+    description: "Developing AI models for analyzing histopathology images and genetic data to advance breast cancer research.",
     logo: {
       light: "/assets/images/unsw-logo.png",
       dark: "/assets/images/unsw-logo-dm.png"
