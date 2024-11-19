@@ -5,75 +5,22 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isNameActive, setIsNameActive] = useState(false);
-  const [touchStartY, setTouchStartY] = useState<number | null>(null);
-  const lastScrollTop = useRef(0);
-  const scrollTimeout = useRef<NodeJS.Timeout>();
+  const nameTimeout = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const handleScroll = () => {
-      const st = window.scrollY;
-      
-      // Clear any existing timeout
-      if (scrollTimeout.current) {
-        clearTimeout(scrollTimeout.current);
-      }
-
-      // Detect scroll direction and movement
-      if (Math.abs(st - lastScrollTop.current) > 2) { // Small threshold to detect actual scroll
-        setIsNameActive(false);
-        if (isOpen) {
-          setIsOpen(false);
-        }
-      }
-
-      lastScrollTop.current = st;
-      setIsScrolled(st > 0);
-
-      // Set a timeout to ensure we catch momentum scrolling
-      scrollTimeout.current = setTimeout(() => {
-        setIsNameActive(false);
-      }, 150);
+      setIsScrolled(window.scrollY > 0);
+      setIsNameActive(false);
     };
 
-    const handleTouchStart = (e: TouchEvent) => {
-      setTouchStartY(e.touches[0].clientY);
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (touchStartY !== null) {
-        const currentY = e.touches[0].clientY;
-        const touchDiff = Math.abs(currentY - touchStartY);
-        
-        if (touchDiff > 5) { // Small threshold to detect intentional scroll
-          setIsNameActive(false);
-          if (isOpen) {
-            setIsOpen(false);
-          }
-        }
-      }
-    };
-
-    const handleTouchEnd = () => {
-      setTouchStartY(null);
-    };
-
-    // Add event listeners with passive option for better scroll performance
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchmove', handleTouchMove, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd, { passive: true });
-
-    // Cleanup
     return () => {
-      if (scrollTimeout.current) {
-        clearTimeout(scrollTimeout.current);
-      }
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
+      if (nameTimeout.current) {
+        clearTimeout(nameTimeout.current);
+      }
     };
-  }, [isOpen]);
+  }, []);
 
   const handleDownloadCV = () => {
     const cvUrl = '/assets/docs/raktim_cv.pdf';
@@ -97,39 +44,32 @@ export default function Navbar() {
 
   const handleLinkClick = () => {
     setIsOpen(false);
-    setIsNameActive(false);
   };
 
   const handleNameClick = (e: React.MouseEvent) => {
     e.preventDefault();
+    
+    // Briefly show the active state
     setIsNameActive(true);
-    handleLinkClick();
+    
+    // Clear any existing timeout
+    if (nameTimeout.current) {
+      clearTimeout(nameTimeout.current);
+    }
+    
+    // Reset the active state after a brief moment
+    nameTimeout.current = setTimeout(() => {
+      setIsNameActive(false);
+    }, 150);
+
+    // Handle navigation
     const element = document.getElementById('about');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
     }
+    
+    setIsOpen(false);
   };
-
-  // Handle any interaction outside the name
-  useEffect(() => {
-    const handleInteraction = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('a[href="#about"]')) {
-        setIsNameActive(false);
-      }
-    };
-
-    // Use capture phase to ensure we catch events before they propagate
-    document.addEventListener('touchstart', handleInteraction, { capture: true });
-    document.addEventListener('mousedown', handleInteraction, { capture: true });
-    document.addEventListener('wheel', () => setIsNameActive(false), { passive: true });
-
-    return () => {
-      document.removeEventListener('touchstart', handleInteraction, { capture: true });
-      document.removeEventListener('mousedown', handleInteraction, { capture: true });
-      document.removeEventListener('wheel', () => setIsNameActive(false));
-    };
-  }, []);
 
   return (
     <nav className={`fixed w-full bg-white/90 backdrop-blur-sm z-50 shadow-sm transition-all duration-200 ${isOpen ? 'bg-white' : ''}`}>
