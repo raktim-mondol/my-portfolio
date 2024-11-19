@@ -16,7 +16,6 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { href: "#about", text: "About" },
     { href: "#education", text: "Education" },
     { href: "#experience", text: "Experience" },
     { href: "#skills", text: "Skills" },
