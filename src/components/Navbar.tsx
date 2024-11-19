@@ -5,7 +5,6 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isNameActive, setIsNameActive] = useState(false);
-  const nameTimeout = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,9 +15,6 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (nameTimeout.current) {
-        clearTimeout(nameTimeout.current);
-      }
     };
   }, []);
 
@@ -49,18 +45,13 @@ export default function Navbar() {
   const handleNameClick = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Briefly show the active state
+    // Show active state
     setIsNameActive(true);
     
-    // Clear any existing timeout
-    if (nameTimeout.current) {
-      clearTimeout(nameTimeout.current);
-    }
-    
-    // Reset the active state after a brief moment
-    nameTimeout.current = setTimeout(() => {
+    // Immediately schedule the color release
+    requestAnimationFrame(() => {
       setIsNameActive(false);
-    }, 150);
+    });
 
     // Handle navigation
     const element = document.getElementById('about');
