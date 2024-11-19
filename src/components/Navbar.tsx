@@ -4,6 +4,7 @@ import { Menu, X, BookOpen } from 'lucide-react';
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isNameActive, setIsNameActive] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -11,6 +12,8 @@ export default function Navbar() {
       if (isOpen) {
         setIsOpen(false);
       }
+      // Reset name color when scrolling
+      setIsNameActive(false);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -39,6 +42,17 @@ export default function Navbar() {
 
   const handleLinkClick = () => {
     setIsOpen(false);
+    setIsNameActive(false);
+  };
+
+  const handleNameClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNameActive(true);
+    handleLinkClick();
+    const element = document.getElementById('about');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -49,8 +63,8 @@ export default function Navbar() {
             <BookOpen className="h-8 w-8 text-[#94c973]" />
             <a 
               href="#about"
-              className={`ml-2 text-xl transition-colors ${isOpen ? 'text-[#94c973]' : 'hover:text-[#94c973]'}`}
-              onClick={handleLinkClick}
+              className={`ml-2 text-xl transition-colors ${isNameActive ? 'text-[#94c973]' : 'hover:text-[#94c973]'}`}
+              onClick={handleNameClick}
             >
               Raktim <strong>Mondol</strong>
             </a>
