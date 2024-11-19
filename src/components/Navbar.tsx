@@ -48,7 +48,7 @@ export default function Navbar() {
             <BookOpen className="h-8 w-8 text-[#94c973]" />
             <a 
               href="#about"
-              className={`ml-2 text-xl transition-colors dark:text-white ${isNameActive ? 'text-[#94c973]' : 'hover:text-[#94c973]'}`}
+              className={`ml-2 text-xl transition-colors dark:text-white ${isNameActive ? 'text-[#94c973]' : 'hover:text-[#94c973] dark:hover:text-[#94c973]'}`}
               onClick={handleNameClick}
             >
               Raktim <strong>Mondol</strong>
