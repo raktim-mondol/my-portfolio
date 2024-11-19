@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Play, Pause } from 'lucide-react';
+import { useAudioContext } from './AudioContext';
 
 interface AudioPlayerProps {
   src: string;
@@ -14,6 +15,7 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
+  const { currentlyPlaying, setCurrentlyPlaying } = useAudioContext();
 
   useEffect(() => {
     // Reset state when src changes
@@ -23,14 +25,25 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
     setError(null);
   }, [src]);
 
+  useEffect(() => {
+    // Stop playing if another audio starts playing
+    if (currentlyPlaying && currentlyPlaying !== src && isPlaying) {
+      audioRef.current?.pause();
+      setIsPlaying(false);
+    }
+  }, [currentlyPlaying, src, isPlaying]);
+
   const togglePlay = () => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
+        setCurrentlyPlaying(null);
       } else {
         const playPromise = audioRef.current.play();
         if (playPromise !== undefined) {
-          playPromise.catch(error => {
+          playPromise.then(() => {
+            setCurrentlyPlaying(src);
+          }).catch(error => {
             console.error('Playback error:', error);
             setError('Failed to play audio. Please try again.');
           });
@@ -59,6 +72,12 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
   const handleError = () => {
     setError('Failed to load audio file');
     setIsPlaying(false);
+    setCurrentlyPlaying(null);
+  };
+
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setCurrentlyPlaying(null);
   };
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -120,7 +139,7 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onError={handleError}
-        onEnded={() => setIsPlaying(false)}
+        onEnded={handleEnded}
       />
     </div>
   );
