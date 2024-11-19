@@ -26,32 +26,60 @@ export default function AudioPlayer({ src, title }: AudioPlayerProps) {
   }, [src]);
 
   useEffect(() => {
-    // Stop playing if another audio starts playing
+    // Stop this audio if another audio starts playing
     if (currentlyPlaying && currentlyPlaying !== src && isPlaying) {
       audioRef.current?.pause();
       setIsPlaying(false);
     }
   }, [currentlyPlaying, src, isPlaying]);
 
-  const togglePlay = () => {
+  const playAudio = async () => {
     if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-        setCurrentlyPlaying(null);
-      } else {
-        const playPromise = audioRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise.then(() => {
-            setCurrentlyPlaying(src);
-          }).catch(error => {
-            console.error('Playback error:', error);
-            setError('Failed to play audio. Please try again.');
-          });
-        }
+      try {
+        await audioRef.current.play();
+        setCurrentlyPlaying(src);
+        setIsPlaying(true);
+      } catch (error) {
+        console.error('Playback error:', error);
+        setError('Failed to play audio. Please try again.');
+        setIsPlaying(false);
       }
-      setIsPlaying(!isPlaying);
     }
   };
+
+  const pauseAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      setCurrentlyPlaying(null);
+      setIsPlaying(false);
+    }
+  };
+
+  const togglePlay = async () => {
+    if (isPlaying) {
+      pauseAudio();
+    } else {
+      // If another audio is playing, stop it first
+      if (currentlyPlaying && currentlyPlaying !== src) {
+        const event = new CustomEvent('stopAllAudio', { detail: { except: src } });
+        window.dispatchEvent(event);
+      }
+      await playAudio();
+    }
+  };
+
+  useEffect(() => {
+    const handleStopAllAudio = (e: CustomEvent<{ except: string }>) => {
+      if (e.detail.except !== src && isPlaying) {
+        pauseAudio();
+      }
+    };
+
+    window.addEventListener('stopAllAudio', handleStopAllAudio as EventListener);
+    return () => {
+      window.removeEventListener('stopAllAudio', handleStopAllAudio as EventListener);
+    };
+  }, [src, isPlaying]);
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
