@@ -1,8 +1,21 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X, BookOpen } from 'lucide-react';
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+      if (isOpen) {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isOpen]);
 
   const handleDownloadCV = () => {
     const cvUrl = '/assets/docs/raktim_cv.pdf';
@@ -24,15 +37,20 @@ export default function Navbar() {
     { href: "#awards", text: "Awards" }
   ];
 
+  const handleLinkClick = () => {
+    setIsOpen(false);
+  };
+
   return (
-    <nav className="fixed w-full bg-white/90 backdrop-blur-sm z-50 shadow-sm">
+    <nav className={`fixed w-full bg-white/90 backdrop-blur-sm z-50 shadow-sm transition-all duration-200 ${isOpen ? 'bg-white' : ''}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <BookOpen className="h-8 w-8 text-[#94c973]" />
             <a 
               href="#about"
-              className="ml-2 text-xl hover:text-[#94c973] transition-colors"
+              className={`ml-2 text-xl transition-colors ${isOpen ? 'text-[#94c973]' : 'hover:text-[#94c973]'}`}
+              onClick={handleLinkClick}
             >
               Raktim <strong>Mondol</strong>
             </a>
@@ -45,6 +63,7 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href} 
                 className="text-gray-700 hover:text-[#94c973] transition"
+                onClick={handleLinkClick}
               >
                 {link.text}
               </a>
@@ -59,7 +78,10 @@ export default function Navbar() {
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <button onClick={() => setIsOpen(!isOpen)} className="text-gray-700">
+            <button 
+              onClick={() => setIsOpen(!isOpen)} 
+              className="text-gray-700 hover:text-[#94c973] transition-colors"
+            >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
@@ -68,20 +90,24 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white">
+        <div className="md:hidden absolute w-full bg-white shadow-lg">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navLinks.map((link) => (
               <a 
                 key={link.href}
                 href={link.href} 
-                className="block px-3 py-2 text-gray-700 hover:text-[#94c973]"
+                className="block px-3 py-2 text-gray-700 hover:text-[#94c973] transition-colors"
+                onClick={handleLinkClick}
               >
                 {link.text}
               </a>
             ))}
             <button 
-              onClick={handleDownloadCV}
-              className="block w-full text-left px-3 py-2 text-[#94c973] font-medium"
+              onClick={() => {
+                handleDownloadCV();
+                handleLinkClick();
+              }}
+              className="block w-full text-left px-3 py-2 text-[#94c973] font-medium hover:bg-gray-50 transition-colors"
             >
               Download CV
             </button>
