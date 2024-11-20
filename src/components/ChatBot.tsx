@@ -81,8 +81,8 @@ export default function ChatBot() {
     <>
       {showLoadingMessage && (
         <div className="fixed bottom-4 right-4" style={{ zIndex: 999999 }}>
-          <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-full shadow-lg border border-gray-200 dark:border-gray-700">
-            <Loader2 className="w-6 h-6 text-gray-600 dark:text-[#94c973] animate-spin" />
+          <div className="bg-white dark:bg-gray-800 p-2 rounded-full shadow-lg border border-gray-200 dark:border-gray-700">
+            <Loader2 className="w-6 h-6 text-[#94c973] animate-spin" />
           </div>
         </div>
       )}
