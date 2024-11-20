@@ -14,14 +14,33 @@ declare global {
 
 export default function ChatBot() {
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
-  const [isChatbotReady, setIsChatbotReady] = useState(false);
   const [showLoadingMessage, setShowLoadingMessage] = useState(true);
   const checkInterval = useRef<NodeJS.Timeout | null>(null);
+  const attempts = useRef(0);
+  const maxAttempts = 50; // 5 seconds maximum wait time
+
+  const checkChatbotRendered = () => {
+    attempts.current += 1;
+    
+    // Check for either the iframe or the chat button
+    const chatbotFrame = document.querySelector('iframe[src*="zapier"]');
+    const chatButton = document.querySelector('button[data-testid="chat-button"]');
+    
+    if (chatbotFrame || chatButton || attempts.current >= maxAttempts) {
+      setShowLoadingMessage(false);
+      if (checkInterval.current) {
+        clearInterval(checkInterval.current);
+      }
+    }
+  };
 
   useEffect(() => {
     const loadChatbotScript = async () => {
       try {
-        if (document.querySelector('script[src*="zapier-interfaces"]')) {
+        // Check if script is already loaded
+        const existingScript = document.querySelector('script[src*="zapier-interfaces"]');
+        
+        if (existingScript) {
           setIsScriptLoaded(true);
           checkInterval.current = setInterval(checkChatbotRendered, 100);
           return;
@@ -58,17 +77,6 @@ export default function ChatBot() {
     };
   }, []);
 
-  const checkChatbotRendered = () => {
-    const chatbotFrame = document.querySelector('iframe[src*="zapier"]');
-    if (chatbotFrame) {
-      setIsChatbotReady(true);
-      setShowLoadingMessage(false);
-      if (checkInterval.current) {
-        clearInterval(checkInterval.current);
-      }
-    }
-  };
-
   return (
     <>
       {showLoadingMessage && (
@@ -81,9 +89,9 @@ export default function ChatBot() {
               <span className="animate-bounce" style={{ animationDelay: '300ms' }}>.</span>
             </span>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-3 rounded-full shadow-lg">
+          <div className="bg-white dark:bg-gray-800 p-3 rounded-full shadow-lg relative">
             <MessageSquare className="w-6 h-6 text-[#94c973]" />
-            <Loader2 className="w-6 h-6 text-[#94c973] animate-spin absolute" />
+            <Loader2 className="w-6 h-6 text-[#94c973] animate-spin absolute top-3 left-3" />
           </div>
         </div>
       )}
