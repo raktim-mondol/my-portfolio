@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Loader2, MessageSquare } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 declare global {
   namespace JSX {
@@ -80,18 +80,9 @@ export default function ChatBot() {
   return (
     <>
       {showLoadingMessage && (
-        <div className="fixed bottom-4 right-4 flex items-center gap-3" style={{ zIndex: 999999 }}>
-          <div className="bg-white dark:bg-gray-800 py-2 px-4 rounded-full shadow-lg text-sm text-gray-600 dark:text-gray-300 flex items-center gap-2">
-            <span>Loading chatbot</span>
-            <span className="flex gap-0.5">
-              <span className="animate-bounce" style={{ animationDelay: '0ms' }}>.</span>
-              <span className="animate-bounce" style={{ animationDelay: '150ms' }}>.</span>
-              <span className="animate-bounce" style={{ animationDelay: '300ms' }}>.</span>
-            </span>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-3 rounded-full shadow-lg relative">
-            <MessageSquare className="w-6 h-6 text-[#94c973]" />
-            <Loader2 className="w-6 h-6 text-[#94c973] animate-spin absolute top-3 left-3" />
+        <div className="fixed bottom-4 right-4" style={{ zIndex: 999999 }}>
+          <div className="bg-white dark:bg-gray-800 p-2 rounded-full shadow-lg">
+            <Loader2 className="w-6 h-6 text-[#94c973] animate-spin" />
           </div>
         </div>
       )}
