@@ -9,6 +9,7 @@ import Publications from './components/Publications';
 import Awards from './components/Awards';
 import Contact from './components/Contact';
 import ScrollProgress from './components/ScrollProgress';
+import ChatBot from './components/ChatBot';
 import { AudioProvider } from './components/AudioContext';
 import { ThemeProvider } from './components/ThemeContext';
 
@@ -29,6 +30,7 @@ function App() {
             <Awards />
             <Contact />
           </div>
+          <ChatBot />
         </div>
       </AudioProvider>
     </ThemeProvider>
