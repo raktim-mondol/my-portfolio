@@ -48,7 +48,7 @@ const awards = [
 
 export default function Awards() {
   return (
-    <section id="awards" className="py-20 bg-gray-50 dark:bg-gray-800">
+    <section id="awards" className="py-20 bg-gray-50 dark:bg-[#0f172a]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Awards & Honors</h2>
@@ -57,20 +57,20 @@ export default function Awards() {
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {awards.map((award, index) => (
-            <div key={index} className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-              <div className="flex items-center space-x-3 mb-4">
-                <span className="p-2 bg-[#94c973]/10 rounded-lg">
-                  <award.icon className="h-6 w-6 text-[#94c973]" />
+            <div key={index} className="relative group bg-white dark:bg-[#1e293b] p-6 focus-within:ring-2 focus-within:ring-inset focus-within:ring-[#94c973] rounded-lg shadow-md hover:shadow-lg transition">
+              <div className="flex items-center gap-4">
+                <span className="flex-shrink-0 rounded-lg inline-flex p-3 bg-[#94c973]/10 text-[#94c973] ring-4 ring-white dark:ring-[#1e293b]">
+                  <award.icon className="h-6 w-6" />
                 </span>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{award.title}</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">{award.title}</h3>
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mt-4">
                   <p className="text-[#94c973]">{award.organization}</p>
                   <p className="text-gray-500 dark:text-gray-400 text-sm">{award.year}</p>
                 </div>
-                <p className="text-gray-700 dark:text-gray-300 text-sm mt-2">{award.description}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">{award.description}</p>
               </div>
             </div>
           ))}
