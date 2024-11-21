@@ -9,7 +9,7 @@ const education = [
     institution: "UNSW Sydney",
     year: "2020-2024 (Expected)",
     thesis: "Deep learning models for histopathology image analysis",
-    description: "Developing AI models for analyzing histopathology images and genetic data to advance breast cancer research.",
+    description: "Developing advanced AI models for analyzing histopathology images and genetic data in breast cancer research.",
     logo: {
       light: "/assets/images/unsw-logo.png",
       dark: "/assets/images/unsw-logo-dm.png"
@@ -35,7 +35,7 @@ export default function Education() {
   const { theme } = useTheme();
 
   return (
-    <section id="education" className="py-20 bg-white dark:bg-gray-900">
+    <section id="education" className="py-20 bg-white dark:bg-[#1e293b]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Education</h2>
@@ -44,7 +44,7 @@ export default function Education() {
 
         <div className="mt-12 space-y-8">
           {education.map((edu, index) => (
-            <div key={index} className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md hover:shadow-lg transition border border-gray-100 dark:border-gray-700">
+            <div key={index} className="bg-white dark:bg-[#0f172a] p-8 rounded-lg shadow-md hover:shadow-lg transition border border-gray-100 dark:border-gray-700/30">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 w-8 h-8">
