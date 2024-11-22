@@ -51,7 +51,7 @@ export default function Experience() {
 
         <div className="mt-12 space-y-8">
           {experiences.map((exp, index) => (
-            <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-100 dark:border-gray-700">
+            <div key={index} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <div className="flex flex-row items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="p-3 bg-[#94c973]/10 rounded-lg">
