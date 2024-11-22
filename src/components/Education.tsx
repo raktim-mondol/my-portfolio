@@ -44,7 +44,7 @@ export default function Education() {
 
         <div className="mt-12 space-y-8">
           {education.map((edu, index) => (
-            <div key={index} className="bg-white dark:bg-gray-900 p-8 rounded-lg shadow-md hover:shadow-lg transition border border-gray-100 dark:border-gray-700">
+            <div key={index} className="bg-white dark:bg-gray-900 p-8 rounded-lg shadow-md hover:shadow-lg transition">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 w-8 h-8">
