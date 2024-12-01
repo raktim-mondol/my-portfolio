@@ -3,7 +3,7 @@ import { Linkedin } from 'lucide-react';
 
 export default function Hero() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const words = ['Researcher', 'Data Scientist', 'Bioinformatician', 'Computational Biologist', 'Engineer'];
+  const words = ['Researcher', 'Data Scientist', 'Bioinformatician', 'Computational Biologist', 'Father'];
 
   useEffect(() => {
     const interval = setInterval(() => {
