@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brain, Eye, MessageSquare, Cpu, Lightbulb, Database } from 'lucide-react';
+import { Brain, Eye, MessageSquare, Cpu, Lightbulb, Database, Stethoscope, TestTube, Target } from 'lucide-react';
 
 const researchAreas = [
   {
@@ -31,6 +31,21 @@ const researchAreas = [
     icon: MessageSquare,
     title: "Natural Language Processing",
     description: "Working on language models, text analysis, and human-computer interaction through natural language."
+  },
+  {
+    icon: Stethoscope,
+    title: "Treatment Recommendation Systems",
+    description: "AI-powered personalized treatment plans and clinical decision support systems for improved patient care."
+  },
+  {
+    icon: TestTube,
+    title: "Drug Discovery and Development",
+    description: "Deep learning for drug-target interaction prediction and AI-driven approaches in drug repurposing."
+  },
+  {
+    icon: Target,
+    title: "Novel Therapeutic Targets",
+    description: "Identification and validation of gene targets using AI and integrative bioinformatics approaches."
   }
 ];
 
