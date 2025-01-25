@@ -30,7 +30,8 @@ function App() {
             <Awards />
             <Contact />
           </div>
-          <ChatBot />
+          {/* Temporarily disabled chatbot */}
+          {/* <ChatBot /> */}
         </div>
       </AudioProvider>
     </ThemeProvider>
