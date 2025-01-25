@@ -11,6 +11,7 @@ import Contact from './components/Contact';
 import ScrollProgress from './components/ScrollProgress';
 import { AudioProvider } from './components/AudioContext';
 import { ThemeProvider } from './components/ThemeContext';
+import ChatBot from './components/ChatBot';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
             <Awards />
             <Contact />
           </div>
+          <ChatBot />
         </div>
       </AudioProvider>
     </ThemeProvider>
