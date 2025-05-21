@@ -1,7 +1,41 @@
 import React from 'react';
-import { Code, Brain, Cloud, Terminal, Database, Layout } from 'lucide-react';
+import { Code, Brain, Cloud, Terminal, Database, Layout, Bot, Search, Camera } from 'lucide-react';
 
 const skillCategories = [
+  {
+    title: "Generative AI & LLM Toolkits",
+    icon: Bot,
+    skills: [
+      "Hugging Face Transformers",
+      "LoRA / QLoRA (PEFT)",
+      "LangChain",
+      "OpenAI API / Gemini Pro",
+      "GPTQ / GGUF",
+      "Prompt Engineering",
+      "Agent Development Kit",
+      "RAG Pipelines"
+    ]
+  },
+  {
+    title: "Vector Search & Retrieval",
+    icon: Search,
+    skills: [
+      "FAISS",
+      "BM25 / Elasticsearch",
+      "ChromaDB / Weaviate",
+      "Milvus"
+    ]
+  },
+  {
+    title: "Multimodal & CV + NLP",
+    icon: Camera,
+    skills: [
+      "CLIP / BLIP / LLaVA",
+      "Segment Anything (SAM)",
+      "Visual Question Answering",
+      "Multimodal Transformers"
+    ]
+  },
   {
     title: "Programming Languages",
     icon: Code,
@@ -40,7 +74,7 @@ export default function Skills() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">Technical Skills</h2>
-          <p className="mt-4 text-xl text-gray-600 dark:text-gray-300">Expertise across computational biology and data science</p>
+          <p className="mt-4 text-xl text-gray-600 dark:text-gray-300">Expertise across AI, computational biology, and data science</p>
         </div>
 
         <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
