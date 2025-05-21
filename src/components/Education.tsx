@@ -10,7 +10,7 @@ const education = [
     year: "2020-2024 (Expected)",
     thesis: "Deep learning models for histopathology image analysis",
     description: "Developing advanced AI models for analyzing histopathology images and genetic data in breast cancer research.",
-    audioSummary: "/assets/audio/phd_podcast.wav",
+    audioSummary: "/assets/audio/phd_podcast.mp3",
     logo: {
       light: "/assets/images/unsw-logo.png",
       dark: "/assets/images/unsw-logo-dm.png"
