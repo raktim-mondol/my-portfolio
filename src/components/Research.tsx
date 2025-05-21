@@ -1,11 +1,21 @@
 import React from 'react';
-import { Brain, Eye, MessageSquare, Cpu, Lightbulb, Database, Stethoscope, TestTube, Target } from 'lucide-react';
+import { Brain, Eye, MessageSquare, Cpu, Lightbulb, Database, Stethoscope, TestTube, Target, Bot, Users, Search } from 'lucide-react';
 
 const researchAreas = [
   {
     icon: Brain,
-    title: "Artificial Intelligence",
-    description: "Developing advanced AI models and algorithms for complex problem-solving and decision-making systems."
+    title: "Large Language Models (LLMs)",
+    description: "Research on training, fine-tuning, and evaluating LLMs using parameter-efficient techniques (e.g., LoRA, QLoRA), with applications in retrieval-augmented generation, summarisation, multi-hop reasoning, and task-specific adaptation."
+  },
+  {
+    icon: Users,
+    title: "Agentic AI & Multi-Agent Systems",
+    description: "Design and development of autonomous, tool-using agents capable of reasoning, planning, and collaborating across complex tasks using frameworks like the Agent Development Kit (ADK). Applications include document QA, decision-making, and pipeline orchestration."
+  },
+  {
+    icon: Search,
+    title: "Retrieval-Augmented Generation (RAG)",
+    description: "Building hybrid search and generation pipelines integrating semantic and keyword-based retrieval (e.g., FAISS, BM25), designed for grounded language understanding, document synthesis, and knowledge-intensive tasks."
   },
   {
     icon: Cpu,
@@ -36,16 +46,6 @@ const researchAreas = [
     icon: Stethoscope,
     title: "Treatment Recommendation Systems",
     description: "AI-powered personalized treatment plans and clinical decision support systems for improved patient care."
-  },
-  {
-    icon: TestTube,
-    title: "Drug Discovery and Development",
-    description: "Deep learning for drug-target interaction prediction and AI-driven approaches in drug repurposing."
-  },
-  {
-    icon: Target,
-    title: "Novel Therapeutic Targets",
-    description: "Identification and validation of gene targets using AI and integrative bioinformatics approaches."
   }
 ];
 
