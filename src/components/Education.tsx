@@ -7,7 +7,7 @@ const education = [
   {
     degree: "PhD in Computer Science & Engineering",
     institution: "UNSW Sydney",
-    year: "2020-2024 (Expected)",
+    year: "2021-2025 (Expected)",
     thesis: "Deep Learning Based Prognosis and Explainability for Breast Cancer",
     audioSummary: "/assets/audio/phd_podcast.mp3",
     logo: {
