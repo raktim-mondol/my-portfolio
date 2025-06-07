@@ -110,6 +110,12 @@ export default function Education() {
     setScale(prev => Math.min(Math.max(prev * delta, 0.1), 5));
   }, []);
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      closeThesisModal();
+    }
+  };
+
   return (
     <>
       <section id="education" className="py-20 bg-gray-50 dark:bg-gray-800">
@@ -197,94 +203,99 @@ export default function Education() {
         </div>
       </section>
 
-      {/* Enhanced Thesis Mind Map Modal */}
+      {/* Centered Thesis Mind Map Modal */}
       {showThesisModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-90 flex flex-col z-50">
-          {/* Header with controls */}
-          <div className="flex items-center justify-between p-4 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              PhD Thesis Mind Map
-            </h3>
-            
-            {/* Control buttons */}
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handleZoomOut}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                title="Zoom Out"
-              >
-                <ZoomOut className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-              </button>
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={handleBackdropClick}
+        >
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+            {/* Header with controls */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                PhD Thesis Mind Map
+              </h3>
               
-              <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[60px] text-center">
-                {Math.round(scale * 100)}%
-              </span>
-              
-              <button
-                onClick={handleZoomIn}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                title="Zoom In"
-              >
-                <ZoomIn className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-              </button>
-              
-              <button
-                onClick={handleFitToScreen}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                title="Fit to Screen"
-              >
-                <Maximize2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-              </button>
-              
-              <button
-                onClick={() => setIsHandTool(!isHandTool)}
-                className={`p-2 rounded-lg transition-colors ${
-                  isHandTool 
-                    ? 'bg-[#94c973] text-white' 
-                    : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
-                }`}
-                title="Hand Tool"
-              >
-                <Move className="h-5 w-5" />
-              </button>
-              
-              <button
-                onClick={closeThesisModal}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                title="Close"
-              >
-                <X className="h-6 w-6 text-gray-500 dark:text-gray-400" />
-              </button>
+              {/* Control buttons */}
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleZoomOut}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                </button>
+                
+                <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[60px] text-center">
+                  {Math.round(scale * 100)}%
+                </span>
+                
+                <button
+                  onClick={handleZoomIn}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  title="Zoom In"
+                >
+                  <ZoomIn className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                </button>
+                
+                <button
+                  onClick={handleFitToScreen}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  title="Fit to Screen"
+                >
+                  <Maximize2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                </button>
+                
+                <button
+                  onClick={() => setIsHandTool(!isHandTool)}
+                  className={`p-2 rounded-lg transition-colors ${
+                    isHandTool 
+                      ? 'bg-[#94c973] text-white' 
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
+                  }`}
+                  title="Hand Tool"
+                >
+                  <Move className="h-5 w-5" />
+                </button>
+                
+                <button
+                  onClick={closeThesisModal}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                  title="Close"
+                >
+                  <X className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
             </div>
-          </div>
-          
-          {/* Image container */}
-          <div 
-            ref={containerRef}
-            className="flex-1 overflow-hidden relative bg-gray-100 dark:bg-gray-800"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onWheel={handleWheel}
-            style={{ cursor: isHandTool ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
-          >
+            
+            {/* Image container */}
             <div 
-              className="absolute inset-0 flex items-center justify-center"
-              style={{
-                transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-                transformOrigin: 'center center',
-                transition: isDragging ? 'none' : 'transform 0.1s ease-out'
-              }}
+              ref={containerRef}
+              className="flex-1 overflow-hidden relative bg-gray-100 dark:bg-gray-800 min-h-[500px]"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onWheel={handleWheel}
+              style={{ cursor: isHandTool ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
             >
-              <img
-                ref={imageRef}
-                src="/assets/images/full_thesis_mind_map_.png"
-                alt="PhD Thesis Mind Map"
-                className="max-w-none select-none"
-                draggable={false}
-                onLoad={handleFitToScreen}
-              />
+              <div 
+                className="absolute inset-0 flex items-center justify-center"
+                style={{
+                  transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                  transformOrigin: 'center center',
+                  transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+                }}
+              >
+                <img
+                  ref={imageRef}
+                  src="/assets/images/full_thesis_mind_map_.png"
+                  alt="PhD Thesis Mind Map"
+                  className="max-w-none select-none"
+                  draggable={false}
+                  onLoad={handleFitToScreen}
+                />
+              </div>
             </div>
           </div>
         </div>
