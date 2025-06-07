@@ -203,15 +203,15 @@ export default function Education() {
         </div>
       </section>
 
-      {/* Centered Thesis Mind Map Modal */}
+      {/* Larger Centered Thesis Mind Map Modal */}
       {showThesisModal && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2"
           onClick={handleBackdropClick}
         >
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] flex flex-col">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-[95vw] h-[95vh] flex flex-col">
             {/* Header with controls */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                 PhD Thesis Mind Map
               </h3>
@@ -271,7 +271,7 @@ export default function Education() {
             {/* Image container */}
             <div 
               ref={containerRef}
-              className="flex-1 overflow-hidden relative bg-gray-100 dark:bg-gray-800 min-h-[500px]"
+              className="flex-1 overflow-hidden relative bg-gray-100 dark:bg-gray-800"
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
