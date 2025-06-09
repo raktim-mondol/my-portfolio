@@ -182,9 +182,9 @@ export default function RAGtimBot() {
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
                   {hasApiKey ? (
-                    <Shield className="h-3 w-3 ml-1" title="Securely configured" />
+                    <Shield className="h-3 w-3 ml-1\" title="Securely configured" />
                   ) : (
-                    <AlertCircle className="h-3 w-3 ml-1" title="Configuration issue" />
+                    <AlertCircle className="h-3 w-3 ml-1\" title="Configuration issue" />
                   )}
                 </h3>
                 <p className="text-xs opacity-90">
