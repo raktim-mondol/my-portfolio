@@ -9,7 +9,7 @@ export interface ChatMessage {
 }
 
 export class RAGService {
-  private openai: OpenAI;
+  private openai: OpenAI | null = null;
   private scraper: WebsiteScraper;
   private apiKey: string | null = null;
 
@@ -17,23 +17,41 @@ export class RAGService {
     this.scraper = WebsiteScraper.getInstance();
     this.apiKey = this.getApiKey();
     
+    console.log('RAGService initialized');
+    console.log('Environment check:', {
+      hasViteEnv: !!import.meta.env.VITE_DEEPSEEK_API_KEY,
+      envValue: import.meta.env.VITE_DEEPSEEK_API_KEY ? 'Present' : 'Missing',
+      allEnvKeys: Object.keys(import.meta.env)
+    });
+    
     if (this.apiKey) {
       this.openai = new OpenAI({
         baseURL: 'https://api.deepseek.com',
         apiKey: this.apiKey,
         dangerouslyAllowBrowser: true
       });
+      console.log('OpenAI client initialized successfully');
+    } else {
+      console.error('No API key found. Please check your environment variables.');
     }
   }
 
   private getApiKey(): string | null {
     // Get API key from environment variables (Netlify)
     const envApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+    
+    console.log('Getting API key:', {
+      envApiKey: envApiKey ? 'Present' : 'Missing',
+      envApiKeyLength: envApiKey?.length || 0
+    });
+    
     return envApiKey || null;
   }
 
   public hasApiKey(): boolean {
-    return !!this.apiKey;
+    const hasKey = !!this.apiKey;
+    console.log('Has API key:', hasKey);
+    return hasKey;
   }
 
   private retrieveRelevantContent(query: string): ScrapedContent[] {
@@ -55,14 +73,19 @@ export class RAGService {
   }
 
   public async generateResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
-    if (!this.apiKey) {
-      return "The chatbot is currently unavailable. Please contact the site administrator.";
+    console.log('Generating response for query:', userQuery);
+    
+    if (!this.apiKey || !this.openai) {
+      console.error('API key or OpenAI client not available');
+      return "The chatbot is currently unavailable. API key not configured properly. Please contact the site administrator.";
     }
 
     try {
       // Retrieve relevant content
       const relevantContent = this.retrieveRelevantContent(userQuery);
       const context = this.buildContext(relevantContent);
+
+      console.log('Retrieved relevant content:', relevantContent.length, 'sections');
 
       // Build conversation history for context
       const messages: any[] = [
@@ -98,6 +121,8 @@ ${context}`
         content: userQuery
       });
 
+      console.log('Sending request to DeepSeek API...');
+
       const completion = await this.openai.chat.completions.create({
         messages,
         model: "deepseek-chat",
@@ -105,12 +130,28 @@ ${context}`
         temperature: 0.7
       });
 
+      console.log('Received response from DeepSeek API');
+
       return completion.choices[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
     } catch (error) {
       console.error('Error generating response:', error);
-      if (error instanceof Error && error.message.includes('API key')) {
-        return "There seems to be an issue with the API configuration. Please contact the site administrator.";
+      
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
+        
+        if (error.message.includes('API key') || error.message.includes('401')) {
+          return "There seems to be an issue with the API key configuration. Please contact the site administrator.";
+        }
+        
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+          return "Network error occurred. Please check your internet connection and try again.";
+        }
       }
+      
       return "I apologize, but I'm experiencing technical difficulties. Please try again later.";
     }
   }

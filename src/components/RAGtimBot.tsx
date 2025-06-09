@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Shield } from 'lucide-react';
+import { MessageCircle, X, Send, Shield, AlertCircle } from 'lucide-react';
 import { RAGService, ChatMessage } from '../utils/ragService';
 import toast from 'react-hot-toast';
 
@@ -9,12 +9,25 @@ export default function RAGtimBot() {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [ragService] = useState(() => new RAGService());
+  const [debugInfo, setDebugInfo] = useState<string>('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Add initial welcome message if API key is available
+    // Debug environment variables
+    const envDebug = {
+      hasViteEnv: !!import.meta.env.VITE_DEEPSEEK_API_KEY,
+      envKeys: Object.keys(import.meta.env),
+      mode: import.meta.env.MODE,
+      dev: import.meta.env.DEV,
+      prod: import.meta.env.PROD
+    };
+    
+    console.log('Environment debug info:', envDebug);
+    setDebugInfo(JSON.stringify(envDebug, null, 2));
+    
+    // Add initial welcome message
     if (ragService.hasApiKey()) {
       const welcomeMessage: ChatMessage = {
         id: Date.now().toString(),
@@ -23,6 +36,14 @@ export default function RAGtimBot() {
         timestamp: new Date()
       };
       setMessages([welcomeMessage]);
+    } else {
+      const errorMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: "⚠️ The chatbot is currently unavailable due to missing API configuration. Please contact the site administrator.",
+        timestamp: new Date()
+      };
+      setMessages([errorMessage]);
     }
   }, [ragService]);
 
@@ -73,6 +94,14 @@ export default function RAGtimBot() {
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message. Please try again.');
+      
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "I apologize, but I encountered an error while processing your request. Please try again.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -90,9 +119,21 @@ export default function RAGtimBot() {
     toast.success('Chat cleared!');
   };
 
+  const showDebugInfo = () => {
+    toast(
+      <div className="text-xs">
+        <strong>Debug Info:</strong>
+        <pre className="mt-1 text-xs overflow-auto max-h-32">{debugInfo}</pre>
+      </div>,
+      { duration: 10000 }
+    );
+  };
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
+
+  const hasApiKey = ragService.hasApiKey();
 
   return (
     <>
@@ -101,12 +142,22 @@ export default function RAGtimBot() {
         {!isOpen && (
           <button
             onClick={() => setIsOpen(true)}
-            className="bg-[#94c973] hover:bg-[#7fb95e] text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 group"
+            className={`${
+              hasApiKey 
+                ? 'bg-[#94c973] hover:bg-[#7fb95e]' 
+                : 'bg-red-500 hover:bg-red-600'
+            } text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 group`}
             aria-label="Open RAGtim Bot"
           >
-            <MessageCircle className="h-6 w-6" />
-            <div className="absolute -top-2 -left-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-              AI
+            {hasApiKey ? (
+              <MessageCircle className="h-6 w-6" />
+            ) : (
+              <AlertCircle className="h-6 w-6" />
+            )}
+            <div className={`absolute -top-2 -left-2 ${
+              hasApiKey ? 'bg-green-500' : 'bg-red-500'
+            } text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse`}>
+              {hasApiKey ? 'AI' : '!'}
             </div>
           </button>
         )}
@@ -116,20 +167,39 @@ export default function RAGtimBot() {
       {isOpen && (
         <div className="fixed bottom-6 right-6 w-96 h-[500px] bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50 flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-[#94c973] text-white rounded-t-lg">
+          <div className={`flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 ${
+            hasApiKey ? 'bg-[#94c973]' : 'bg-red-500'
+          } text-white rounded-t-lg`}>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <MessageCircle className="h-4 w-4" />
+                {hasApiKey ? (
+                  <MessageCircle className="h-4 w-4" />
+                ) : (
+                  <AlertCircle className="h-4 w-4" />
+                )}
               </div>
               <div>
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
-                  <Shield className="h-3 w-3 ml-1" title="Securely configured" />
+                  {hasApiKey ? (
+                    <Shield className="h-3 w-3 ml-1" title="Securely configured" />
+                  ) : (
+                    <AlertCircle className="h-3 w-3 ml-1" title="Configuration issue" />
+                  )}
                 </h3>
-                <p className="text-xs opacity-90">Ask me about Raktim Mondol</p>
+                <p className="text-xs opacity-90">
+                  {hasApiKey ? 'Ask me about Raktim Mondol' : 'Configuration needed'}
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
+              <button
+                onClick={showDebugInfo}
+                className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
+                title="Debug info"
+              >
+                Debug
+              </button>
               <button
                 onClick={clearChat}
                 className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
@@ -151,13 +221,18 @@ export default function RAGtimBot() {
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 && (
               <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-sm">
-                  {ragService.hasApiKey() 
-                    ? "Start a conversation! Ask me anything about Raktim Mondol."
-                    : "The chatbot is currently unavailable. Please contact the site administrator."
-                  }
-                </p>
+                {hasApiKey ? (
+                  <>
+                    <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-sm">Start a conversation! Ask me anything about Raktim Mondol.</p>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50 text-red-500" />
+                    <p className="text-sm">The chatbot is currently unavailable. Please contact the site administrator.</p>
+                    <p className="text-xs mt-2 opacity-70">Environment variable VITE_DEEPSEEK_API_KEY not found.</p>
+                  </>
+                )}
               </div>
             )}
             
@@ -206,13 +281,13 @@ export default function RAGtimBot() {
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Ask about Raktim's research, skills, experience..."
+                placeholder={hasApiKey ? "Ask about Raktim's research, skills, experience..." : "Chatbot unavailable"}
                 className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-                disabled={isLoading || !ragService.hasApiKey()}
+                disabled={isLoading || !hasApiKey}
               />
               <button
                 onClick={handleSendMessage}
-                disabled={isLoading || !inputMessage.trim() || !ragService.hasApiKey()}
+                disabled={isLoading || !inputMessage.trim() || !hasApiKey}
                 className="px-3 py-2 bg-[#94c973] text-white rounded-lg hover:bg-[#7fb95e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 aria-label="Send message"
               >
