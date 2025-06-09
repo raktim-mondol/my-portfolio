@@ -236,13 +236,6 @@ export default function RAGtimBot() {
                     </span>
                   ))}
                 </div>
-                <div className="grid grid-cols-2 gap-1 mt-2">
-                  {Object.entries(knowledgeStats.documentsByType).map(([type, count]) => (
-                    <div key={type} className="capitalize">
-                      {type}: {count}
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           )}
