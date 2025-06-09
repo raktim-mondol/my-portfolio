@@ -52,8 +52,6 @@ export class VectorStore {
     if (this.isInitialized) return;
 
     try {
-      console.log('Initializing vector store with hybrid search (Vector + BM25)...');
-      
       // Initialize the embedding model - this will now download from HuggingFace if needed
       this.embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
       
@@ -64,9 +62,6 @@ export class VectorStore {
       this.buildBM25Index();
       
       this.isInitialized = true;
-      console.log(`Vector store initialized with ${this.documents.length} documents`);
-      console.log('Document distribution:', this.getDocumentTypeDistribution());
-      console.log('Hybrid search ready: Vector + BM25');
     } catch (error) {
       console.error('Failed to initialize vector store:', error);
       // Fallback to keyword search if embedding fails
@@ -105,7 +100,6 @@ export class VectorStore {
     this.addStructuredContent();
     
     this.totalDocuments = this.documents.length;
-    console.log(`Loaded ${this.totalDocuments} documents total`);
   }
 
   private async processMarkdownContent(content: string, type: Document['metadata']['type'], priority: number, source: string): Promise<void> {
@@ -343,8 +337,6 @@ export class VectorStore {
   }
 
   private buildBM25Index(): void {
-    console.log('Building BM25 index...');
-    
     // Reset indexes
     this.termFrequencies.clear();
     this.documentFrequency.clear();
@@ -377,14 +369,6 @@ export class VectorStore {
     
     // Calculate average document length
     this.averageDocumentLength = totalLength / this.totalDocuments;
-    
-    console.log(`BM25 index built:`, {
-      documents: this.totalDocuments,
-      uniqueTerms: this.documentFrequency.size,
-      averageDocLength: Math.round(this.averageDocumentLength),
-      k1: this.k1,
-      b: this.b
-    });
   }
 
   private tokenize(text: string): string[] {
@@ -432,8 +416,6 @@ export class VectorStore {
       await this.initialize();
     }
 
-    console.log(`Performing hybrid search (Vector + BM25) for: "${query}"`);
-
     try {
       // Get results from both search methods
       const vectorResults = await this.vectorSearch(query, topK);
@@ -442,19 +424,12 @@ export class VectorStore {
       // Combine and deduplicate results
       const hybridResults = this.combineResults(vectorResults, bm25Results, topK);
 
-      console.log(`Hybrid search completed:`, {
-        vectorResults: vectorResults.length,
-        bm25Results: bm25Results.length,
-        hybridResults: hybridResults.length
-      });
-
       return hybridResults;
     } catch (error) {
       console.error('Error in hybrid search:', error);
       // Fallback to BM25 only if vector search fails
       try {
         const bm25Results = await this.bm25Search(query, topK);
-        console.log('Falling back to BM25 search only');
         return bm25Results;
       } catch (bm25Error) {
         console.error('BM25 search also failed:', bm25Error);
@@ -465,7 +440,6 @@ export class VectorStore {
 
   private async vectorSearch(query: string, topK: number): Promise<SearchResult[]> {
     if (!this.embedder) {
-      console.log('Vector search not available - embedder not initialized');
       return [];
     }
 
@@ -529,11 +503,6 @@ export class VectorStore {
     // Sort by BM25 score (descending)
     results.sort((a, b) => b.score - a.score);
     
-    console.log(`BM25 search found ${results.length} relevant documents`);
-    if (results.length > 0) {
-      console.log(`Top BM25 scores: ${results.slice(0, 3).map(r => r.score.toFixed(4)).join(', ')}`);
-    }
-    
     return results.slice(0, topK);
   }
 
@@ -592,13 +561,6 @@ export class VectorStore {
       const finalScoreB = b.score + priorityBoostB;
       
       return finalScoreB - finalScoreA;
-    });
-    
-    console.log(`Combined results:`, {
-      total: combinedResults.length,
-      hybrid: combinedResults.filter(r => r.searchType === 'hybrid').length,
-      vectorOnly: combinedResults.filter(r => r.searchType === 'vector').length,
-      bm25Only: combinedResults.filter(r => r.searchType === 'bm25').length
     });
     
     return combinedResults.slice(0, topK);

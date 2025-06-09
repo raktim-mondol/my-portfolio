@@ -17,38 +17,21 @@ export class RAGService {
     this.vectorStore = VectorStore.getInstance();
     this.apiKey = this.getApiKey();
     
-    console.log('RAGService initialized');
-    console.log('Environment check:', {
-      hasViteEnv: !!import.meta.env.VITE_DEEPSEEK_API_KEY,
-      envValue: import.meta.env.VITE_DEEPSEEK_API_KEY ? 'Present' : 'Missing',
-      mode: import.meta.env.MODE,
-      dev: import.meta.env.DEV,
-      prod: import.meta.env.PROD
-    });
-    
     if (this.apiKey) {
       this.openai = new OpenAI({
         baseURL: 'https://api.deepseek.com',
         apiKey: this.apiKey,
         dangerouslyAllowBrowser: true
       });
-      console.log('OpenAI client initialized successfully');
       
       // Initialize vector store
       this.initializeVectorStore();
-    } else {
-      console.warn('No valid API key found. RAGtim Bot will be disabled.');
-      console.warn('To enable the chatbot, set VITE_DEEPSEEK_API_KEY in your Netlify environment variables.');
     }
   }
 
   private async initializeVectorStore(): Promise<void> {
     try {
       await this.vectorStore.initialize();
-      const stats = this.vectorStore.getSearchStats();
-      const distribution = this.vectorStore.getDocumentTypeDistribution();
-      console.log(`Vector store ready with hybrid search capabilities:`, stats);
-      console.log('Document type distribution:', distribution);
     } catch (error) {
       console.error('Failed to initialize vector store:', error);
     }
@@ -56,12 +39,6 @@ export class RAGService {
 
   private getApiKey(): string | null {
     const envApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
-    
-    console.log('Getting API key:', {
-      envApiKey: envApiKey ? 'Present' : 'Missing',
-      envApiKeyLength: envApiKey?.length || 0,
-      envApiKeyType: typeof envApiKey
-    });
     
     if (envApiKey && 
         typeof envApiKey === 'string' && 
@@ -76,36 +53,13 @@ export class RAGService {
   }
 
   public hasApiKey(): boolean {
-    const hasKey = !!this.apiKey;
-    console.log('Has valid API key:', hasKey);
-    return hasKey;
+    return !!this.apiKey;
   }
 
   private async retrieveRelevantContent(query: string): Promise<SearchResult[]> {
     try {
       // Use hybrid search (vector + BM25) for better retrieval
       const results = await this.vectorStore.search(query, 10); // Get more results for better context
-      
-      console.log(`Hybrid search completed for query: "${query}"`, {
-        totalResults: results.length,
-        searchTypes: results.reduce((acc, r) => {
-          acc[r.searchType] = (acc[r.searchType] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>)
-      });
-      
-      // Log top results for debugging
-      results.slice(0, 5).forEach((result, index) => {
-        console.log(`Result ${index + 1}:`, {
-          score: result.score.toFixed(4),
-          searchType: result.searchType,
-          section: result.document.metadata.section,
-          type: result.document.metadata.type,
-          priority: result.document.metadata.priority,
-          contentPreview: result.document.content.substring(0, 100) + '...'
-        });
-      });
-      
       return results;
     } catch (error) {
       console.error('Error in hybrid content retrieval:', error);
@@ -131,24 +85,11 @@ export class RAGService {
     });
 
     const context = contextParts.join('\n\n---\n\n');
-    
-    console.log('Context built:', {
-      resultCount: topResults.length,
-      contextLength: context.length,
-      searchTypeBreakdown: topResults.reduce((acc, r) => {
-        acc[r.searchType] = (acc[r.searchType] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
-    });
-
     return context;
   }
 
   public async generateResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
-    console.log('Generating response for query:', userQuery);
-    
     if (!this.apiKey || !this.openai) {
-      console.error('API key or OpenAI client not available');
       return "The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured in your Netlify deployment settings.";
     }
 
@@ -213,8 +154,6 @@ Remember to be helpful and provide comprehensive answers based on the rich conte
         content: userQuery
       });
 
-      console.log('Sending request to DeepSeek API with hybrid search context (Vector + BM25)...');
-
       const completion = await this.openai.chat.completions.create({
         messages,
         model: "deepseek-chat",
@@ -223,18 +162,11 @@ Remember to be helpful and provide comprehensive answers based on the rich conte
         top_p: 0.9
       });
 
-      console.log('Received response from DeepSeek API');
-
       return completion.choices[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
     } catch (error) {
       console.error('Error generating response:', error);
       
       if (error instanceof Error) {
-        console.error('Error details:', {
-          message: error.message,
-          name: error.name
-        });
-        
         if (error.message.includes('API key') || error.message.includes('401') || error.message.includes('Authentication')) {
           return "The API key appears to be invalid or missing. Please contact the site administrator to configure the VITE_DEEPSEEK_API_KEY environment variable in Netlify.";
         }
