@@ -21,9 +21,9 @@ export class RAGService {
     console.log('Environment check:', {
       hasViteEnv: !!import.meta.env.VITE_DEEPSEEK_API_KEY,
       envValue: import.meta.env.VITE_DEEPSEEK_API_KEY ? 'Present' : 'Missing',
-      envValueLength: import.meta.env.VITE_DEEPSEEK_API_KEY?.length || 0,
-      envValueTrimmed: import.meta.env.VITE_DEEPSEEK_API_KEY?.trim().length || 0,
-      allEnvKeys: Object.keys(import.meta.env)
+      mode: import.meta.env.MODE,
+      dev: import.meta.env.DEV,
+      prod: import.meta.env.PROD
     });
     
     if (this.apiKey) {
@@ -34,29 +34,27 @@ export class RAGService {
       });
       console.log('OpenAI client initialized successfully');
     } else {
-      console.error('No valid API key found. Please check your environment variables.');
-      console.error('API key validation details:', {
-        rawValue: import.meta.env.VITE_DEEPSEEK_API_KEY,
-        isString: typeof import.meta.env.VITE_DEEPSEEK_API_KEY === 'string',
-        length: import.meta.env.VITE_DEEPSEEK_API_KEY?.length,
-        trimmedLength: import.meta.env.VITE_DEEPSEEK_API_KEY?.trim().length
-      });
+      console.warn('No valid API key found. RAGtim Bot will be disabled.');
+      console.warn('To enable the chatbot, set VITE_DEEPSEEK_API_KEY in your Netlify environment variables.');
     }
   }
 
   private getApiKey(): string | null {
-    // Get API key from environment variables (Netlify)
+    // Get API key from environment variables (should be set in Netlify)
     const envApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
     
     console.log('Getting API key:', {
       envApiKey: envApiKey ? 'Present' : 'Missing',
       envApiKeyLength: envApiKey?.length || 0,
-      envApiKeyType: typeof envApiKey,
-      envApiKeyTrimmed: envApiKey?.trim().length || 0
+      envApiKeyType: typeof envApiKey
     });
     
-    // Validate that the API key is not just empty or whitespace
-    if (envApiKey && typeof envApiKey === 'string' && envApiKey.trim().length > 0) {
+    // Validate that the API key exists and is not a placeholder
+    if (envApiKey && 
+        typeof envApiKey === 'string' && 
+        envApiKey.trim().length > 0 &&
+        !envApiKey.includes('placeholder') &&
+        !envApiKey.includes('your_actual')) {
       return envApiKey.trim();
     }
     
@@ -65,7 +63,7 @@ export class RAGService {
 
   public hasApiKey(): boolean {
     const hasKey = !!this.apiKey;
-    console.log('Has API key:', hasKey);
+    console.log('Has valid API key:', hasKey);
     return hasKey;
   }
 
@@ -92,7 +90,7 @@ export class RAGService {
     
     if (!this.apiKey || !this.openai) {
       console.error('API key or OpenAI client not available');
-      return "The chatbot is currently unavailable. API key not configured properly. Please contact the site administrator.";
+      return "The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured in your Netlify deployment settings.";
     }
 
     try {
@@ -154,12 +152,11 @@ ${context}`
       if (error instanceof Error) {
         console.error('Error details:', {
           message: error.message,
-          name: error.name,
-          stack: error.stack
+          name: error.name
         });
         
-        if (error.message.includes('API key') || error.message.includes('401')) {
-          return "There seems to be an issue with the API key configuration. Please contact the site administrator.";
+        if (error.message.includes('API key') || error.message.includes('401') || error.message.includes('Authentication')) {
+          return "The API key appears to be invalid or missing. Please contact the site administrator to configure the VITE_DEEPSEEK_API_KEY environment variable in Netlify.";
         }
         
         if (error.message.includes('network') || error.message.includes('fetch')) {

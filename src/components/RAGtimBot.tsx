@@ -9,24 +9,11 @@ export default function RAGtimBot() {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [ragService] = useState(() => new RAGService());
-  const [debugInfo, setDebugInfo] = useState<string>('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Debug environment variables
-    const envDebug = {
-      hasViteEnv: !!import.meta.env.VITE_DEEPSEEK_API_KEY,
-      envKeys: Object.keys(import.meta.env),
-      mode: import.meta.env.MODE,
-      dev: import.meta.env.DEV,
-      prod: import.meta.env.PROD
-    };
-    
-    console.log('Environment debug info:', envDebug);
-    setDebugInfo(JSON.stringify(envDebug, null, 2));
-    
     // Add initial welcome message
     if (ragService.hasApiKey()) {
       const welcomeMessage: ChatMessage = {
@@ -40,7 +27,7 @@ export default function RAGtimBot() {
       const errorMessage: ChatMessage = {
         id: Date.now().toString(),
         role: 'assistant',
-        content: "⚠️ The chatbot is currently unavailable due to missing API configuration. Please contact the site administrator.",
+        content: "⚠️ The chatbot is currently unavailable. The API key needs to be configured in the Netlify environment variables. Please contact the site administrator.",
         timestamp: new Date()
       };
       setMessages([errorMessage]);
@@ -119,16 +106,6 @@ export default function RAGtimBot() {
     toast.success('Chat cleared!');
   };
 
-  const showDebugInfo = () => {
-    toast(
-      <div className="text-xs">
-        <strong>Debug Info:</strong>
-        <pre className="mt-1 text-xs overflow-auto max-h-32">{debugInfo}</pre>
-      </div>,
-      { duration: 10000 }
-    );
-  };
-
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
@@ -182,9 +159,9 @@ export default function RAGtimBot() {
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
                   {hasApiKey ? (
-                    <Shield className="h-3 w-3 ml-1\" title="Securely configured" />
+                    <Shield className="h-3 w-3 ml-1" title="Securely configured" />
                   ) : (
-                    <AlertCircle className="h-3 w-3 ml-1\" title="Configuration issue" />
+                    <AlertCircle className="h-3 w-3 ml-1" title="Configuration needed" />
                   )}
                 </h3>
                 <p className="text-xs opacity-90">
@@ -193,13 +170,6 @@ export default function RAGtimBot() {
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <button
-                onClick={showDebugInfo}
-                className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
-                title="Debug info"
-              >
-                Debug
-              </button>
               <button
                 onClick={clearChat}
                 className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
@@ -229,8 +199,8 @@ export default function RAGtimBot() {
                 ) : (
                   <>
                     <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50 text-red-500" />
-                    <p className="text-sm">The chatbot is currently unavailable. Please contact the site administrator.</p>
-                    <p className="text-xs mt-2 opacity-70">Environment variable VITE_DEEPSEEK_API_KEY not found.</p>
+                    <p className="text-sm">The chatbot is currently unavailable.</p>
+                    <p className="text-xs mt-2 opacity-70">API key needs to be configured in Netlify environment variables.</p>
                   </>
                 )}
               </div>
