@@ -1,7 +1,7 @@
 import { pipeline, env } from '@xenova/transformers';
 
-// Configure transformers to use local models
-env.allowRemoteModels = false;
+// Configure transformers to allow remote model downloads
+env.allowRemoteModels = true;
 env.allowLocalModels = true;
 
 export interface Document {
@@ -42,7 +42,7 @@ export class VectorStore {
     try {
       console.log('Initializing vector store...');
       
-      // Initialize the embedding model
+      // Initialize the embedding model - this will now download from HuggingFace if needed
       this.embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
       
       // Load and process all content
