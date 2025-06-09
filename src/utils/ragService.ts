@@ -21,6 +21,8 @@ export class RAGService {
     console.log('Environment check:', {
       hasViteEnv: !!import.meta.env.VITE_DEEPSEEK_API_KEY,
       envValue: import.meta.env.VITE_DEEPSEEK_API_KEY ? 'Present' : 'Missing',
+      envValueLength: import.meta.env.VITE_DEEPSEEK_API_KEY?.length || 0,
+      envValueTrimmed: import.meta.env.VITE_DEEPSEEK_API_KEY?.trim().length || 0,
       allEnvKeys: Object.keys(import.meta.env)
     });
     
@@ -32,7 +34,13 @@ export class RAGService {
       });
       console.log('OpenAI client initialized successfully');
     } else {
-      console.error('No API key found. Please check your environment variables.');
+      console.error('No valid API key found. Please check your environment variables.');
+      console.error('API key validation details:', {
+        rawValue: import.meta.env.VITE_DEEPSEEK_API_KEY,
+        isString: typeof import.meta.env.VITE_DEEPSEEK_API_KEY === 'string',
+        length: import.meta.env.VITE_DEEPSEEK_API_KEY?.length,
+        trimmedLength: import.meta.env.VITE_DEEPSEEK_API_KEY?.trim().length
+      });
     }
   }
 
@@ -42,10 +50,17 @@ export class RAGService {
     
     console.log('Getting API key:', {
       envApiKey: envApiKey ? 'Present' : 'Missing',
-      envApiKeyLength: envApiKey?.length || 0
+      envApiKeyLength: envApiKey?.length || 0,
+      envApiKeyType: typeof envApiKey,
+      envApiKeyTrimmed: envApiKey?.trim().length || 0
     });
     
-    return envApiKey || null;
+    // Validate that the API key is not just empty or whitespace
+    if (envApiKey && typeof envApiKey === 'string' && envApiKey.trim().length > 0) {
+      return envApiKey.trim();
+    }
+    
+    return null;
   }
 
   public hasApiKey(): boolean {
