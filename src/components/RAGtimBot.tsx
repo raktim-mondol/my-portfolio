@@ -166,7 +166,7 @@ export default function RAGtimBot() {
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
                   {ragService.isUsingEnvKey() && (
-                    <Shield className="h-3 w-3 ml-1" title="Securely configured" />
+                    <Shield className="h-3 w-3 ml-1\" title="Securely configured" />
                   )}
                 </h3>
                 <p className="text-xs opacity-90">Ask me about Raktim Mondol</p>
