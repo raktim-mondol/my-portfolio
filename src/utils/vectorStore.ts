@@ -65,6 +65,7 @@ export class VectorStore {
       
       this.isInitialized = true;
       console.log(`Vector store initialized with ${this.documents.length} documents`);
+      console.log('Document distribution:', this.getDocumentTypeDistribution());
       console.log('Hybrid search ready: Vector + BM25');
     } catch (error) {
       console.error('Failed to initialize vector store:', error);
@@ -76,6 +77,9 @@ export class VectorStore {
   }
 
   private async loadContent(): Promise<void> {
+    // Clear existing documents
+    this.documents = [];
+    
     // Load content from markdown files
     const contentFiles = [
       { path: '/content/about.md', type: 'about' as const, priority: 10 },
@@ -97,9 +101,11 @@ export class VectorStore {
       }
     }
 
-    // Add existing scraped content as fallback
-    this.addScrapedContent();
+    // Add structured content for better coverage
+    this.addStructuredContent();
+    
     this.totalDocuments = this.documents.length;
+    console.log(`Loaded ${this.totalDocuments} documents total`);
   }
 
   private async processMarkdownContent(content: string, type: Document['metadata']['type'], priority: number, source: string): Promise<void> {
@@ -172,29 +178,161 @@ export class VectorStore {
     return Array.from(result.data);
   }
 
-  private addScrapedContent(): void {
-    // Fallback content from the original scraper
-    const scrapedContent = [
+  private addStructuredContent(): void {
+    // About content
+    const aboutContent = [
       {
-        section: 'About',
-        content: `Raktim Mondol is a PhD candidate in Computer Science & Engineering at UNSW Sydney. He is a researcher, data scientist, bioinformatician, LLM engineer, and father. His research focuses on deep learning-based prognosis and explainability for breast cancer. He is located at the School of Computer Science and Engineering, Building K17, UNSW Sydney, NSW 2052. Contact: r.mondol@unsw.edu.au, Phone: +61 412 936 237.`,
+        section: 'Personal Information',
+        content: `Raktim Mondol is a PhD candidate in Computer Science & Engineering at UNSW Sydney. He is a researcher, data scientist, bioinformatician, LLM engineer, and father. His research focuses on deep learning-based prognosis and explainability for breast cancer.`,
         type: 'about' as const,
         priority: 10
       },
       {
-        section: 'Education',
-        content: `Raktim Mondol is pursuing a PhD in Computer Science & Engineering at UNSW Sydney (2021-2025 Expected). His thesis is on "Deep Learning Based Prognosis and Explainability for Breast Cancer". He completed his MS by Research in Computer Science & Bioinformatics at RMIT University (2017-2019) with High Distinction. His master's thesis was "Deep learning in classifying cancer subtypes, extracting relevant genes and identifying novel mutations". He has a Bachelor's degree in Electrical and Electronic Engineering from BRAC University (2013) with High Distinction.`,
+        section: 'Contact Information',
+        content: `Raktim Mondol is located at the School of Computer Science and Engineering, Building K17, UNSW Sydney, NSW 2052. Contact: r.mondol@unsw.edu.au, Phone: +61 412 936 237.`,
+        type: 'about' as const,
+        priority: 10
+      },
+      {
+        section: 'Professional Summary',
+        content: `Raktim is an experienced data scientist and programmer with deep expertise in artificial intelligence, generative AI (GenAI) techniques and large language models (LLMs), bioinformatics, computer vision, and high-performance computing. His research and professional background is centered on analyzing large-scale image and biomedical datasets, developing novel deep learning models, and conducting advanced statistical analyses.`,
+        type: 'about' as const,
+        priority: 10
+      }
+    ];
+
+    // Education content
+    const educationContent = [
+      {
+        section: 'PhD Education',
+        content: `Raktim Mondol is pursuing a PhD in Computer Science & Engineering at UNSW Sydney (2021-2025 Expected). His thesis is on "Deep Learning Based Prognosis and Explainability for Breast Cancer". He completed his MS by Research in Computer Science & Bioinformatics at RMIT University (2017-2019) with High Distinction. His master's thesis was "Deep learning in classifying cancer subtypes, extracting relevant genes and identifying novel mutations".`,
         type: 'education' as const,
         priority: 9
       }
     ];
 
-    for (const content of scrapedContent) {
+    // Experience content
+    const experienceContent = [
+      {
+        section: 'Current Position',
+        content: `Raktim Mondol has been working as a Casual Academic at UNSW since July 2021, conducting laboratory and tutorial classes for Computer Vision, Neural Networks and Deep Learning, and Artificial Intelligence courses.`,
+        type: 'experience' as const,
+        priority: 8
+      },
+      {
+        section: 'Teaching Assistant Role',
+        content: `Previously, he was a Teaching Assistant at RMIT University (July 2017 - Oct 2019), conducting laboratory classes for Electronics, Software Engineering Design, Engineering Computing, and Introduction to Embedded Systems.`,
+        type: 'experience' as const,
+        priority: 8
+      },
+      {
+        section: 'Lecturer Position',
+        content: `He worked as a full-time Lecturer at World University of Bangladesh (Sep 2013 - Dec 2016), teaching Electrical Circuit I & II, Engineering Materials, Electronics I & II, Digital Logic Design, and supervising student projects and thesis.`,
+        type: 'experience' as const,
+        priority: 8
+      }
+    ];
+
+    // Skills content
+    const skillsContent = [
+      {
+        section: 'Programming Languages',
+        content: `Raktim is proficient in Python, R, SQL, and LaTeX programming languages.`,
+        type: 'skills' as const,
+        priority: 7
+      },
+      {
+        section: 'Deep Learning Frameworks',
+        content: `He has expertise in TensorFlow and PyTorch deep learning frameworks.`,
+        type: 'skills' as const,
+        priority: 7
+      },
+      {
+        section: 'Cloud Computing',
+        content: `Raktim has experience with distributed and cloud computing platforms including AWS, GCP, and GALAXY.`,
+        type: 'skills' as const,
+        priority: 7
+      },
+      {
+        section: 'LLM and Generative AI',
+        content: `He has expertise in Hugging Face Transformers, LoRA/QLoRA (PEFT), LangChain, OpenAI API/Gemini Pro, GPTQ/GGUF, Prompt Engineering, Agent Development Kit, and RAG Pipelines.`,
+        type: 'skills' as const,
+        priority: 7
+      },
+      {
+        section: 'Vector Search and Retrieval',
+        content: `Raktim is skilled in FAISS, BM25/Elasticsearch, ChromaDB/Weaviate, and Milvus for vector search and retrieval systems.`,
+        type: 'skills' as const,
+        priority: 7
+      }
+    ];
+
+    // Research content
+    const researchContent = [
+      {
+        section: 'LLM Research',
+        content: `Raktim's research focuses on Large Language Models (LLMs) including training, fine-tuning, and evaluating LLMs using parameter-efficient techniques like LoRA and QLoRA, with applications in retrieval-augmented generation, summarisation, and multi-hop reasoning.`,
+        type: 'research' as const,
+        priority: 9
+      },
+      {
+        section: 'Agentic AI Research',
+        content: `He works on Agentic AI & Multi-Agent Systems, designing autonomous, tool-using agents for reasoning, planning, and collaboration using frameworks like the Agent Development Kit.`,
+        type: 'research' as const,
+        priority: 9
+      },
+      {
+        section: 'RAG Research',
+        content: `His expertise includes Retrieval-Augmented Generation (RAG), building hybrid search and generation pipelines integrating semantic and keyword-based retrieval.`,
+        type: 'research' as const,
+        priority: 9
+      }
+    ];
+
+    // Publications content
+    const publicationsContent = [
+      {
+        section: 'BioFusionNet Publication',
+        content: `"BioFusionNet: Deep Learning-Based Survival Risk Stratification in ER+ Breast Cancer Through Multifeature and Multimodal Data Fusion" published in IEEE Journal of Biomedical and Health Informatics (2024).`,
+        type: 'publications' as const,
+        priority: 8
+      },
+      {
+        section: 'hist2RNA Publication',
+        content: `"hist2RNA: An Efficient Deep Learning Architecture to Predict Gene Expression from Breast Cancer Histopathology Images" published in Cancers journal (2023).`,
+        type: 'publications' as const,
+        priority: 8
+      },
+      {
+        section: 'AFExNet Publication',
+        content: `"AFExNet: An Adversarial Autoencoder for Differentiating Breast Cancer Sub-types and Extracting Biologically Relevant Genes" published in IEEE/ACM Transactions on Computational Biology and Bioinformatics (2021).`,
+        type: 'publications' as const,
+        priority: 8
+      }
+    ];
+
+    // Awards content (currently empty, but structure for future)
+    const awardsContent = [
+      // Will be populated when awards data is available
+    ];
+
+    // Add all structured content
+    const allContent = [
+      ...aboutContent,
+      ...educationContent,
+      ...experienceContent,
+      ...skillsContent,
+      ...researchContent,
+      ...publicationsContent,
+      ...awardsContent
+    ];
+
+    for (const content of allContent) {
       const doc: Document = {
-        id: `scraped-${Date.now()}-${Math.random()}`,
+        id: `structured-${Date.now()}-${Math.random()}`,
         content: content.content,
         metadata: {
-          source: 'scraped-content',
+          source: 'structured-content',
           section: content.section,
           type: content.type,
           priority: content.priority
@@ -349,7 +487,7 @@ export class VectorStore {
     }
   }
 
-  private bm25Search(query: string, topK: number): SearchResult[] {
+  private bm25Search(query: string, topK: number): Promise<SearchResult[]> {
     const queryTerms = this.tokenize(query);
     const results: SearchResult[] = [];
 
@@ -382,7 +520,7 @@ export class VectorStore {
       console.log(`Top BM25 scores: ${results.slice(0, 3).map(r => r.score.toFixed(4)).join(', ')}`);
     }
     
-    return results.slice(0, topK);
+    return Promise.resolve(results.slice(0, topK));
   }
 
   private combineResults(vectorResults: SearchResult[], bm25Results: SearchResult[], topK: number): SearchResult[] {
@@ -471,6 +609,15 @@ export class VectorStore {
 
   public getDocumentsByType(type: Document['metadata']['type']): Document[] {
     return this.documents.filter(doc => doc.metadata.type === type);
+  }
+
+  public getDocumentTypeDistribution(): Record<string, number> {
+    const distribution: Record<string, number> = {};
+    for (const doc of this.documents) {
+      const type = doc.metadata.type;
+      distribution[type] = (distribution[type] || 0) + 1;
+    }
+    return distribution;
   }
 
   public getSearchStats(): {

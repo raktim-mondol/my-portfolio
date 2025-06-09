@@ -46,7 +46,9 @@ export class RAGService {
     try {
       await this.vectorStore.initialize();
       const stats = this.vectorStore.getSearchStats();
+      const distribution = this.vectorStore.getDocumentTypeDistribution();
       console.log(`Vector store ready with hybrid search capabilities:`, stats);
+      console.log('Document type distribution:', distribution);
     } catch (error) {
       console.error('Failed to initialize vector store:', error);
     }
@@ -261,11 +263,7 @@ Remember to be helpful and provide comprehensive answers based on the rich conte
     
     const stats = this.vectorStore.getSearchStats();
     const totalDocuments = this.vectorStore.getDocumentCount();
-    const documentsByType: Record<string, number> = {};
-    
-    ['about', 'education', 'experience', 'skills', 'research', 'publications', 'awards'].forEach(type => {
-      documentsByType[type] = this.vectorStore.getDocumentsByType(type as any).length;
-    });
+    const documentsByType = this.vectorStore.getDocumentTypeDistribution();
 
     return {
       totalDocuments,
