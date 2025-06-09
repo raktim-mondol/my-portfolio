@@ -1,30 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Settings, Eye, EyeOff, Shield } from 'lucide-react';
+import { MessageCircle, X, Send, Shield } from 'lucide-react';
 import { RAGService, ChatMessage } from '../utils/ragService';
 import toast from 'react-hot-toast';
 
 export default function RAGtimBot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [showApiKey, setShowApiKey] = useState(false);
   const [ragService] = useState(() => new RAGService());
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Load existing API key only if not using environment variable
-    if (!ragService.isUsingEnvKey()) {
-      const existingKey = localStorage.getItem('deepseek_api_key');
-      if (existingKey) {
-        setApiKey(existingKey);
-      }
-    }
-
     // Add initial welcome message if API key is available
     if (ragService.hasApiKey()) {
       const welcomeMessage: ChatMessage = {
@@ -55,12 +44,7 @@ export default function RAGtimBot() {
     if (!inputMessage.trim()) return;
 
     if (!ragService.hasApiKey()) {
-      if (ragService.isUsingEnvKey()) {
-        toast.error('The chatbot is currently unavailable. Please contact the site administrator.');
-      } else {
-        toast.error('Please set your DeepSeek API key in settings first.');
-        setIsSettingsOpen(true);
-      }
+      toast.error('The chatbot is currently unavailable. Please contact the site administrator.');
       return;
     }
 
@@ -101,28 +85,6 @@ export default function RAGtimBot() {
     }
   };
 
-  const handleSaveApiKey = () => {
-    if (!apiKey.trim()) {
-      toast.error('Please enter a valid API key.');
-      return;
-    }
-
-    ragService.setApiKey(apiKey.trim());
-    setIsSettingsOpen(false);
-    toast.success('API key saved successfully!');
-    
-    // Add welcome message if no messages exist
-    if (messages.length === 0) {
-      const welcomeMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: "Hello! I'm RAGtim Bot, your AI assistant for learning about Raktim Mondol. I can answer questions about his education, research, publications, skills, and more. What would you like to know?",
-        timestamp: new Date()
-      };
-      setMessages([welcomeMessage]);
-    }
-  };
-
   const clearChat = () => {
     setMessages([]);
     toast.success('Chat cleared!');
@@ -131,9 +93,6 @@ export default function RAGtimBot() {
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
-
-  // Don't show settings button if using environment API key
-  const showSettingsButton = !ragService.isUsingEnvKey();
 
   return (
     <>
@@ -165,23 +124,19 @@ export default function RAGtimBot() {
               <div>
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
-                  {ragService.isUsingEnvKey() && (
-                    <Shield className="h-3 w-3 ml-1\" title="Securely configured" />
-                  )}
+                  <Shield className="h-3 w-3 ml-1" title="Securely configured" />
                 </h3>
                 <p className="text-xs opacity-90">Ask me about Raktim Mondol</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              {showSettingsButton && (
-                <button
-                  onClick={() => setIsSettingsOpen(true)}
-                  className="p-1 hover:bg-white/20 rounded transition-colors"
-                  aria-label="Settings"
-                >
-                  <Settings className="h-4 w-4" />
-                </button>
-              )}
+              <button
+                onClick={clearChat}
+                className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
+                title="Clear chat"
+              >
+                Clear
+              </button>
               <button
                 onClick={() => setIsOpen(false)}
                 className="p-1 hover:bg-white/20 rounded transition-colors"
@@ -200,9 +155,7 @@ export default function RAGtimBot() {
                 <p className="text-sm">
                   {ragService.hasApiKey() 
                     ? "Start a conversation! Ask me anything about Raktim Mondol."
-                    : ragService.isUsingEnvKey()
-                    ? "The chatbot is currently unavailable. Please contact the site administrator."
-                    : "Please set your DeepSeek API key in settings to start chatting."
+                    : "The chatbot is currently unavailable. Please contact the site administrator."
                   }
                 </p>
               </div>
@@ -265,65 +218,6 @@ export default function RAGtimBot() {
               >
                 <Send className="h-4 w-4" />
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Settings Modal - Only show if not using environment API key */}
-      {isSettingsOpen && showSettingsButton && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
-          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 w-96 max-w-[90vw]">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">RAGtim Bot Settings</h3>
-              <button
-                onClick={() => setIsSettingsOpen(false)}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  DeepSeek API Key
-                </label>
-                <div className="relative">
-                  <input
-                    type={showApiKey ? "text" : "password"}
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="Enter your DeepSeek API key"
-                    className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowApiKey(!showApiKey)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  >
-                    {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Get your API key from <a href="https://platform.deepseek.com" target="_blank" rel="noopener noreferrer" className="text-[#94c973] hover:underline">DeepSeek Platform</a>
-                </p>
-              </div>
-              
-              <div className="flex space-x-3">
-                <button
-                  onClick={handleSaveApiKey}
-                  className="flex-1 bg-[#94c973] text-white py-2 px-4 rounded-lg hover:bg-[#7fb95e] transition-colors"
-                >
-                  Save API Key
-                </button>
-                <button
-                  onClick={clearChat}
-                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                >
-                  Clear Chat
-                </button>
-              </div>
             </div>
           </div>
         </div>

@@ -27,32 +27,13 @@ export class RAGService {
   }
 
   private getApiKey(): string | null {
-    // Try to get API key from environment variables first (Netlify)
+    // Get API key from environment variables (Netlify)
     const envApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
-    if (envApiKey) {
-      return envApiKey;
-    }
-    
-    // Fallback to localStorage for development/testing
-    return localStorage.getItem('deepseek_api_key') || null;
-  }
-
-  public setApiKey(apiKey: string): void {
-    this.apiKey = apiKey;
-    localStorage.setItem('deepseek_api_key', apiKey);
-    this.openai = new OpenAI({
-      baseURL: 'https://api.deepseek.com',
-      apiKey: this.apiKey,
-      dangerouslyAllowBrowser: true
-    });
+    return envApiKey || null;
   }
 
   public hasApiKey(): boolean {
     return !!this.apiKey;
-  }
-
-  public isUsingEnvKey(): boolean {
-    return !!import.meta.env.VITE_DEEPSEEK_API_KEY;
   }
 
   private retrieveRelevantContent(query: string): ScrapedContent[] {
