@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { WebsiteScraper, ScrapedContent } from './websiteScraper';
+import { VectorStore, SearchResult } from './vectorStore';
 
 export interface ChatMessage {
   id: string;
@@ -10,11 +10,11 @@ export interface ChatMessage {
 
 export class RAGService {
   private openai: OpenAI | null = null;
-  private scraper: WebsiteScraper;
+  private vectorStore: VectorStore;
   private apiKey: string | null = null;
 
   constructor() {
-    this.scraper = WebsiteScraper.getInstance();
+    this.vectorStore = VectorStore.getInstance();
     this.apiKey = this.getApiKey();
     
     console.log('RAGService initialized');
@@ -33,14 +33,25 @@ export class RAGService {
         dangerouslyAllowBrowser: true
       });
       console.log('OpenAI client initialized successfully');
+      
+      // Initialize vector store
+      this.initializeVectorStore();
     } else {
       console.warn('No valid API key found. RAGtim Bot will be disabled.');
       console.warn('To enable the chatbot, set VITE_DEEPSEEK_API_KEY in your Netlify environment variables.');
     }
   }
 
+  private async initializeVectorStore(): Promise<void> {
+    try {
+      await this.vectorStore.initialize();
+      console.log(`Vector store ready with ${this.vectorStore.getDocumentCount()} documents`);
+    } catch (error) {
+      console.error('Failed to initialize vector store:', error);
+    }
+  }
+
   private getApiKey(): string | null {
-    // Get API key from environment variables (should be set in Netlify)
     const envApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
     
     console.log('Getting API key:', {
@@ -49,12 +60,12 @@ export class RAGService {
       envApiKeyType: typeof envApiKey
     });
     
-    // Validate that the API key exists and is not a placeholder
     if (envApiKey && 
         typeof envApiKey === 'string' && 
         envApiKey.trim().length > 0 &&
         !envApiKey.includes('placeholder') &&
-        !envApiKey.includes('your_actual')) {
+        !envApiKey.includes('your_actual') &&
+        !envApiKey.includes('your_deepseek_api_key_here')) {
       return envApiKey.trim();
     }
     
@@ -67,22 +78,41 @@ export class RAGService {
     return hasKey;
   }
 
-  private retrieveRelevantContent(query: string): ScrapedContent[] {
-    // Simple keyword-based retrieval
-    const relevantContent = this.scraper.searchContent(query);
-    
-    // Return top 3 most relevant sections
-    return relevantContent.slice(0, 3);
+  private async retrieveRelevantContent(query: string): Promise<SearchResult[]> {
+    try {
+      // Use vector search for better retrieval
+      const results = await this.vectorStore.search(query, 5);
+      console.log(`Retrieved ${results.length} relevant documents for query: "${query}"`);
+      
+      // Log search results for debugging
+      results.forEach((result, index) => {
+        console.log(`Result ${index + 1}:`, {
+          score: result.score,
+          section: result.document.metadata.section,
+          type: result.document.metadata.type,
+          contentPreview: result.document.content.substring(0, 100) + '...'
+        });
+      });
+      
+      return results;
+    } catch (error) {
+      console.error('Error in content retrieval:', error);
+      return [];
+    }
   }
 
-  private buildContext(relevantContent: ScrapedContent[]): string {
-    if (relevantContent.length === 0) {
-      return "No specific information found. Please provide general information about Raktim Mondol.";
+  private buildContext(searchResults: SearchResult[]): string {
+    if (searchResults.length === 0) {
+      return "No specific information found. Please provide general information about Raktim Mondol based on your knowledge.";
     }
 
-    return relevantContent
-      .map(content => `${content.section}: ${content.content}`)
-      .join('\n\n');
+    const contextParts = searchResults.map((result, index) => {
+      const doc = result.document;
+      const section = doc.metadata.section ? `[${doc.metadata.section}]` : `[${doc.metadata.type}]`;
+      return `${section}\n${doc.content.trim()}`;
+    });
+
+    return contextParts.join('\n\n---\n\n');
   }
 
   public async generateResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
@@ -94,33 +124,40 @@ export class RAGService {
     }
 
     try {
-      // Retrieve relevant content
-      const relevantContent = this.retrieveRelevantContent(userQuery);
-      const context = this.buildContext(relevantContent);
+      // Retrieve relevant content using vector search
+      const searchResults = await this.retrieveRelevantContent(userQuery);
+      const context = this.buildContext(searchResults);
 
-      console.log('Retrieved relevant content:', relevantContent.length, 'sections');
+      console.log('Context built from search results:', {
+        resultCount: searchResults.length,
+        contextLength: context.length
+      });
 
       // Build conversation history for context
       const messages: any[] = [
         {
           role: "system",
-          content: `You are RAGtim Bot, a helpful assistant that answers questions about Raktim Mondol based on his portfolio website. 
+          content: `You are RAGtim Bot, a knowledgeable assistant that answers questions about Raktim Mondol based on comprehensive information from his portfolio and detailed content files.
 
 IMPORTANT INSTRUCTIONS:
 - Always answer based on the provided context about Raktim Mondol
 - Be conversational, friendly, and professional
+- Provide detailed and informative responses when relevant information is available
 - If asked about something not in the context, politely say you don't have that specific information
-- Keep responses concise but informative
 - You can refer to Raktim in first person (as "I") or third person, whichever feels more natural
 - If someone asks general questions like "hello" or "how are you", respond as Raktim's representative
+- When discussing technical topics, provide appropriate level of detail
+- Include specific examples, achievements, or details when available in the context
 
-Context about Raktim Mondol:
-${context}`
+CONTEXT ABOUT RAKTIM MONDOL:
+${context}
+
+Remember to be helpful and provide comprehensive answers based on the rich context provided above.`
         }
       ];
 
-      // Add recent conversation history (last 4 messages for context)
-      const recentHistory = conversationHistory.slice(-4);
+      // Add recent conversation history (last 6 messages for better context)
+      const recentHistory = conversationHistory.slice(-6);
       recentHistory.forEach(msg => {
         messages.push({
           role: msg.role,
@@ -139,8 +176,9 @@ ${context}`
       const completion = await this.openai.chat.completions.create({
         messages,
         model: "deepseek-chat",
-        max_tokens: 500,
-        temperature: 0.7
+        max_tokens: 800,
+        temperature: 0.7,
+        top_p: 0.9
       });
 
       console.log('Received response from DeepSeek API');
@@ -166,5 +204,27 @@ ${context}`
       
       return "I apologize, but I'm experiencing technical difficulties. Please try again later.";
     }
+  }
+
+  // Method to get statistics about the knowledge base
+  public async getKnowledgeBaseStats(): Promise<{
+    totalDocuments: number;
+    documentsByType: Record<string, number>;
+    isVectorSearchEnabled: boolean;
+  }> {
+    await this.vectorStore.initialize();
+    
+    const totalDocuments = this.vectorStore.getDocumentCount();
+    const documentsByType: Record<string, number> = {};
+    
+    ['about', 'education', 'experience', 'skills', 'research', 'publications', 'awards'].forEach(type => {
+      documentsByType[type] = this.vectorStore.getDocumentsByType(type as any).length;
+    });
+
+    return {
+      totalDocuments,
+      documentsByType,
+      isVectorSearchEnabled: true
+    };
   }
 }

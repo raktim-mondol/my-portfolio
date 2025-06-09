@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Shield, AlertCircle } from 'lucide-react';
+import { MessageCircle, X, Send, Shield, AlertCircle, Database, BarChart3 } from 'lucide-react';
 import { RAGService, ChatMessage } from '../utils/ragService';
 import toast from 'react-hot-toast';
 
@@ -9,6 +9,8 @@ export default function RAGtimBot() {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [ragService] = useState(() => new RAGService());
+  const [showStats, setShowStats] = useState(false);
+  const [knowledgeStats, setKnowledgeStats] = useState<any>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -19,7 +21,7 @@ export default function RAGtimBot() {
       const welcomeMessage: ChatMessage = {
         id: Date.now().toString(),
         role: 'assistant',
-        content: "Hello! I'm RAGtim Bot, your AI assistant for learning about Raktim Mondol. I can answer questions about his education, research, publications, skills, and more. What would you like to know?",
+        content: "Hello! I'm RAGtim Bot, your enhanced AI assistant for learning about Raktim Mondol. I now have access to detailed information from comprehensive content files and use advanced vector search for better answers. I can provide in-depth information about his education, research, publications, skills, experience, and more. What would you like to know?",
         timestamp: new Date()
       };
       setMessages([welcomeMessage]);
@@ -46,6 +48,15 @@ export default function RAGtimBot() {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const loadKnowledgeStats = async () => {
+    try {
+      const stats = await ragService.getKnowledgeBaseStats();
+      setKnowledgeStats(stats);
+    } catch (error) {
+      console.error('Failed to load knowledge base stats:', error);
+    }
   };
 
   const handleSendMessage = async () => {
@@ -106,6 +117,13 @@ export default function RAGtimBot() {
     toast.success('Chat cleared!');
   };
 
+  const toggleStats = async () => {
+    if (!showStats && !knowledgeStats) {
+      await loadKnowledgeStats();
+    }
+    setShowStats(!showStats);
+  };
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
@@ -142,7 +160,7 @@ export default function RAGtimBot() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[500px] bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50 flex flex-col">
+        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50 flex flex-col">
           {/* Header */}
           <div className={`flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 ${
             hasApiKey ? 'bg-[#94c973]' : 'bg-red-500'
@@ -150,7 +168,7 @@ export default function RAGtimBot() {
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                 {hasApiKey ? (
-                  <MessageCircle className="h-4 w-4" />
+                  <Database className="h-4 w-4" />
                 ) : (
                   <AlertCircle className="h-4 w-4" />
                 )}
@@ -159,17 +177,26 @@ export default function RAGtimBot() {
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
                   {hasApiKey ? (
-                    <Shield className="h-3 w-3 ml-1\" title="Securely configured" />
+                    <Shield className="h-3 w-3 ml-1" title="Enhanced with Vector Search" />
                   ) : (
-                    <AlertCircle className="h-3 w-3 ml-1\" title="Configuration needed" />
+                    <AlertCircle className="h-3 w-3 ml-1" title="Configuration needed" />
                   )}
                 </h3>
                 <p className="text-xs opacity-90">
-                  {hasApiKey ? 'Ask me about Raktim Mondol' : 'Configuration needed'}
+                  {hasApiKey ? 'Enhanced AI with Vector Search' : 'Configuration needed'}
                 </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
+              {hasApiKey && (
+                <button
+                  onClick={toggleStats}
+                  className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
+                  title="Knowledge base stats"
+                >
+                  <BarChart3 className="h-3 w-3" />
+                </button>
+              )}
               <button
                 onClick={clearChat}
                 className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
@@ -187,14 +214,33 @@ export default function RAGtimBot() {
             </div>
           </div>
 
+          {/* Knowledge Base Stats */}
+          {showStats && knowledgeStats && (
+            <div className="p-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Knowledge Base</h4>
+              <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                <div>Total Documents: {knowledgeStats.totalDocuments}</div>
+                <div>Vector Search: {knowledgeStats.isVectorSearchEnabled ? '✅ Enabled' : '❌ Disabled'}</div>
+                <div className="grid grid-cols-2 gap-1 mt-2">
+                  {Object.entries(knowledgeStats.documentsByType).map(([type, count]) => (
+                    <div key={type} className="capitalize">
+                      {type}: {count}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 && (
               <div className="text-center text-gray-500 dark:text-gray-400 py-8">
                 {hasApiKey ? (
                   <>
-                    <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-sm">Start a conversation! Ask me anything about Raktim Mondol.</p>
+                    <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-sm">Enhanced RAG system ready! Ask me anything about Raktim Mondol.</p>
+                    <p className="text-xs mt-2 opacity-70">Now with vector search and detailed content files.</p>
                   </>
                 ) : (
                   <>
@@ -212,7 +258,7 @@ export default function RAGtimBot() {
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
+                  className={`max-w-[85%] p-3 rounded-lg ${
                     message.role === 'user'
                       ? 'bg-[#94c973] text-white'
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
