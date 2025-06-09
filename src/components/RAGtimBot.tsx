@@ -141,18 +141,20 @@ export default function RAGtimBot() {
               hasApiKey 
                 ? 'bg-[#94c973] hover:bg-[#7fb95e]' 
                 : 'bg-red-500 hover:bg-red-600'
-            } text-white rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 group`}
+            } text-white rounded-2xl p-4 shadow-lg transition-all duration-300 hover:scale-110 group relative`}
             aria-label="Open RAGtim Bot"
           >
-            {hasApiKey ? (
-              <Target className="h-6 w-6" />
-            ) : (
-              <AlertCircle className="h-6 w-6" />
-            )}
-            <div className={`absolute -top-2 -left-2 ${
-              hasApiKey ? 'bg-blue-500' : 'bg-red-500'
-            } text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse`}>
-              {hasApiKey ? '🎯' : '!'}
+            <MessageCircle className="h-6 w-6" />
+            <div className={`absolute -top-1 -right-1 text-lg animate-pulse ${
+              hasApiKey ? '' : 'opacity-75'
+            }`}>
+              {hasApiKey ? (
+                <span className="animate-bounce" style={{ 
+                  animation: 'bounce 1s infinite, flash 2s infinite' 
+                }}>🔥</span>
+              ) : (
+                <span className="text-red-300">⚠️</span>
+              )}
             </div>
           </button>
         )}
@@ -167,19 +169,15 @@ export default function RAGtimBot() {
           } text-white rounded-t-lg`}>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                {hasApiKey ? (
-                  <Target className="h-4 w-4" />
-                ) : (
-                  <AlertCircle className="h-4 w-4" />
-                )}
+                <MessageCircle className="h-4 w-4" />
               </div>
               <div>
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
                   {hasApiKey ? (
-                    <Shield className="h-3 w-3 ml-1\" title="Hybrid Search Enabled" />
+                    <Shield className="h-3 w-3 ml-1" title="Hybrid Search Enabled" />
                   ) : (
-                    <AlertCircle className="h-3 w-3 ml-1\" title="Configuration needed" />
+                    <AlertCircle className="h-3 w-3 ml-1" title="Configuration needed" />
                   )}
                 </h3>
                 <p className="text-xs opacity-90">
@@ -246,7 +244,7 @@ export default function RAGtimBot() {
               <div className="text-center text-gray-500 dark:text-gray-400 py-8">
                 {hasApiKey ? (
                   <>
-                    <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p className="text-sm">Advanced hybrid RAG system ready! Ask me anything about Raktim Mondol.</p>
                     <p className="text-xs mt-2 opacity-70">Powered by Vector + BM25 search for precise answers.</p>
                   </>
@@ -321,6 +319,13 @@ export default function RAGtimBot() {
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        @keyframes flash {
+          0%, 50% { opacity: 1; }
+          25%, 75% { opacity: 0.3; }
+        }
+      `}</style>
     </>
   );
 }
