@@ -19,7 +19,7 @@ export interface Document {
 export interface SearchResult {
   document: Document;
   score: number;
-  searchType: 'vector' | 'keyword' | 'hybrid';
+  searchType: 'vector' | 'bm25' | 'hybrid';
 }
 
 export class VectorStore {
@@ -27,9 +27,17 @@ export class VectorStore {
   private documents: Document[] = [];
   private embedder: any = null;
   private isInitialized = false;
-  private tfidfVectors: Map<string, Map<string, number>> = new Map();
-  private documentFrequency: Map<string, number> = new Map();
+  
+  // BM25 specific properties
+  private termFrequencies: Map<string, Map<string, number>> = new Map(); // docId -> term -> frequency
+  private documentFrequency: Map<string, number> = new Map(); // term -> number of docs containing term
+  private documentLengths: Map<string, number> = new Map(); // docId -> document length
+  private averageDocumentLength = 0;
   private totalDocuments = 0;
+  
+  // BM25 parameters
+  private readonly k1 = 1.5; // Controls term frequency saturation
+  private readonly b = 0.75; // Controls document length normalization
 
   private constructor() {}
 
@@ -44,7 +52,7 @@ export class VectorStore {
     if (this.isInitialized) return;
 
     try {
-      console.log('Initializing vector store with hybrid search...');
+      console.log('Initializing vector store with hybrid search (Vector + BM25)...');
       
       // Initialize the embedding model - this will now download from HuggingFace if needed
       this.embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
@@ -52,17 +60,17 @@ export class VectorStore {
       // Load and process all content
       await this.loadContent();
       
-      // Build TF-IDF index
-      this.buildTFIDFIndex();
+      // Build BM25 index
+      this.buildBM25Index();
       
       this.isInitialized = true;
       console.log(`Vector store initialized with ${this.documents.length} documents`);
-      console.log('Hybrid search ready: Vector + TF-IDF');
+      console.log('Hybrid search ready: Vector + BM25');
     } catch (error) {
       console.error('Failed to initialize vector store:', error);
       // Fallback to keyword search if embedding fails
       await this.loadContent();
-      this.buildTFIDFIndex();
+      this.buildBM25Index();
       this.isInitialized = true;
     }
   }
@@ -196,34 +204,49 @@ export class VectorStore {
     }
   }
 
-  private buildTFIDFIndex(): void {
-    console.log('Building TF-IDF index...');
+  private buildBM25Index(): void {
+    console.log('Building BM25 index...');
     
     // Reset indexes
-    this.tfidfVectors.clear();
+    this.termFrequencies.clear();
     this.documentFrequency.clear();
+    this.documentLengths.clear();
     
-    // First pass: calculate term frequencies and document frequencies
+    let totalLength = 0;
+    
+    // First pass: calculate term frequencies and document lengths
     for (const doc of this.documents) {
       const terms = this.tokenize(doc.content);
       const termFreq = new Map<string, number>();
       const uniqueTerms = new Set<string>();
       
-      // Calculate term frequencies
+      // Calculate term frequencies for this document
       for (const term of terms) {
         termFreq.set(term, (termFreq.get(term) || 0) + 1);
         uniqueTerms.add(term);
       }
       
-      // Update document frequencies
+      // Store document length and term frequencies
+      this.documentLengths.set(doc.id, terms.length);
+      this.termFrequencies.set(doc.id, termFreq);
+      totalLength += terms.length;
+      
+      // Update document frequencies (number of documents containing each term)
       for (const term of uniqueTerms) {
         this.documentFrequency.set(term, (this.documentFrequency.get(term) || 0) + 1);
       }
-      
-      this.tfidfVectors.set(doc.id, termFreq);
     }
     
-    console.log(`TF-IDF index built with ${this.documentFrequency.size} unique terms`);
+    // Calculate average document length
+    this.averageDocumentLength = totalLength / this.totalDocuments;
+    
+    console.log(`BM25 index built:`, {
+      documents: this.totalDocuments,
+      uniqueTerms: this.documentFrequency.size,
+      averageDocLength: Math.round(this.averageDocumentLength),
+      k1: this.k1,
+      b: this.b
+    });
   }
 
   private tokenize(text: string): string[] {
@@ -239,22 +262,31 @@ export class VectorStore {
     const stopWords = new Set([
       'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
       'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did',
-      'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those'
+      'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those',
+      'from', 'up', 'out', 'down', 'off', 'over', 'under', 'again', 'further', 'then', 'once'
     ]);
     return stopWords.has(term);
   }
 
-  private calculateTFIDF(termFreq: Map<string, number>, docLength: number): Map<string, number> {
-    const tfidf = new Map<string, number>();
+  /**
+   * Calculate BM25 score for a term in a document
+   * BM25(qi, D) = IDF(qi) * (f(qi, D) * (k1 + 1)) / (f(qi, D) + k1 * (1 - b + b * |D| / avgdl))
+   */
+  private calculateBM25Score(term: string, docId: string): number {
+    const termFreq = this.termFrequencies.get(docId)?.get(term) || 0;
+    if (termFreq === 0) return 0;
     
-    for (const [term, freq] of termFreq) {
-      const tf = freq / docLength;
-      const df = this.documentFrequency.get(term) || 1;
-      const idf = Math.log(this.totalDocuments / df);
-      tfidf.set(term, tf * idf);
-    }
+    const docLength = this.documentLengths.get(docId) || 0;
+    const docFreq = this.documentFrequency.get(term) || 1;
     
-    return tfidf;
+    // Calculate IDF: log((N - df + 0.5) / (df + 0.5))
+    const idf = Math.log((this.totalDocuments - docFreq + 0.5) / (docFreq + 0.5));
+    
+    // Calculate term frequency component
+    const numerator = termFreq * (this.k1 + 1);
+    const denominator = termFreq + this.k1 * (1 - this.b + this.b * (docLength / this.averageDocumentLength));
+    
+    return idf * (numerator / denominator);
   }
 
   public async search(query: string, topK: number = 5): Promise<SearchResult[]> {
@@ -262,18 +294,18 @@ export class VectorStore {
       await this.initialize();
     }
 
-    console.log(`Performing hybrid search for: "${query}"`);
+    console.log(`Performing hybrid search (Vector + BM25) for: "${query}"`);
 
     // Get results from both search methods
     const vectorResults = await this.vectorSearch(query, topK);
-    const keywordResults = this.tfidfSearch(query, topK);
+    const bm25Results = this.bm25Search(query, topK);
 
     // Combine and deduplicate results
-    const hybridResults = this.combineResults(vectorResults, keywordResults, topK);
+    const hybridResults = this.combineResults(vectorResults, bm25Results, topK);
 
     console.log(`Hybrid search completed:`, {
       vectorResults: vectorResults.length,
-      keywordResults: keywordResults.length,
+      bm25Results: bm25Results.length,
       hybridResults: hybridResults.length
     });
 
@@ -317,101 +349,77 @@ export class VectorStore {
     }
   }
 
-  private tfidfSearch(query: string, topK: number): SearchResult[] {
+  private bm25Search(query: string, topK: number): SearchResult[] {
     const queryTerms = this.tokenize(query);
-    const queryTFIDF = new Map<string, number>();
-    
-    // Calculate query TF-IDF
-    const queryTermFreq = new Map<string, number>();
-    for (const term of queryTerms) {
-      queryTermFreq.set(term, (queryTermFreq.get(term) || 0) + 1);
-    }
-    
-    for (const [term, freq] of queryTermFreq) {
-      const tf = freq / queryTerms.length;
-      const df = this.documentFrequency.get(term) || 1;
-      const idf = Math.log(this.totalDocuments / df);
-      queryTFIDF.set(term, tf * idf);
-    }
-
     const results: SearchResult[] = [];
 
     for (const doc of this.documents) {
-      const docTermFreq = this.tfidfVectors.get(doc.id);
-      if (!docTermFreq) continue;
-
-      const docTerms = this.tokenize(doc.content);
-      const docTFIDF = this.calculateTFIDF(docTermFreq, docTerms.length);
+      let bm25Score = 0;
       
-      // Calculate cosine similarity between query and document TF-IDF vectors
-      const similarity = this.calculateTFIDFSimilarity(queryTFIDF, docTFIDF);
+      // Calculate BM25 score for each query term
+      for (const term of queryTerms) {
+        bm25Score += this.calculateBM25Score(term, doc.id);
+      }
       
-      if (similarity > 0) {
-        // Boost score based on metadata priority
-        const boostedScore = similarity * (1 + doc.metadata.priority / 20);
+      if (bm25Score > 0) {
+        // Apply priority boost (smaller boost than before to maintain BM25 effectiveness)
+        const priorityBoost = 1 + (doc.metadata.priority / 50); // Reduced from /20 to /50
+        const finalScore = bm25Score * priorityBoost;
         
         results.push({ 
           document: doc, 
-          score: boostedScore,
-          searchType: 'keyword'
+          score: finalScore,
+          searchType: 'bm25'
         });
       }
     }
 
+    // Sort by BM25 score (descending)
     results.sort((a, b) => b.score - a.score);
+    
+    console.log(`BM25 search found ${results.length} relevant documents`);
+    if (results.length > 0) {
+      console.log(`Top BM25 scores: ${results.slice(0, 3).map(r => r.score.toFixed(4)).join(', ')}`);
+    }
+    
     return results.slice(0, topK);
   }
 
-  private calculateTFIDFSimilarity(queryTFIDF: Map<string, number>, docTFIDF: Map<string, number>): number {
-    let dotProduct = 0;
-    let queryNorm = 0;
-    let docNorm = 0;
-
-    // Calculate norms
-    for (const [term, score] of queryTFIDF) {
-      queryNorm += score * score;
-      if (docTFIDF.has(term)) {
-        dotProduct += score * docTFIDF.get(term)!;
-      }
-    }
-
-    for (const [term, score] of docTFIDF) {
-      docNorm += score * score;
-    }
-
-    if (queryNorm === 0 || docNorm === 0) return 0;
-    return dotProduct / (Math.sqrt(queryNorm) * Math.sqrt(docNorm));
-  }
-
-  private combineResults(vectorResults: SearchResult[], keywordResults: SearchResult[], topK: number): SearchResult[] {
+  private combineResults(vectorResults: SearchResult[], bm25Results: SearchResult[], topK: number): SearchResult[] {
     const combinedMap = new Map<string, SearchResult>();
     
-    // Add vector results with weight
+    // Normalize scores to [0, 1] range for fair combination
+    const maxVectorScore = vectorResults.length > 0 ? Math.max(...vectorResults.map(r => r.score)) : 1;
+    const maxBM25Score = bm25Results.length > 0 ? Math.max(...bm25Results.map(r => r.score)) : 1;
+    
+    // Add vector results with normalization and weight
     for (const result of vectorResults) {
-      const existing = combinedMap.get(result.document.id);
-      if (existing) {
-        // Combine scores if document appears in both results
-        existing.score = (existing.score + result.score * 0.7) / 2; // Weight vector search slightly less
-        existing.searchType = 'hybrid';
-      } else {
-        combinedMap.set(result.document.id, {
-          ...result,
-          score: result.score * 0.7 // Weight vector search
-        });
-      }
+      const normalizedScore = result.score / maxVectorScore;
+      const weightedScore = normalizedScore * 0.6; // 60% weight for vector search
+      
+      combinedMap.set(result.document.id, {
+        ...result,
+        score: weightedScore,
+        searchType: 'vector'
+      });
     }
     
-    // Add keyword results with weight
-    for (const result of keywordResults) {
+    // Add BM25 results with normalization and weight
+    for (const result of bm25Results) {
+      const normalizedScore = result.score / maxBM25Score;
+      const weightedScore = normalizedScore * 0.8; // 80% weight for BM25 search
+      
       const existing = combinedMap.get(result.document.id);
       if (existing) {
         // Combine scores if document appears in both results
-        existing.score = (existing.score + result.score * 0.8) / 2; // Weight keyword search slightly more
+        const combinedScore = (existing.score + weightedScore) / 2;
+        existing.score = combinedScore;
         existing.searchType = 'hybrid';
       } else {
         combinedMap.set(result.document.id, {
           ...result,
-          score: result.score * 0.8 // Weight keyword search
+          score: weightedScore,
+          searchType: 'bm25'
         });
       }
     }
@@ -419,15 +427,22 @@ export class VectorStore {
     // Convert to array and sort
     const combinedResults = Array.from(combinedMap.values());
     
-    // Final sorting with priority boost
+    // Final sorting with slight priority boost
     combinedResults.sort((a, b) => {
-      const priorityBoostA = a.document.metadata.priority / 100;
-      const priorityBoostB = b.document.metadata.priority / 100;
+      const priorityBoostA = a.document.metadata.priority / 200; // Very small boost
+      const priorityBoostB = b.document.metadata.priority / 200;
       
       const finalScoreA = a.score + priorityBoostA;
       const finalScoreB = b.score + priorityBoostB;
       
       return finalScoreB - finalScoreA;
+    });
+    
+    console.log(`Combined results:`, {
+      total: combinedResults.length,
+      hybrid: combinedResults.filter(r => r.searchType === 'hybrid').length,
+      vectorOnly: combinedResults.filter(r => r.searchType === 'vector').length,
+      bm25Only: combinedResults.filter(r => r.searchType === 'bm25').length
     });
     
     return combinedResults.slice(0, topK);
@@ -463,6 +478,8 @@ export class VectorStore {
     uniqueTerms: number;
     hasEmbeddings: number;
     searchCapabilities: string[];
+    averageDocLength: number;
+    bm25Parameters: { k1: number; b: number };
   } {
     const hasEmbeddings = this.documents.filter(doc => doc.embedding).length;
     const capabilities = [];
@@ -472,7 +489,7 @@ export class VectorStore {
     }
     
     if (this.documentFrequency.size > 0) {
-      capabilities.push('TF-IDF Search');
+      capabilities.push('BM25 Search');
     }
     
     if (capabilities.length === 2) {
@@ -483,7 +500,9 @@ export class VectorStore {
       totalDocuments: this.documents.length,
       uniqueTerms: this.documentFrequency.size,
       hasEmbeddings,
-      searchCapabilities: capabilities
+      searchCapabilities: capabilities,
+      averageDocLength: Math.round(this.averageDocumentLength),
+      bm25Parameters: { k1: this.k1, b: this.b }
     };
   }
 }

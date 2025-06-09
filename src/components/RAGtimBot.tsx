@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Shield, AlertCircle, Database, BarChart3, Search, Zap } from 'lucide-react';
+import { MessageCircle, X, Send, Shield, AlertCircle, Database, BarChart3, Search, Zap, Target } from 'lucide-react';
 import { RAGService, ChatMessage } from '../utils/ragService';
 import toast from 'react-hot-toast';
 
@@ -21,7 +21,7 @@ export default function RAGtimBot() {
       const welcomeMessage: ChatMessage = {
         id: Date.now().toString(),
         role: 'assistant',
-        content: "Hello! I'm RAGtim Bot, your enhanced AI assistant powered by hybrid search technology. I combine semantic vector search with keyword-based TF-IDF search to provide comprehensive and accurate answers about Raktim Mondol. I can provide detailed information about his education, research, publications, skills, experience, and more. What would you like to know?",
+        content: "Hello! I'm RAGtim Bot, your enhanced AI assistant powered by advanced hybrid search technology. I combine semantic vector search with BM25 ranking to provide comprehensive and accurate answers about Raktim Mondol. I can provide detailed information about his education, research, publications, skills, experience, and more. What would you like to know?",
         timestamp: new Date()
       };
       setMessages([welcomeMessage]);
@@ -145,14 +145,14 @@ export default function RAGtimBot() {
             aria-label="Open RAGtim Bot"
           >
             {hasApiKey ? (
-              <Zap className="h-6 w-6" />
+              <Target className="h-6 w-6" />
             ) : (
               <AlertCircle className="h-6 w-6" />
             )}
             <div className={`absolute -top-2 -left-2 ${
               hasApiKey ? 'bg-blue-500' : 'bg-red-500'
             } text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse`}>
-              {hasApiKey ? '⚡' : '!'}
+              {hasApiKey ? '🎯' : '!'}
             </div>
           </button>
         )}
@@ -168,7 +168,7 @@ export default function RAGtimBot() {
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                 {hasApiKey ? (
-                  <Zap className="h-4 w-4" />
+                  <Target className="h-4 w-4" />
                 ) : (
                   <AlertCircle className="h-4 w-4" />
                 )}
@@ -177,13 +177,13 @@ export default function RAGtimBot() {
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
                   {hasApiKey ? (
-                    <Shield className="h-3 w-3 ml-1\" title="Hybrid Search Enabled" />
+                    <Shield className="h-3 w-3 ml-1" title="Hybrid Search Enabled" />
                   ) : (
-                    <AlertCircle className="h-3 w-3 ml-1\" title="Configuration needed" />
+                    <AlertCircle className="h-3 w-3 ml-1" title="Configuration needed" />
                   )}
                 </h3>
                 <p className="text-xs opacity-90">
-                  {hasApiKey ? 'Hybrid AI: Vector + TF-IDF Search' : 'Configuration needed'}
+                  {hasApiKey ? 'Hybrid AI: Vector + BM25 Search' : 'Configuration needed'}
                 </p>
               </div>
             </div>
@@ -218,13 +218,17 @@ export default function RAGtimBot() {
           {showStats && knowledgeStats && (
             <div className="p-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
               <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
-                <Search className="h-4 w-4 mr-1" />
+                <Target className="h-4 w-4 mr-1" />
                 Hybrid Search System
               </h4>
               <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                 <div>Documents: {knowledgeStats.totalDocuments}</div>
                 <div>Unique Terms: {knowledgeStats.uniqueTerms}</div>
                 <div>Embeddings: {knowledgeStats.hasEmbeddings}</div>
+                <div>Avg Doc Length: {knowledgeStats.averageDocLength} words</div>
+                <div className="text-xs text-blue-600 dark:text-blue-400">
+                  BM25: k1={knowledgeStats.bm25Parameters?.k1}, b={knowledgeStats.bm25Parameters?.b}
+                </div>
                 <div className="flex flex-wrap gap-1 mt-2">
                   {knowledgeStats.searchCapabilities.map((capability: string) => (
                     <span key={capability} className="bg-[#94c973]/20 text-[#94c973] px-2 py-1 rounded text-xs">
@@ -249,9 +253,9 @@ export default function RAGtimBot() {
               <div className="text-center text-gray-500 dark:text-gray-400 py-8">
                 {hasApiKey ? (
                   <>
-                    <Zap className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-sm">Hybrid RAG system ready! Ask me anything about Raktim Mondol.</p>
-                    <p className="text-xs mt-2 opacity-70">Powered by Vector + TF-IDF search for comprehensive answers.</p>
+                    <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-sm">Advanced hybrid RAG system ready! Ask me anything about Raktim Mondol.</p>
+                    <p className="text-xs mt-2 opacity-70">Powered by Vector + BM25 search for precise answers.</p>
                   </>
                 ) : (
                   <>

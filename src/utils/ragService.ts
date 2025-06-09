@@ -81,7 +81,7 @@ export class RAGService {
 
   private async retrieveRelevantContent(query: string): Promise<SearchResult[]> {
     try {
-      // Use hybrid search (vector + TF-IDF) for better retrieval
+      // Use hybrid search (vector + BM25) for better retrieval
       const results = await this.vectorStore.search(query, 10); // Get more results for better context
       
       console.log(`Hybrid search completed for query: "${query}"`, {
@@ -122,8 +122,8 @@ export class RAGService {
     const contextParts = topResults.map((result, index) => {
       const doc = result.document;
       const section = doc.metadata.section ? `[${doc.metadata.section}]` : `[${doc.metadata.type}]`;
-      const searchInfo = result.searchType === 'hybrid' ? '(Vector+Keyword)' : 
-                        result.searchType === 'vector' ? '(Semantic)' : '(Keyword)';
+      const searchInfo = result.searchType === 'hybrid' ? '(Vector+BM25)' : 
+                        result.searchType === 'vector' ? '(Semantic)' : '(BM25)';
       
       return `${section} ${searchInfo}\n${doc.content.trim()}`;
     });
@@ -159,7 +159,7 @@ export class RAGService {
       const messages: any[] = [
         {
           role: "system",
-          content: `You are RAGtim Bot, a knowledgeable assistant that answers questions about Raktim Mondol using advanced hybrid search technology that combines semantic vector search with keyword-based TF-IDF search for comprehensive and accurate information retrieval.
+          content: `You are RAGtim Bot, a knowledgeable assistant that answers questions about Raktim Mondol using advanced hybrid search technology that combines semantic vector search with BM25 ranking for comprehensive and accurate information retrieval.
 
 CRITICAL FORMATTING INSTRUCTIONS:
 - NEVER use markdown formatting in your responses
@@ -182,12 +182,12 @@ RESPONSE GUIDELINES:
 - Synthesize information from multiple sources when relevant
 
 SEARCH TECHNOLOGY:
-The context below was retrieved using hybrid search combining:
-1. Vector Search: Semantic understanding using embeddings
-2. TF-IDF Search: Exact keyword matching and relevance scoring
-3. Priority Weighting: Content importance based on document metadata
+The context below was retrieved using advanced hybrid search combining:
+1. Vector Search: Semantic understanding using transformer embeddings for conceptual similarity
+2. BM25 Search: Advanced keyword ranking with term frequency and document length normalization
+3. Priority Weighting: Content importance based on document metadata and relevance scores
 
-This ensures you receive the most relevant and comprehensive information about Raktim Mondol.
+This dual approach ensures you receive the most relevant and comprehensive information about Raktim Mondol, capturing both semantic meaning and exact keyword matches.
 
 CONTEXT ABOUT RAKTIM MONDOL:
 ${context}
@@ -211,7 +211,7 @@ Remember to be helpful and provide comprehensive answers based on the rich conte
         content: userQuery
       });
 
-      console.log('Sending request to DeepSeek API with hybrid search context...');
+      console.log('Sending request to DeepSeek API with hybrid search context (Vector + BM25)...');
 
       const completion = await this.openai.chat.completions.create({
         messages,
@@ -254,6 +254,8 @@ Remember to be helpful and provide comprehensive answers based on the rich conte
     searchCapabilities: string[];
     uniqueTerms: number;
     hasEmbeddings: number;
+    averageDocLength: number;
+    bm25Parameters: { k1: number; b: number };
   }> {
     await this.vectorStore.initialize();
     
@@ -271,7 +273,9 @@ Remember to be helpful and provide comprehensive answers based on the rich conte
       isVectorSearchEnabled: stats.searchCapabilities.includes('Vector Search'),
       searchCapabilities: stats.searchCapabilities,
       uniqueTerms: stats.uniqueTerms,
-      hasEmbeddings: stats.hasEmbeddings
+      hasEmbeddings: stats.hasEmbeddings,
+      averageDocLength: stats.averageDocLength,
+      bm25Parameters: stats.bm25Parameters
     };
   }
 }
