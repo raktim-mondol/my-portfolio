@@ -27,8 +27,13 @@ export class RAGService {
   }
 
   private getApiKey(): string | null {
-    // In a real application, this should be handled securely via environment variables
-    // For demo purposes, we'll use a placeholder
+    // Try to get API key from environment variables first (Netlify)
+    const envApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+    if (envApiKey) {
+      return envApiKey;
+    }
+    
+    // Fallback to localStorage for development/testing
     return localStorage.getItem('deepseek_api_key') || null;
   }
 
@@ -44,6 +49,10 @@ export class RAGService {
 
   public hasApiKey(): boolean {
     return !!this.apiKey;
+  }
+
+  public isUsingEnvKey(): boolean {
+    return !!import.meta.env.VITE_DEEPSEEK_API_KEY;
   }
 
   private retrieveRelevantContent(query: string): ScrapedContent[] {
@@ -66,7 +75,7 @@ export class RAGService {
 
   public async generateResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
     if (!this.apiKey) {
-      return "Please set your DeepSeek API key to use the chatbot.";
+      return "The chatbot is currently unavailable. Please contact the site administrator.";
     }
 
     try {
@@ -119,7 +128,7 @@ ${context}`
     } catch (error) {
       console.error('Error generating response:', error);
       if (error instanceof Error && error.message.includes('API key')) {
-        return "There seems to be an issue with the API key. Please check your DeepSeek API key.";
+        return "There seems to be an issue with the API configuration. Please contact the site administrator.";
       }
       return "I apologize, but I'm experiencing technical difficulties. Please try again later.";
     }

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Settings, Eye, EyeOff } from 'lucide-react';
+import { MessageCircle, X, Send, Settings, Eye, EyeOff, Shield } from 'lucide-react';
 import { RAGService, ChatMessage } from '../utils/ragService';
 import toast from 'react-hot-toast';
 
@@ -17,12 +17,25 @@ export default function RAGtimBot() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Load existing API key
-    const existingKey = localStorage.getItem('deepseek_api_key');
-    if (existingKey) {
-      setApiKey(existingKey);
+    // Load existing API key only if not using environment variable
+    if (!ragService.isUsingEnvKey()) {
+      const existingKey = localStorage.getItem('deepseek_api_key');
+      if (existingKey) {
+        setApiKey(existingKey);
+      }
     }
-  }, []);
+
+    // Add initial welcome message if API key is available
+    if (ragService.hasApiKey()) {
+      const welcomeMessage: ChatMessage = {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: "Hello! I'm RAGtim Bot, your AI assistant for learning about Raktim Mondol. I can answer questions about his education, research, publications, skills, and more. What would you like to know?",
+        timestamp: new Date()
+      };
+      setMessages([welcomeMessage]);
+    }
+  }, [ragService]);
 
   useEffect(() => {
     scrollToBottom();
@@ -42,8 +55,12 @@ export default function RAGtimBot() {
     if (!inputMessage.trim()) return;
 
     if (!ragService.hasApiKey()) {
-      toast.error('Please set your DeepSeek API key in settings first.');
-      setIsSettingsOpen(true);
+      if (ragService.isUsingEnvKey()) {
+        toast.error('The chatbot is currently unavailable. Please contact the site administrator.');
+      } else {
+        toast.error('Please set your DeepSeek API key in settings first.');
+        setIsSettingsOpen(true);
+      }
       return;
     }
 
@@ -115,6 +132,9 @@ export default function RAGtimBot() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Don't show settings button if using environment API key
+  const showSettingsButton = !ragService.isUsingEnvKey();
+
   return (
     <>
       {/* Chat Widget Button */}
@@ -143,18 +163,25 @@ export default function RAGtimBot() {
                 <MessageCircle className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="font-semibold">RAGtim Bot</h3>
+                <h3 className="font-semibold flex items-center">
+                  RAGtim Bot
+                  {ragService.isUsingEnvKey() && (
+                    <Shield className="h-3 w-3 ml-1" title="Securely configured" />
+                  )}
+                </h3>
                 <p className="text-xs opacity-90">Ask me about Raktim Mondol</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <button
-                onClick={() => setIsSettingsOpen(true)}
-                className="p-1 hover:bg-white/20 rounded transition-colors"
-                aria-label="Settings"
-              >
-                <Settings className="h-4 w-4" />
-              </button>
+              {showSettingsButton && (
+                <button
+                  onClick={() => setIsSettingsOpen(true)}
+                  className="p-1 hover:bg-white/20 rounded transition-colors"
+                  aria-label="Settings"
+                >
+                  <Settings className="h-4 w-4" />
+                </button>
+              )}
               <button
                 onClick={() => setIsOpen(false)}
                 className="p-1 hover:bg-white/20 rounded transition-colors"
@@ -173,6 +200,8 @@ export default function RAGtimBot() {
                 <p className="text-sm">
                   {ragService.hasApiKey() 
                     ? "Start a conversation! Ask me anything about Raktim Mondol."
+                    : ragService.isUsingEnvKey()
+                    ? "The chatbot is currently unavailable. Please contact the site administrator."
                     : "Please set your DeepSeek API key in settings to start chatting."
                   }
                 </p>
@@ -241,8 +270,8 @@ export default function RAGtimBot() {
         </div>
       )}
 
-      {/* Settings Modal */}
-      {isSettingsOpen && (
+      {/* Settings Modal - Only show if not using environment API key */}
+      {isSettingsOpen && showSettingsButton && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]">
           <div className="bg-white dark:bg-gray-900 rounded-lg p-6 w-96 max-w-[90vw]">
             <div className="flex items-center justify-between mb-4">
