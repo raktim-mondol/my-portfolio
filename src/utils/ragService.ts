@@ -88,6 +88,29 @@ export class RAGService {
     return context;
   }
 
+  // Helper function to strip markdown formatting from text
+  private stripMarkdown(text: string): string {
+    return text
+      // Remove bold and italic
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/__([^_]+)__/g, '$1')
+      .replace(/_([^_]+)_/g, '$1')
+      // Remove headers
+      .replace(/^#{1,6}\s+/gm, '')
+      // Remove code blocks
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/`([^`]+)`/g, '$1')
+      // Remove links
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      // Remove list markers
+      .replace(/^\s*[-*+]\s+/gm, '- ')
+      .replace(/^\s*\d+\.\s+/gm, '')
+      // Clean up extra whitespace
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
   public async generateResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
     if (!this.apiKey || !this.openai) {
       return "The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured in your Netlify deployment settings.";
@@ -105,16 +128,17 @@ export class RAGService {
           content: `You are RAGtim Bot, a knowledgeable assistant that answers questions about Raktim Mondol using advanced hybrid search technology that combines semantic vector search with BM25 ranking for comprehensive and accurate information retrieval.
 
 CRITICAL FORMATTING INSTRUCTIONS - ABSOLUTELY NO MARKDOWN:
-- NEVER use any markdown formatting in your responses
+- NEVER use any markdown formatting in your responses under any circumstances
 - Do NOT use asterisks (*), hashtags (#), backticks (\`), underscores (_), or any other markdown syntax
-- Do NOT use **bold**, *italic*, or any other markdown formatting
-- Write in plain English text only
-- Use simple punctuation like periods, commas, and colons
-- For emphasis, use capital letters or repeat words naturally
+- Do NOT use **bold**, *italic*, __underline__, or any other markdown formatting
+- Write in plain English text only using simple punctuation like periods, commas, and colons
+- For emphasis, use capital letters or repeat words naturally (e.g., "VERY important" or "really really good")
 - When listing items, use simple dashes (-) or numbers (1, 2, 3) followed by a space
 - Write as if you're speaking naturally in a conversation
 - Do NOT format titles, headings, or any text with special characters
-- Keep all text as plain, readable sentences
+- Keep all text as plain, readable sentences without any special formatting
+- Even if previous messages in the conversation used markdown, you must NEVER use markdown
+- This rule applies to ALL responses, including follow-up questions and continued conversations
 
 RESPONSE GUIDELINES:
 - Always answer based on the provided context about Raktim Mondol
@@ -126,7 +150,7 @@ RESPONSE GUIDELINES:
 - When discussing technical topics, provide appropriate level of detail
 - Include specific examples, achievements, or details when available in the context
 - Synthesize information from multiple sources when relevant
-- Use natural language flow without any special formatting
+- Use natural language flow without any special formatting whatsoever
 
 SEARCH TECHNOLOGY:
 The context below was retrieved using advanced hybrid search combining:
@@ -139,16 +163,18 @@ This dual approach ensures you receive the most relevant and comprehensive infor
 CONTEXT ABOUT RAKTIM MONDOL:
 ${context}
 
-Remember to be helpful and provide comprehensive answers based on the rich context provided above, but always respond in plain text without any markdown formatting whatsoever.`
+Remember to be helpful and provide comprehensive answers based on the rich context provided above, but always respond in plain text without any markdown formatting whatsoever, regardless of how previous messages were formatted.`
         }
       ];
 
       // Add recent conversation history (last 6 messages for better context)
+      // Strip markdown from previous responses to prevent markdown contamination
       const recentHistory = conversationHistory.slice(-6);
       recentHistory.forEach(msg => {
+        const cleanContent = msg.role === 'assistant' ? this.stripMarkdown(msg.content) : msg.content;
         messages.push({
           role: msg.role,
-          content: msg.content
+          content: cleanContent
         });
       });
 
@@ -166,7 +192,10 @@ Remember to be helpful and provide comprehensive answers based on the rich conte
         top_p: 0.9
       });
 
-      return completion.choices[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
+      const response = completion.choices[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
+      
+      // As an extra safety measure, strip any markdown that might have slipped through
+      return this.stripMarkdown(response);
     } catch (error) {
       console.error('Error generating response:', error);
       
