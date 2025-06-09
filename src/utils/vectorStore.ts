@@ -434,24 +434,38 @@ export class VectorStore {
 
     console.log(`Performing hybrid search (Vector + BM25) for: "${query}"`);
 
-    // Get results from both search methods
-    const vectorResults = await this.vectorSearch(query, topK);
-    const bm25Results = this.bm25Search(query, topK);
+    try {
+      // Get results from both search methods
+      const vectorResults = await this.vectorSearch(query, topK);
+      const bm25Results = await this.bm25Search(query, topK);
 
-    // Combine and deduplicate results
-    const hybridResults = this.combineResults(vectorResults, bm25Results, topK);
+      // Combine and deduplicate results
+      const hybridResults = this.combineResults(vectorResults, bm25Results, topK);
 
-    console.log(`Hybrid search completed:`, {
-      vectorResults: vectorResults.length,
-      bm25Results: bm25Results.length,
-      hybridResults: hybridResults.length
-    });
+      console.log(`Hybrid search completed:`, {
+        vectorResults: vectorResults.length,
+        bm25Results: bm25Results.length,
+        hybridResults: hybridResults.length
+      });
 
-    return hybridResults;
+      return hybridResults;
+    } catch (error) {
+      console.error('Error in hybrid search:', error);
+      // Fallback to BM25 only if vector search fails
+      try {
+        const bm25Results = await this.bm25Search(query, topK);
+        console.log('Falling back to BM25 search only');
+        return bm25Results;
+      } catch (bm25Error) {
+        console.error('BM25 search also failed:', bm25Error);
+        return [];
+      }
+    }
   }
 
   private async vectorSearch(query: string, topK: number): Promise<SearchResult[]> {
     if (!this.embedder) {
+      console.log('Vector search not available - embedder not initialized');
       return [];
     }
 
@@ -487,7 +501,7 @@ export class VectorStore {
     }
   }
 
-  private bm25Search(query: string, topK: number): Promise<SearchResult[]> {
+  private async bm25Search(query: string, topK: number): Promise<SearchResult[]> {
     const queryTerms = this.tokenize(query);
     const results: SearchResult[] = [];
 
@@ -520,18 +534,22 @@ export class VectorStore {
       console.log(`Top BM25 scores: ${results.slice(0, 3).map(r => r.score.toFixed(4)).join(', ')}`);
     }
     
-    return Promise.resolve(results.slice(0, topK));
+    return results.slice(0, topK);
   }
 
   private combineResults(vectorResults: SearchResult[], bm25Results: SearchResult[], topK: number): SearchResult[] {
     const combinedMap = new Map<string, SearchResult>();
     
+    // Ensure we have valid arrays
+    const safeVectorResults = Array.isArray(vectorResults) ? vectorResults : [];
+    const safeBM25Results = Array.isArray(bm25Results) ? bm25Results : [];
+    
     // Normalize scores to [0, 1] range for fair combination
-    const maxVectorScore = vectorResults.length > 0 ? Math.max(...vectorResults.map(r => r.score)) : 1;
-    const maxBM25Score = bm25Results.length > 0 ? Math.max(...bm25Results.map(r => r.score)) : 1;
+    const maxVectorScore = safeVectorResults.length > 0 ? Math.max(...safeVectorResults.map(r => r.score)) : 1;
+    const maxBM25Score = safeBM25Results.length > 0 ? Math.max(...safeBM25Results.map(r => r.score)) : 1;
     
     // Add vector results with normalization and weight
-    for (const result of vectorResults) {
+    for (const result of safeVectorResults) {
       const normalizedScore = result.score / maxVectorScore;
       const weightedScore = normalizedScore * 0.6; // 60% weight for vector search
       
@@ -543,7 +561,7 @@ export class VectorStore {
     }
     
     // Add BM25 results with normalization and weight
-    for (const result of bm25Results) {
+    for (const result of safeBM25Results) {
       const normalizedScore = result.score / maxBM25Score;
       const weightedScore = normalizedScore * 0.8; // 80% weight for BM25 search
       
