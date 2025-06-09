@@ -183,7 +183,7 @@ export default function RAGtimBot() {
                   )}
                 </h3>
                 <p className="text-xs opacity-90">
-                  {hasApiKey ? 'Hybrid AI: Vector + BM25 Search' : 'Configuration needed'}
+                  {hasApiKey ? 'Hybrid Search: Semantic + Keyword Search' : 'Configuration needed'}
                 </p>
               </div>
             </div>
