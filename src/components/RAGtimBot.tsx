@@ -177,9 +177,9 @@ export default function RAGtimBot() {
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
                   {hasApiKey ? (
-                    <Shield className="h-3 w-3 ml-1" title="Enhanced with Vector Search" />
+                    <Shield className="h-3 w-3 ml-1\" title="Enhanced with Vector Search" />
                   ) : (
-                    <AlertCircle className="h-3 w-3 ml-1" title="Configuration needed" />
+                    <AlertCircle className="h-3 w-3 ml-1\" title="Configuration needed" />
                   )}
                 </h3>
                 <p className="text-xs opacity-90">
