@@ -11,7 +11,7 @@ import Contact from './components/Contact';
 import ScrollProgress from './components/ScrollProgress';
 import { AudioProvider } from './components/AudioContext';
 import { ThemeProvider } from './components/ThemeContext';
-import ChatBot from './components/ChatBot';
+import RAGtimBot from './components/RAGtimBot';
 
 function App() {
   return (
@@ -30,8 +30,7 @@ function App() {
             <Awards />
             <Contact />
           </div>
-          {/* Temporarily disabled chatbot */}
-          {/* <ChatBot /> */}
+          <RAGtimBot />
         </div>
       </AudioProvider>
     </ThemeProvider>
