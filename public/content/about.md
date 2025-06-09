@@ -70,7 +70,7 @@ I am an experienced data scientist and programmer with deep expertise in artific
 
 ---
 
-## HONORS & RECOGNITION
+## AWARDS & RECOGNITION
 
 *   **2021:** Awarded PhD Scholarship (Tuition Fee and Stipend)
 *   **2019:** Completed Masters by Research with [High Distinction](https://drive.google.com/file/d/19ItaTbByg686UpoBMB7LcmWT8kfE1-fR/view?usp=sharing)
