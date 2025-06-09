@@ -145,15 +145,15 @@ export default function RAGtimBot() {
             aria-label="Open RAGtim Bot"
           >
             <MessageCircle className="h-6 w-6" />
-            <div className={`absolute -top-1 -right-1 text-lg animate-pulse ${
+            <div className={`absolute -top-2 -left-3 text-xl z-10 ${
               hasApiKey ? '' : 'opacity-75'
-            }`}>
+            }`} style={{
+              animation: hasApiKey ? 'bounce 1s infinite, flash 2s infinite' : 'none'
+            }}>
               {hasApiKey ? (
-                <span className="animate-bounce\" style={{ 
-                  animation: 'bounce 1s infinite, flash 2s infinite' 
-                }}>🔥</span>
+                <span>🔥</span>
               ) : (
-                <span className="text-red-300">⚠️</span>
+                <span className="text-red-300 text-lg">⚠️</span>
               )}
             </div>
           </button>
@@ -175,9 +175,9 @@ export default function RAGtimBot() {
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
                   {hasApiKey ? (
-                    <Shield className="h-3 w-3 ml-1\" title="Hybrid Search Enabled" />
+                    <Shield className="h-3 w-3 ml-1" title="Hybrid Search Enabled" />
                   ) : (
-                    <AlertCircle className="h-3 w-3 ml-1\" title="Configuration needed" />
+                    <AlertCircle className="h-3 w-3 ml-1" title="Configuration needed" />
                   )}
                 </h3>
                 <p className="text-xs opacity-90">
