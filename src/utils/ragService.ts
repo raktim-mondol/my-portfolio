@@ -111,6 +111,133 @@ export class RAGService {
       .trim();
   }
 
+  // New streaming method
+  public async generateStreamingResponse(
+    userQuery: string, 
+    conversationHistory: ChatMessage[] = [],
+    onChunk: (chunk: string) => void,
+    onComplete: () => void,
+    onError: (error: string) => void
+  ): Promise<void> {
+    if (!this.apiKey || !this.openai) {
+      onError("The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured in your Netlify deployment settings.");
+      return;
+    }
+
+    try {
+      // Retrieve relevant content using hybrid search
+      const searchResults = await this.retrieveRelevantContent(userQuery);
+      const context = this.buildContext(searchResults);
+
+      // Build conversation history for context
+      const messages: any[] = [
+        {
+          role: "system",
+          content: `You are RAGtim Bot, a knowledgeable assistant that answers questions about Raktim Mondol using advanced hybrid search technology that combines semantic vector search with BM25 ranking for comprehensive and accurate information retrieval.
+
+CRITICAL FORMATTING INSTRUCTIONS - ABSOLUTELY NO MARKDOWN:
+- NEVER use any markdown formatting in your responses under any circumstances
+- Do NOT use asterisks (*), hashtags (#), backticks (\`), underscores (_), or any other markdown syntax
+- Do NOT use **bold**, *italic*, __underline__, or any other markdown formatting
+- Write in plain English text only using simple punctuation like periods, commas, and colons
+- For emphasis, use capital letters or repeat words naturally (e.g., "VERY important" or "really really good")
+- When listing items, use simple dashes (-) or numbers (1, 2, 3) followed by a space
+- Write as if you're speaking naturally in a conversation
+- Do NOT format titles, headings, or any text with special characters
+- Write as if you're speaking naturally in a conversation
+- Keep all text as plain, readable sentences without any special formatting
+- Even if previous messages in the conversation used markdown, you must NEVER use markdown
+- This rule applies to ALL responses, including follow-up questions and continued conversations
+
+RESPONSE GUIDELINES:
+- Always answer based on the provided context about Raktim Mondol
+- Be conversational, friendly, and professional
+- Provide detailed and informative responses when relevant information is available
+- If asked about something not in the context, politely say you don't have that specific information
+- You can refer to Raktim in first person (as "I") or third person, whichever feels more natural
+- If someone asks general questions like "hello" or "how are you", respond as Raktim's representative
+- When discussing technical topics, provide appropriate level of detail
+- Include specific examples, achievements, or details when available in the context
+- Synthesize information from multiple sources when relevant
+- Use natural language flow without any special formatting whatsoever
+
+SEARCH TECHNOLOGY:
+The context below was retrieved using advanced hybrid search combining:
+1. Vector Search: Semantic understanding using transformer embeddings for conceptual similarity
+2. BM25 Search: Advanced keyword ranking with term frequency and document length normalization
+3. Priority Weighting: Content importance based on document metadata and relevance scores
+
+This dual approach ensures you receive the most relevant and comprehensive information about Raktim Mondol, capturing both semantic meaning and exact keyword matches.
+
+CONTEXT ABOUT RAKTIM MONDOL:
+${context}
+
+Remember to be helpful and provide comprehensive answers based on the rich context provided above, but always respond in plain text without any markdown formatting whatsoever, regardless of how previous messages were formatted.`
+        }
+      ];
+
+      // Add recent conversation history (last 6 messages for better context)
+      // Strip markdown from previous responses to prevent markdown contamination
+      const recentHistory = conversationHistory.slice(-6);
+      recentHistory.forEach(msg => {
+        const cleanContent = msg.role === 'assistant' ? this.stripMarkdown(msg.content) : msg.content;
+        messages.push({
+          role: msg.role,
+          content: cleanContent
+        });
+      });
+
+      // Add current user query
+      messages.push({
+        role: "user",
+        content: userQuery
+      });
+
+      // Create streaming completion
+      const stream = await this.openai.chat.completions.create({
+        messages,
+        model: "deepseek-chat",
+        max_tokens: 1000,
+        temperature: 0.7,
+        top_p: 0.9,
+        stream: true
+      });
+
+      let fullResponse = '';
+
+      // Process the stream
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || '';
+        if (content) {
+          // Strip any markdown that might appear in the chunk
+          const cleanContent = this.stripMarkdown(content);
+          fullResponse += cleanContent;
+          onChunk(cleanContent);
+        }
+      }
+
+      // Final cleanup and completion
+      const finalResponse = this.stripMarkdown(fullResponse);
+      onComplete();
+
+    } catch (error) {
+      console.error('Error generating streaming response:', error);
+      
+      let errorMessage = "I apologize, but I'm experiencing technical difficulties. Please try again later.";
+      
+      if (error instanceof Error) {
+        if (error.message.includes('API key') || error.message.includes('401') || error.message.includes('Authentication')) {
+          errorMessage = "The API key appears to be invalid or missing. Please contact the site administrator to configure the VITE_DEEPSEEK_API_KEY environment variable in Netlify.";
+        } else if (error.message.includes('network') || error.message.includes('fetch')) {
+          errorMessage = "Network error occurred. Please check your internet connection and try again.";
+        }
+      }
+      
+      onError(errorMessage);
+    }
+  }
+
+  // Keep the original non-streaming method for backward compatibility
   public async generateResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
     if (!this.apiKey || !this.openai) {
       return "The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured in your Netlify deployment settings.";

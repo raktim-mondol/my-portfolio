@@ -8,12 +8,15 @@ export default function RAGtimBot() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingMessage, setStreamingMessage] = useState('');
   const [ragService] = useState(() => new RAGService());
   const [showStats, setShowStats] = useState(false);
   const [knowledgeStats, setKnowledgeStats] = useState<any>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const streamingMessageRef = useRef<string>('');
 
   useEffect(() => {
     // Add initial welcome message
@@ -38,7 +41,7 @@ export default function RAGtimBot() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, streamingMessage]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -77,31 +80,70 @@ export default function RAGtimBot() {
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
+    setIsStreaming(true);
+    setStreamingMessage('');
+    streamingMessageRef.current = '';
+
+    const assistantMessageId = (Date.now() + 1).toString();
 
     try {
-      const response = await ragService.generateResponse(userMessage.content, messages);
-      
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response,
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
+      await ragService.generateStreamingResponse(
+        userMessage.content,
+        messages,
+        // onChunk callback
+        (chunk: string) => {
+          streamingMessageRef.current += chunk;
+          setStreamingMessage(streamingMessageRef.current);
+        },
+        // onComplete callback
+        () => {
+          const finalMessage: ChatMessage = {
+            id: assistantMessageId,
+            role: 'assistant',
+            content: streamingMessageRef.current,
+            timestamp: new Date()
+          };
+          
+          setMessages(prev => [...prev, finalMessage]);
+          setStreamingMessage('');
+          setIsStreaming(false);
+          setIsLoading(false);
+          streamingMessageRef.current = '';
+        },
+        // onError callback
+        (error: string) => {
+          toast.error('Failed to send message. Please try again.');
+          
+          const errorMessage: ChatMessage = {
+            id: assistantMessageId,
+            role: 'assistant',
+            content: error,
+            timestamp: new Date()
+          };
+          
+          setMessages(prev => [...prev, errorMessage]);
+          setStreamingMessage('');
+          setIsStreaming(false);
+          setIsLoading(false);
+          streamingMessageRef.current = '';
+        }
+      );
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Failed to send message. Please try again.');
       
       const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: assistantMessageId,
         role: 'assistant',
         content: "I apologize, but I encountered an error while processing your request. Please try again.",
         timestamp: new Date()
       };
+      
       setMessages(prev => [...prev, errorMessage]);
-    } finally {
+      setStreamingMessage('');
+      setIsStreaming(false);
       setIsLoading(false);
+      streamingMessageRef.current = '';
     }
   };
 
@@ -114,6 +156,9 @@ export default function RAGtimBot() {
 
   const clearChat = () => {
     setMessages([]);
+    setStreamingMessage('');
+    setIsStreaming(false);
+    streamingMessageRef.current = '';
     toast.success('Chat cleared!');
   };
 
@@ -169,19 +214,23 @@ export default function RAGtimBot() {
           } text-white rounded-t-lg`}>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <MessageCircle className="h-4 w-4" />
+                {isStreaming ? (
+                  <Zap className="h-4 w-4 animate-pulse" />
+                ) : (
+                  <MessageCircle className="h-4 w-4" />
+                )}
               </div>
               <div>
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
                   {hasApiKey ? (
-                    <Shield className="h-3 w-3 ml-1\" title="Hybrid Search Enabled" />
+                    <Shield className="h-3 w-3 ml-1" title="Hybrid Search Enabled" />
                   ) : (
-                    <AlertCircle className="h-3 w-3 ml-1\" title="Configuration needed" />
+                    <AlertCircle className="h-3 w-3 ml-1" title="Configuration needed" />
                   )}
                 </h3>
                 <p className="text-xs opacity-90">
-                  {hasApiKey ? 'Hybrid Search: Semantic + Keyword' : 'Configuration needed'}
+                  {isStreaming ? 'Streaming response...' : hasApiKey ? 'Hybrid Search: Semantic + Keyword' : 'Configuration needed'}
                 </p>
               </div>
             </div>
@@ -199,6 +248,7 @@ export default function RAGtimBot() {
                 onClick={clearChat}
                 className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
                 title="Clear chat"
+                disabled={isStreaming}
               >
                 Clear
               </button>
@@ -240,7 +290,7 @@ export default function RAGtimBot() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.length === 0 && (
+            {messages.length === 0 && !isStreaming && (
               <div className="text-center text-gray-500 dark:text-gray-400 py-8">
                 {hasApiKey ? (
                   <>
@@ -280,7 +330,25 @@ export default function RAGtimBot() {
               </div>
             ))}
             
-            {isLoading && (
+            {/* Streaming message */}
+            {isStreaming && streamingMessage && (
+              <div className="flex justify-start">
+                <div className="max-w-[85%] p-3 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">
+                  <p className="text-sm whitespace-pre-wrap">{streamingMessage}</p>
+                  <div className="flex items-center mt-1">
+                    <div className="flex space-x-1">
+                      <div className="w-1 h-1 bg-[#94c973] rounded-full animate-pulse"></div>
+                      <div className="w-1 h-1 bg-[#94c973] rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-1 h-1 bg-[#94c973] rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                    </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">streaming...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Loading indicator for initial processing */}
+            {isLoading && !isStreaming && (
               <div className="flex justify-start">
                 <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
                   <div className="flex space-x-1">
@@ -310,10 +378,14 @@ export default function RAGtimBot() {
               <button
                 onClick={handleSendMessage}
                 disabled={isLoading || !inputMessage.trim() || !hasApiKey}
-                className="px-3 py-2 bg-[#94c973] text-white rounded-lg hover:bg-[#7fb95e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-3 py-2 bg-[#94c973] text-white rounded-lg hover:bg-[#7fb95e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
                 aria-label="Send message"
               >
-                <Send className="h-4 w-4" />
+                {isStreaming ? (
+                  <Zap className="h-4 w-4 animate-pulse" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </button>
             </div>
           </div>
