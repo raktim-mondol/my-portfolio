@@ -1,5 +1,5 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { GraduationCap, BookOpen, ExternalLink, X, ZoomIn, ZoomOut, Move, Maximize2, AlertTriangle } from 'lucide-react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { GraduationCap, BookOpen, ExternalLink, X, ZoomIn, ZoomOut, Move, Maximize2, AlertTriangle, Smartphone } from 'lucide-react';
 import AudioPlayer from './AudioPlayer';
 import { useTheme } from './ThemeContext';
 
@@ -35,6 +35,7 @@ const education = [
 export default function Education() {
   const { theme } = useTheme();
   const [showThesisModal, setShowThesisModal] = useState(false);
+  const [showMobileWarning, setShowMobileWarning] = useState(false);
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -43,14 +44,37 @@ export default function Education() {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [deviceInfo, setDeviceInfo] = useState({ isMobile: false, isLowMemory: false });
+  
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Detect if device is mobile
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  const isSmallScreen = window.innerWidth < 768;
+  // Enhanced device detection
+  useEffect(() => {
+    const detectDevice = () => {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      const isSmallScreen = window.innerWidth < 768;
+      const isLowMemory = (navigator as any).deviceMemory ? (navigator as any).deviceMemory < 4 : isMobile;
+      
+      setDeviceInfo({
+        isMobile: isMobile || isSmallScreen,
+        isLowMemory
+      });
+    };
+
+    detectDevice();
+    window.addEventListener('resize', detectDevice);
+    return () => window.removeEventListener('resize', detectDevice);
+  }, []);
 
   const openThesisModal = () => {
+    // Show warning for mobile devices
+    if (deviceInfo.isMobile) {
+      setShowMobileWarning(true);
+      return;
+    }
+    
     setIsLoading(true);
     setShowThesisModal(true);
     setScale(1);
@@ -60,18 +84,70 @@ export default function Education() {
     setImageError(false);
   };
 
-  const closeThesisModal = () => {
-    setShowThesisModal(false);
-    setIsLoading(false);
+  const proceedWithMobile = () => {
+    setShowMobileWarning(false);
+    setIsLoading(true);
+    setShowThesisModal(true);
+    setScale(1);
+    setPosition({ x: 0, y: 0 });
+    setIsHandTool(true); // Enable hand tool by default on mobile
     setImageLoaded(false);
     setImageError(false);
   };
 
+  const closeThesisModal = () => {
+    setShowThesisModal(false);
+    setShowMobileWarning(false);
+    setIsLoading(false);
+    setImageLoaded(false);
+    setImageError(false);
+    
+    // Clean up canvas if used
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
+    }
+  };
+
+  const createOptimizedImage = useCallback((originalImage: HTMLImageElement) => {
+    if (!deviceInfo.isMobile) return originalImage;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return originalImage;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return originalImage;
+
+    // Calculate optimal size for mobile (max 2048px on any side)
+    const maxSize = deviceInfo.isLowMemory ? 1024 : 2048;
+    const { naturalWidth, naturalHeight } = originalImage;
+    
+    let newWidth = naturalWidth;
+    let newHeight = naturalHeight;
+    
+    if (naturalWidth > maxSize || naturalHeight > maxSize) {
+      const ratio = Math.min(maxSize / naturalWidth, maxSize / naturalHeight);
+      newWidth = naturalWidth * ratio;
+      newHeight = naturalHeight * ratio;
+    }
+
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+
+    // Draw optimized image
+    ctx.drawImage(originalImage, 0, 0, newWidth, newHeight);
+    
+    return canvas;
+  }, [deviceInfo]);
+
   const handleImageLoad = () => {
     setImageLoaded(true);
     setIsLoading(false);
+    
     // Auto-fit to screen on mobile for better initial view
-    if (isMobile || isSmallScreen) {
+    if (deviceInfo.isMobile) {
       setTimeout(() => {
         handleFitToScreen();
       }, 100);
@@ -84,7 +160,8 @@ export default function Education() {
   };
 
   const handleZoomIn = () => {
-    setScale(prev => Math.min(prev * 1.2, isMobile ? 3 : 5)); // Limit zoom on mobile
+    const maxZoom = deviceInfo.isMobile ? (deviceInfo.isLowMemory ? 2 : 2.5) : 5;
+    setScale(prev => Math.min(prev * 1.2, maxZoom));
   };
 
   const handleZoomOut = () => {
@@ -92,14 +169,23 @@ export default function Education() {
   };
 
   const handleFitToScreen = () => {
-    if (imageRef.current && containerRef.current) {
+    if (containerRef.current) {
       const container = containerRef.current;
-      const image = imageRef.current;
+      const containerWidth = container.clientWidth - 40;
+      const containerHeight = container.clientHeight - 40;
       
-      const containerWidth = container.clientWidth - 20; // Add padding
-      const containerHeight = container.clientHeight - 20;
-      const imageWidth = image.naturalWidth;
-      const imageHeight = image.naturalHeight;
+      // Use canvas dimensions if on mobile, otherwise use image dimensions
+      let imageWidth, imageHeight;
+      
+      if (deviceInfo.isMobile && canvasRef.current) {
+        imageWidth = canvasRef.current.width;
+        imageHeight = canvasRef.current.height;
+      } else if (imageRef.current) {
+        imageWidth = imageRef.current.naturalWidth;
+        imageHeight = imageRef.current.naturalHeight;
+      } else {
+        return;
+      }
       
       if (imageWidth && imageHeight) {
         const scaleX = containerWidth / imageWidth;
@@ -112,7 +198,7 @@ export default function Education() {
     }
   };
 
-  // Unified drag functions
+  // Throttled drag functions for better performance
   const startDrag = useCallback((clientX: number, clientY: number) => {
     if (isHandTool) {
       setIsDragging(true);
@@ -125,12 +211,22 @@ export default function Education() {
 
   const doDrag = useCallback((clientX: number, clientY: number) => {
     if (isDragging && isHandTool) {
-      setPosition({
-        x: clientX - dragStart.x,
-        y: clientY - dragStart.y
-      });
+      // Throttle updates on mobile for better performance
+      if (deviceInfo.isMobile) {
+        requestAnimationFrame(() => {
+          setPosition({
+            x: clientX - dragStart.x,
+            y: clientY - dragStart.y
+          });
+        });
+      } else {
+        setPosition({
+          x: clientX - dragStart.x,
+          y: clientY - dragStart.y
+        });
+      }
     }
-  }, [isDragging, isHandTool, dragStart]);
+  }, [isDragging, isHandTool, dragStart, deviceInfo.isMobile]);
 
   const endDrag = useCallback(() => {
     setIsDragging(false);
@@ -152,7 +248,7 @@ export default function Education() {
     endDrag();
   }, [endDrag]);
 
-  // Touch event handlers
+  // Touch event handlers with better performance
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     e.preventDefault();
     if (e.touches.length === 1) {
@@ -177,9 +273,9 @@ export default function Education() {
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    const maxZoom = isMobile ? 3 : 5; // Limit zoom on mobile
+    const maxZoom = deviceInfo.isMobile ? (deviceInfo.isLowMemory ? 2 : 2.5) : 5;
     setScale(prev => Math.min(Math.max(prev * delta, 0.1), maxZoom));
-  }, [isMobile]);
+  }, [deviceInfo]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -228,7 +324,7 @@ export default function Education() {
                             onClick={openThesisModal}
                             className="text-[#94c973] hover:text-[#7fb95e] transition-colors underline cursor-pointer"
                           >
-                            Thesis
+                            Thesis {deviceInfo.isMobile && <Smartphone className="inline h-4 w-4 ml-1" />}
                           </button>
                         ) : (
                           'Thesis'
@@ -274,24 +370,73 @@ export default function Education() {
         </div>
       </section>
 
-      {/* Mobile-Optimized Thesis Mind Map Modal */}
+      {/* Mobile Warning Modal */}
+      {showMobileWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center mb-4">
+              <Smartphone className="h-8 w-8 text-orange-500 mr-3" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Mobile Device Detected
+              </h3>
+            </div>
+            
+            <div className="mb-6">
+              <p className="text-gray-600 dark:text-gray-300 mb-3">
+                The thesis mind map is a large, detailed image that may cause performance issues on mobile devices.
+              </p>
+              
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mb-4">
+                <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                  <strong>Recommendations:</strong>
+                </p>
+                <ul className="text-sm text-yellow-700 dark:text-yellow-300 mt-1 space-y-1">
+                  <li>• Use a desktop or tablet for the best experience</li>
+                  <li>• Close other apps to free up memory</li>
+                  <li>• The image will be optimized for mobile viewing</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={closeThesisModal}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={proceedWithMobile}
+                className="flex-1 px-4 py-2 bg-[#94c973] text-white rounded-lg hover:bg-[#7fb95e] transition-colors"
+              >
+                Continue Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Optimized Thesis Mind Map Modal */}
       {showThesisModal && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2"
           onClick={handleBackdropClick}
         >
           <div className={`bg-white dark:bg-gray-900 rounded-lg shadow-xl flex flex-col ${
-            isMobile || isSmallScreen ? 'w-full h-full' : 'w-[90vw] h-[90vh]'
+            deviceInfo.isMobile ? 'w-full h-full' : 'w-[90vw] h-[90vh]'
           }`}>
             {/* Header with controls */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                 PhD Thesis Mind Map
+                {deviceInfo.isMobile && (
+                  <span className="text-sm text-orange-500 ml-2">(Mobile Optimized)</span>
+                )}
               </h3>
               
               {/* Control buttons */}
               <div className="flex items-center space-x-2">
-                {!isMobile && (
+                {!deviceInfo.isMobile && (
                   <>
                     <button
                       onClick={handleZoomOut}
@@ -359,7 +504,7 @@ export default function Education() {
               onWheel={handleWheel}
               style={{ 
                 cursor: isHandTool ? (isDragging ? 'grabbing' : 'grab') : 'default',
-                touchAction: 'none' // Prevent default touch behaviors
+                touchAction: 'none'
               }}
             >
               {/* Loading indicator */}
@@ -367,7 +512,9 @@ export default function Education() {
                 <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#94c973] mx-auto mb-4"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Loading mind map...</p>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {deviceInfo.isMobile ? 'Optimizing for mobile...' : 'Loading mind map...'}
+                    </p>
                   </div>
                 </div>
               )}
@@ -393,6 +540,13 @@ export default function Education() {
                 </div>
               )}
 
+              {/* Hidden canvas for mobile optimization */}
+              <canvas
+                ref={canvasRef}
+                className="hidden"
+                style={{ display: 'none' }}
+              />
+
               {/* Image */}
               {!imageError && (
                 <div 
@@ -412,18 +566,19 @@ export default function Education() {
                     onLoad={handleImageLoad}
                     onError={handleImageError}
                     style={{
-                      maxWidth: isMobile ? '200%' : 'none', // Limit size on mobile
-                      maxHeight: isMobile ? '200%' : 'none'
+                      maxWidth: deviceInfo.isMobile ? '150%' : 'none',
+                      maxHeight: deviceInfo.isMobile ? '150%' : 'none',
+                      imageRendering: deviceInfo.isMobile ? 'optimizeSpeed' : 'auto'
                     }}
                   />
                 </div>
               )}
 
               {/* Mobile instructions */}
-              {isMobile && imageLoaded && !imageError && (
+              {deviceInfo.isMobile && imageLoaded && !imageError && (
                 <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-75 text-white p-3 rounded-lg text-sm">
                   <p className="text-center">
-                    Pinch to zoom • Drag to pan • Tap outside to close
+                    {deviceInfo.isLowMemory ? 'Drag to pan • Tap outside to close' : 'Pinch to zoom • Drag to pan • Tap outside to close'}
                   </p>
                 </div>
               )}
