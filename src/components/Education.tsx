@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { GraduationCap, BookOpen, ExternalLink, X, ZoomIn, ZoomOut, Move, Maximize2 } from 'lucide-react';
+import { GraduationCap, BookOpen, ExternalLink, X, ZoomIn, ZoomOut, Move, Maximize2, AlertTriangle } from 'lucide-react';
 import AudioPlayer from './AudioPlayer';
 import { useTheme } from './ThemeContext';
 
@@ -40,22 +40,51 @@ export default function Education() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isHandTool, setIsHandTool] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Detect if device is mobile
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isSmallScreen = window.innerWidth < 768;
+
   const openThesisModal = () => {
+    setIsLoading(true);
     setShowThesisModal(true);
     setScale(1);
     setPosition({ x: 0, y: 0 });
     setIsHandTool(false);
+    setImageLoaded(false);
+    setImageError(false);
   };
 
   const closeThesisModal = () => {
     setShowThesisModal(false);
+    setIsLoading(false);
+    setImageLoaded(false);
+    setImageError(false);
+  };
+
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+    setIsLoading(false);
+    // Auto-fit to screen on mobile for better initial view
+    if (isMobile || isSmallScreen) {
+      setTimeout(() => {
+        handleFitToScreen();
+      }, 100);
+    }
+  };
+
+  const handleImageError = () => {
+    setImageError(true);
+    setIsLoading(false);
   };
 
   const handleZoomIn = () => {
-    setScale(prev => Math.min(prev * 1.2, 5));
+    setScale(prev => Math.min(prev * 1.2, isMobile ? 3 : 5)); // Limit zoom on mobile
   };
 
   const handleZoomOut = () => {
@@ -67,48 +96,90 @@ export default function Education() {
       const container = containerRef.current;
       const image = imageRef.current;
       
-      const containerWidth = container.clientWidth;
-      const containerHeight = container.clientHeight;
+      const containerWidth = container.clientWidth - 20; // Add padding
+      const containerHeight = container.clientHeight - 20;
       const imageWidth = image.naturalWidth;
       const imageHeight = image.naturalHeight;
       
-      const scaleX = containerWidth / imageWidth;
-      const scaleY = containerHeight / imageHeight;
-      const newScale = Math.min(scaleX, scaleY, 1);
-      
-      setScale(newScale);
-      setPosition({ x: 0, y: 0 });
+      if (imageWidth && imageHeight) {
+        const scaleX = containerWidth / imageWidth;
+        const scaleY = containerHeight / imageHeight;
+        const newScale = Math.min(scaleX, scaleY, 1);
+        
+        setScale(newScale);
+        setPosition({ x: 0, y: 0 });
+      }
     }
   };
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+  // Unified drag functions
+  const startDrag = useCallback((clientX: number, clientY: number) => {
     if (isHandTool) {
       setIsDragging(true);
       setDragStart({
-        x: e.clientX - position.x,
-        y: e.clientY - position.y
+        x: clientX - position.x,
+        y: clientY - position.y
       });
     }
   }, [isHandTool, position]);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  const doDrag = useCallback((clientX: number, clientY: number) => {
     if (isDragging && isHandTool) {
       setPosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
+        x: clientX - dragStart.x,
+        y: clientY - dragStart.y
       });
     }
   }, [isDragging, isHandTool, dragStart]);
 
-  const handleMouseUp = useCallback(() => {
+  const endDrag = useCallback(() => {
     setIsDragging(false);
   }, []);
+
+  // Mouse event handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    startDrag(e.clientX, e.clientY);
+  }, [startDrag]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    doDrag(e.clientX, e.clientY);
+  }, [doDrag]);
+
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    endDrag();
+  }, [endDrag]);
+
+  // Touch event handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      startDrag(touch.clientX, touch.clientY);
+    }
+  }, [startDrag]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    if (e.touches.length === 1 && isDragging) {
+      const touch = e.touches[0];
+      doDrag(touch.clientX, touch.clientY);
+    }
+  }, [doDrag, isDragging]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
+    endDrag();
+  }, [endDrag]);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    setScale(prev => Math.min(Math.max(prev * delta, 0.1), 5));
-  }, []);
+    const maxZoom = isMobile ? 3 : 5; // Limit zoom on mobile
+    setScale(prev => Math.min(Math.max(prev * delta, 0.1), maxZoom));
+  }, [isMobile]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -203,13 +274,15 @@ export default function Education() {
         </div>
       </section>
 
-      {/* Larger Centered Thesis Mind Map Modal */}
+      {/* Mobile-Optimized Thesis Mind Map Modal */}
       {showThesisModal && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2"
           onClick={handleBackdropClick}
         >
-          <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-[90vw] h-[90vh] flex flex-col">
+          <div className={`bg-white dark:bg-gray-900 rounded-lg shadow-xl flex flex-col ${
+            isMobile || isSmallScreen ? 'w-full h-full' : 'w-[90vw] h-[90vh]'
+          }`}>
             {/* Header with controls */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
@@ -218,45 +291,49 @@ export default function Education() {
               
               {/* Control buttons */}
               <div className="flex items-center space-x-2">
-                <button
-                  onClick={handleZoomOut}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                  title="Zoom Out"
-                >
-                  <ZoomOut className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                </button>
-                
-                <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[60px] text-center">
-                  {Math.round(scale * 100)}%
-                </span>
-                
-                <button
-                  onClick={handleZoomIn}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                  title="Zoom In"
-                >
-                  <ZoomIn className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                </button>
-                
-                <button
-                  onClick={handleFitToScreen}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                  title="Fit to Screen"
-                >
-                  <Maximize2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                </button>
-                
-                <button
-                  onClick={() => setIsHandTool(!isHandTool)}
-                  className={`p-2 rounded-lg transition-colors ${
-                    isHandTool 
-                      ? 'bg-[#94c973] text-white' 
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
-                  }`}
-                  title="Hand Tool"
-                >
-                  <Move className="h-5 w-5" />
-                </button>
+                {!isMobile && (
+                  <>
+                    <button
+                      onClick={handleZoomOut}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                      title="Zoom Out"
+                    >
+                      <ZoomOut className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    </button>
+                    
+                    <span className="text-sm text-gray-600 dark:text-gray-400 min-w-[60px] text-center">
+                      {Math.round(scale * 100)}%
+                    </span>
+                    
+                    <button
+                      onClick={handleZoomIn}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                      title="Zoom In"
+                    >
+                      <ZoomIn className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    </button>
+                    
+                    <button
+                      onClick={handleFitToScreen}
+                      className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                      title="Fit to Screen"
+                    >
+                      <Maximize2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    </button>
+                    
+                    <button
+                      onClick={() => setIsHandTool(!isHandTool)}
+                      className={`p-2 rounded-lg transition-colors ${
+                        isHandTool 
+                          ? 'bg-[#94c973] text-white' 
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
+                      }`}
+                      title="Hand Tool"
+                    >
+                      <Move className="h-5 w-5" />
+                    </button>
+                  </>
+                )}
                 
                 <button
                   onClick={closeThesisModal}
@@ -276,26 +353,80 @@ export default function Education() {
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
               onWheel={handleWheel}
-              style={{ cursor: isHandTool ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
+              style={{ 
+                cursor: isHandTool ? (isDragging ? 'grabbing' : 'grab') : 'default',
+                touchAction: 'none' // Prevent default touch behaviors
+              }}
             >
-              <div 
-                className="absolute inset-0 flex items-center justify-center"
-                style={{
-                  transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-                  transformOrigin: 'center center',
-                  transition: isDragging ? 'none' : 'transform 0.1s ease-out'
-                }}
-              >
-                <img
-                  ref={imageRef}
-                  src="/assets/images/full_thesis_mind_map_.png"
-                  alt="PhD Thesis Mind Map"
-                  className="max-w-none select-none"
-                  draggable={false}
-                  onLoad={handleFitToScreen}
-                />
-              </div>
+              {/* Loading indicator */}
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#94c973] mx-auto mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Loading mind map...</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Error state */}
+              {imageError && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+                  <div className="text-center p-8">
+                    <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                      Unable to Load Mind Map
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
+                      The mind map image could not be loaded. This might be due to network issues or device limitations.
+                    </p>
+                    <button
+                      onClick={closeThesisModal}
+                      className="px-4 py-2 bg-[#94c973] text-white rounded-lg hover:bg-[#7fb95e] transition-colors"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Image */}
+              {!imageError && (
+                <div 
+                  className="absolute inset-0 flex items-center justify-center"
+                  style={{
+                    transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+                    transformOrigin: 'center center',
+                    transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+                  }}
+                >
+                  <img
+                    ref={imageRef}
+                    src="/assets/images/full_thesis_mind_map_.png"
+                    alt="PhD Thesis Mind Map"
+                    className={`max-w-none select-none ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    draggable={false}
+                    onLoad={handleImageLoad}
+                    onError={handleImageError}
+                    style={{
+                      maxWidth: isMobile ? '200%' : 'none', // Limit size on mobile
+                      maxHeight: isMobile ? '200%' : 'none'
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Mobile instructions */}
+              {isMobile && imageLoaded && !imageError && (
+                <div className="absolute bottom-4 left-4 right-4 bg-black bg-opacity-75 text-white p-3 rounded-lg text-sm">
+                  <p className="text-center">
+                    Pinch to zoom • Drag to pan • Tap outside to close
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
