@@ -1,4 +1,4 @@
-### **Raktim Mondol: A Portfolio of Applied Statistical Methods**
+### **Raktim Mondol: A Portfolio of Applied Statistical Methods (Biostatistics)**
 
 This portfolio highlights Raktim Mondol's expertise in applying sophisticated statistical methods to solve complex problems in biomedical research, as demonstrated through his key publications.
 
