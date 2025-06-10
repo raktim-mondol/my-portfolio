@@ -17,7 +17,7 @@ This project showcases the application of regression modeling for developing a n
 
 This research demonstrates rigorous hypothesis testing to validate the superiority of a novel machine learning architecture for genomic data analysis.
 
-*   **Statistical Method:** **Hypothesis Testing (Paired and One-Tailed T-tests)** and **Supervised Classification**.
+*   **Statistical Method:** **Hypothesis Testing (Paired and One-Tailed T-tests)** 
 *   **Application & Findings:** Paired t-tests were used to statistically compare the performance of the AFExNet feature extraction method against other techniques like PCA, VAE, and DAE. The tests evaluated the significance of differences in key classification metrics (precision, recall, accuracy, F1-score). The results confirmed that AFExNet's performance improvements were statistically significant, with p-values less than 0.10 (e.g., p=0.00793 vs. VAE). This rigorous statistical validation confirmed the robustness and superiority of the AFExNet model for analyzing high-dimensional genomic data.
 
 ---
