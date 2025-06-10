@@ -111,7 +111,7 @@ export class RAGService {
       .trim();
   }
 
-  // New streaming method
+  // New streaming method with improved formatting
   public async generateStreamingResponse(
     userQuery: string, 
     conversationHistory: ChatMessage[] = [],
@@ -144,7 +144,6 @@ CRITICAL FORMATTING INSTRUCTIONS - ABSOLUTELY NO MARKDOWN:
 - When listing items, use simple dashes (-) or numbers (1, 2, 3) followed by a space
 - Write as if you're speaking naturally in a conversation
 - Do NOT format titles, headings, or any text with special characters
-- Write as if you're speaking naturally in a conversation
 - Keep all text as plain, readable sentences without any special formatting
 - Even if previous messages in the conversation used markdown, you must NEVER use markdown
 - This rule applies to ALL responses, including follow-up questions and continued conversations
@@ -204,20 +203,45 @@ Remember to be helpful and provide comprehensive answers based on the rich conte
       });
 
       let fullResponse = '';
+      let buffer = ''; // Buffer to accumulate partial words
 
-      // Process the stream
+      // Process the stream with improved formatting
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || '';
         if (content) {
-          // Strip any markdown that might appear in the chunk
-          const cleanContent = this.stripMarkdown(content);
-          fullResponse += cleanContent;
-          onChunk(cleanContent);
+          // Add content to buffer
+          buffer += content;
+          
+          // Check if we have complete words (ending with space, punctuation, or newline)
+          const words = buffer.split(/(\s+|[.!?,:;]\s*)/);
+          
+          // Process complete words/tokens
+          if (words.length > 1) {
+            // Keep the last incomplete word in buffer
+            const incompleteWord = words.pop() || '';
+            const completeText = words.join('');
+            
+            if (completeText) {
+              // Strip any markdown that might appear in the chunk
+              const cleanContent = this.stripMarkdown(completeText);
+              fullResponse += cleanContent;
+              onChunk(cleanContent);
+            }
+            
+            // Update buffer with incomplete word
+            buffer = incompleteWord;
+          }
         }
       }
 
+      // Process any remaining content in buffer
+      if (buffer.trim()) {
+        const cleanContent = this.stripMarkdown(buffer);
+        fullResponse += cleanContent;
+        onChunk(cleanContent);
+      }
+
       // Final cleanup and completion
-      const finalResponse = this.stripMarkdown(fullResponse);
       onComplete();
 
     } catch (error) {

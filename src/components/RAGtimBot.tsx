@@ -90,7 +90,7 @@ export default function RAGtimBot() {
       await ragService.generateStreamingResponse(
         userMessage.content,
         messages,
-        // onChunk callback
+        // onChunk callback - improved to handle proper word boundaries
         (chunk: string) => {
           streamingMessageRef.current += chunk;
           setStreamingMessage(streamingMessageRef.current);
@@ -224,9 +224,9 @@ export default function RAGtimBot() {
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
                   {hasApiKey ? (
-                    <Shield className="h-3 w-3 ml-1\" title="Hybrid Search Enabled" />
+                    <Shield className="h-3 w-3 ml-1" title="Hybrid Search Enabled" />
                   ) : (
-                    <AlertCircle className="h-3 w-3 ml-1\" title="Configuration needed" />
+                    <AlertCircle className="h-3 w-3 ml-1" title="Configuration needed" />
                   )}
                 </h3>
                 <p className="text-xs opacity-90">
@@ -330,18 +330,18 @@ export default function RAGtimBot() {
               </div>
             ))}
             
-            {/* Streaming message */}
+            {/* Streaming message with improved formatting */}
             {isStreaming && streamingMessage && (
               <div className="flex justify-start">
                 <div className="max-w-[85%] p-3 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">
                   <p className="text-sm whitespace-pre-wrap">{streamingMessage}</p>
-                  <div className="flex items-center mt-1">
+                  <div className="flex items-center mt-2">
                     <div className="flex space-x-1">
-                      <div className="w-1 h-1 bg-[#94c973] rounded-full animate-pulse"></div>
-                      <div className="w-1 h-1 bg-[#94c973] rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                      <div className="w-1 h-1 bg-[#94c973] rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                      <div className="w-1.5 h-1.5 bg-[#94c973] rounded-full animate-pulse"></div>
+                      <div className="w-1.5 h-1.5 bg-[#94c973] rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-1.5 h-1.5 bg-[#94c973] rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
                     </div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">streaming...</span>
+                    <span className="text-xs text-[#94c973] ml-2 font-medium">streaming...</span>
                   </div>
                 </div>
               </div>
