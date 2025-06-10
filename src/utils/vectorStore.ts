@@ -10,7 +10,7 @@ export interface Document {
   metadata: {
     source: string;
     section?: string;
-    type: 'education' | 'experience' | 'skills' | 'research' | 'publications' | 'awards' | 'contact' | 'about' | 'detailed';
+    type: 'education' | 'experience' | 'skills' | 'research' | 'publications' | 'awards' | 'contact' | 'about' | 'detailed' | 'statistics';
     priority: number;
   };
   embedding?: number[];
@@ -81,7 +81,8 @@ export class VectorStore {
       { path: '/content/research_details.md', type: 'research' as const, priority: 9 },
       { path: '/content/publications_detailed.md', type: 'publications' as const, priority: 8 },
       { path: '/content/skills_expertise.md', type: 'skills' as const, priority: 7 },
-      { path: '/content/experience_detailed.md', type: 'experience' as const, priority: 8 }
+      { path: '/content/experience_detailed.md', type: 'experience' as const, priority: 8 },
+      { path: '/content/statistics.md', type: 'statistics' as const, priority: 9 }
     ];
 
     for (const file of contentFiles) {
@@ -177,7 +178,7 @@ export class VectorStore {
     const aboutContent = [
       {
         section: 'Personal Information',
-        content: `Raktim Mondol is a PhD candidate in Computer Science & Engineering at UNSW Sydney. He is a researcher, data scientist, bioinformatician, LLM engineer, and father. His research focuses on deep learning-based prognosis and explainability for breast cancer.`,
+        content: `Raktim Mondol is a PhD candidate in Computer Science & Engineering at UNSW Sydney. He is a researcher, data scientist, bioinformatician, biostatistician, LLM engineer, and father. His research focuses on deep learning-based prognosis and explainability for breast cancer.`,
         type: 'about' as const,
         priority: 10
       },
@@ -305,6 +306,34 @@ export class VectorStore {
       }
     ];
 
+    // Statistics content
+    const statisticsContent = [
+      {
+        section: 'Statistical Expertise Overview',
+        content: `Raktim Mondol demonstrates exceptional proficiency in advanced statistical methods and machine learning techniques, with particular expertise in biomedical data analysis, survival modeling, and multimodal data fusion. His research contributions span multiple domains of statistical application, showcasing both theoretical innovation and practical implementation excellence.`,
+        type: 'statistics' as const,
+        priority: 9
+      },
+      {
+        section: 'Survival Analysis & Biostatistics',
+        content: `Raktim has developed sophisticated expertise in survival analysis, particularly through his implementation of weighted Cox proportional hazards models with custom loss functions specifically designed for imbalanced survival data. His BioFusionNet work achieved a mean concordance index of 0.77 and time-dependent area under the curve of 0.84, demonstrating superior predictive performance with hazard ratios showing statistical significance (HR: 2.99, 95% CI: 1.88-4.78, p < 0.005).`,
+        type: 'statistics' as const,
+        priority: 9
+      },
+      {
+        section: 'Advanced Machine Learning Statistics',
+        content: `His deep learning expertise includes three major architectural innovations: AFExNet (adversarial autoencoder for genomic data), BioFusionNet (multimodal fusion framework), and hist2RNA (gene expression prediction). These demonstrate advanced statistical validation methodologies including comprehensive evaluation across multiple algorithms, cross-validation frameworks, and external validation on independent datasets.`,
+        type: 'statistics' as const,
+        priority: 9
+      },
+      {
+        section: 'Classification & Regression Methodologies',
+        content: `Raktim employs comprehensive evaluation methodology across multiple algorithms including Support Vector Machines, Random Forest, XGBoost, Gradient Boosting, and Neural Networks. His regression analysis expertise encompasses multivariate regression modeling, Cox proportional hazards regression with custom implementations, and multinomial logistic regression for multi-class classification problems.`,
+        type: 'statistics' as const,
+        priority: 9
+      }
+    ];
+
     // Awards content (currently empty, but structure for future)
     const awardsContent = [
       // Will be populated when awards data is available
@@ -318,6 +347,7 @@ export class VectorStore {
       ...skillsContent,
       ...researchContent,
       ...publicationsContent,
+      ...statisticsContent,
       ...awardsContent
     ];
 
