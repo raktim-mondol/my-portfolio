@@ -111,7 +111,7 @@ export class RAGService {
       .trim();
   }
 
-  // New streaming method with improved formatting
+  // New streaming method with completely rewritten word boundary handling
   public async generateStreamingResponse(
     userQuery: string, 
     conversationHistory: ChatMessage[] = [],
@@ -202,43 +202,47 @@ Remember to be helpful and provide comprehensive answers based on the rich conte
         stream: true
       });
 
-      let fullResponse = '';
-      let buffer = ''; // Buffer to accumulate partial words
+      let accumulatedText = '';
+      let lastDisplayedLength = 0;
 
-      // Process the stream with improved formatting
+      // Process the stream with proper word boundary detection
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || '';
         if (content) {
-          // Add content to buffer
-          buffer += content;
+          // Accumulate all content
+          accumulatedText += content;
           
-          // Check if we have complete words (ending with space, punctuation, or newline)
-          const words = buffer.split(/(\s+|[.!?,:;]\s*)/);
+          // Find the last complete word boundary
+          // Look for spaces, punctuation followed by space, or end of sentences
+          const wordBoundaryRegex = /.*?(?:\s+|[.!?]\s*|[,;:]\s+)/g;
+          const matches = accumulatedText.match(wordBoundaryRegex);
           
-          // Process complete words/tokens
-          if (words.length > 1) {
-            // Keep the last incomplete word in buffer
-            const incompleteWord = words.pop() || '';
-            const completeText = words.join('');
+          if (matches) {
+            // Join all complete word groups
+            const completeText = matches.join('');
             
-            if (completeText) {
-              // Strip any markdown that might appear in the chunk
-              const cleanContent = this.stripMarkdown(completeText);
-              fullResponse += cleanContent;
-              onChunk(cleanContent);
+            // Only send new content that hasn't been displayed yet
+            if (completeText.length > lastDisplayedLength) {
+              const newContent = completeText.slice(lastDisplayedLength);
+              const cleanContent = this.stripMarkdown(newContent);
+              
+              if (cleanContent.trim()) {
+                onChunk(cleanContent);
+                lastDisplayedLength = completeText.length;
+              }
             }
-            
-            // Update buffer with incomplete word
-            buffer = incompleteWord;
           }
         }
       }
 
-      // Process any remaining content in buffer
-      if (buffer.trim()) {
-        const cleanContent = this.stripMarkdown(buffer);
-        fullResponse += cleanContent;
-        onChunk(cleanContent);
+      // Send any remaining content that wasn't sent
+      if (accumulatedText.length > lastDisplayedLength) {
+        const remainingContent = accumulatedText.slice(lastDisplayedLength);
+        const cleanContent = this.stripMarkdown(remainingContent);
+        
+        if (cleanContent.trim()) {
+          onChunk(cleanContent);
+        }
       }
 
       // Final cleanup and completion
@@ -279,29 +283,29 @@ Remember to be helpful and provide comprehensive answers based on the rich conte
           content: `You are RAGtim Bot, a knowledgeable assistant that answers questions about Raktim Mondol using advanced hybrid search technology that combines semantic vector search with BM25 ranking for comprehensive and accurate information retrieval.
 
 CRITICAL FORMATTING INSTRUCTIONS - ABSOLUTELY NO MARKDOWN:
-- NEVER use any markdown formatting in your responses under any circumstances
-- Do NOT use asterisks (*), hashtags (#), backticks (\`), underscores (_), or any other markdown syntax
-- Do NOT use **bold**, *italic*, __underline__, or any other markdown formatting
-- Write in plain English text only using simple punctuation like periods, commas, and colons
-- For emphasis, use capital letters or repeat words naturally (e.g., "VERY important" or "really really good")
-- When listing items, use simple dashes (-) or numbers (1, 2, 3) followed by a space
-- Write as if you're speaking naturally in a conversation
-- Do NOT format titles, headings, or any text with special characters
-- Keep all text as plain, readable sentences without any special formatting
-- Even if previous messages in the conversation used markdown, you must NEVER use markdown
-- This rule applies to ALL responses, including follow-up questions and continued conversations
+  - NEVER use any markdown formatting in your responses under any circumstances
+  - Do NOT use asterisks (*), hashtags (#), backticks (\`), underscores (_), or any other markdown syntax
+  - Do NOT use **bold**, *italic*, __underline__, or any other markdown formatting
+  - Write in plain English text only using simple punctuation like periods, commas, and colons
+  - For emphasis, use capital letters or repeat words naturally (e.g., "VERY important" or "really really good")
+  - When listing items, use simple dashes (-) or numbers (1, 2, 3) followed by a space
+  - Write as if you're speaking naturally in a conversation
+  - Do NOT format titles, headings, or any text with special characters
+  - Keep all text as plain, readable sentences without any special formatting
+  - Even if previous messages in the conversation used markdown, you must NEVER use markdown
+  - This rule applies to ALL responses, including follow-up questions and continued conversations
 
 RESPONSE GUIDELINES:
-- Always answer based on the provided context about Raktim Mondol
-- Be conversational, friendly, and professional
-- Provide detailed and informative responses when relevant information is available
-- If asked about something not in the context, politely say you don't have that specific information
-- You can refer to Raktim in first person (as "I") or third person, whichever feels more natural
-- If someone asks general questions like "hello" or "how are you", respond as Raktim's representative
-- When discussing technical topics, provide appropriate level of detail
-- Include specific examples, achievements, or details when available in the context
-- Synthesize information from multiple sources when relevant
-- Use natural language flow without any special formatting whatsoever
+  - Always answer based on the provided context about Raktim Mondol
+  - Be conversational, friendly, and professional
+  - Provide detailed and informative responses when relevant information is available
+  - If asked about something not in the context, politely say you don't have that specific information
+  - You can refer to Raktim in first person (as "I") or third person, whichever feels more natural
+  - If someone asks general questions like "hello" or "how are you", respond as Raktim's representative
+  - When discussing technical topics, provide appropriate level of detail
+  - Include specific examples, achievements, or details when available in the context
+  - Synthesize information from multiple sources when relevant
+  - Use natural language flow without any special formatting whatsoever
 
 SEARCH TECHNOLOGY:
 The context below was retrieved using advanced hybrid search combining:
@@ -319,13 +323,11 @@ Remember to be helpful and provide comprehensive answers based on the rich conte
       ];
 
       // Add recent conversation history (last 6 messages for better context)
-      // Strip markdown from previous responses to prevent markdown contamination
       const recentHistory = conversationHistory.slice(-6);
       recentHistory.forEach(msg => {
-        const cleanContent = msg.role === 'assistant' ? this.stripMarkdown(msg.content) : msg.content;
         messages.push({
           role: msg.role,
-          content: cleanContent
+          content: msg.content
         });
       });
 
