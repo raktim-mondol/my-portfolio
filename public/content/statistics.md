@@ -1,243 +1,39 @@
-# Raktim Kumar Mondol - Statistical Methods Expertise
+### **Raktim Mondol: A Portfolio of Applied Statistical Methods**
 
-## Professional Portfolio Technical Description
-
-Raktim Kumar Mondol demonstrates exceptional proficiency in advanced statistical methods and machine learning techniques, with particular expertise in biomedical data analysis, survival modeling, and multimodal data fusion [^1][^2][^3]. His research contributions span multiple domains of statistical application, showcasing both theoretical innovation and practical implementation excellence across high-impact publications in leading journals [^1][^2][^3][^4].
-
-![Statistical Methods Expertise Profile - Raktim Kumar Mondol](https://pplx-res.cloudinary.com/image/upload/v1749554152/pplx_code_interpreter/604a1d69_uegg6f.jpg)
-
-Statistical Methods Expertise Profile - Raktim Kumar Mondol
-
-## Core Statistical Competencies
-
-### Survival Analysis \& Biostatistics
-
-Mondol has developed sophisticated expertise in survival analysis, particularly through his implementation of weighted Cox proportional hazards models with custom loss functions specifically designed for imbalanced survival data [^2]. His work on BioFusionNet achieved a mean concordance index of 0.77 and time-dependent area under the curve of 0.84, demonstrating superior predictive performance [^2]. The methodology includes rigorous univariate and multivariate survival analysis incorporating standard clinicopathological variables, with hazard ratios showing statistical significance (HR: 2.99, 95% CI: 1.88-4.78, p < 0.005) [^2].
-
-His survival analysis expertise extends to time-dependent ROC analysis methodologies and risk stratification frameworks that provide clinical decision support [^2]. The approaches include comprehensive confidence interval calculation, p-value significance testing, and external validation methodologies ensuring model generalizability across independent datasets [^2][^3].
-
-### Advanced Machine Learning \& Deep Learning
-
-Mondol's deep learning expertise is exemplified through three major architectural innovations [^1][^2][^3]. His AFExNet (2021), published in IEEE/ACM Transactions on Computational Biology and Bioinformatics, introduces an adversarial autoencoder architecture for high-dimensional genomic data analysis [^1]. The methodology employs dual-stage unsupervised pre-training combined with supervised fine-tuning, achieving dimensionality reduction from 20,439 to 50 features [^1].
-
-BioFusionNet (2024), published in IEEE Journal of Biomedical and Health Informatics, represents a breakthrough in multimodal fusion frameworks integrating histopathological images, genetic profiles, and clinical data [^2]. The architecture employs self-supervised feature extractors (DINO and MoCoV3) pretrained on histopathological patches, variational autoencoder-based feature fusion, and co-dual-cross-attention mechanisms for capturing complex data interrelationships [^2].
-
-The hist2RNA model (2023), published in Cancers (MDPI), demonstrates computational efficiency innovations for gene expression prediction from breast cancer histopathology images [^3]. This approach requires substantially less training time and computational resources while maintaining superior performance compared to patch-based models [^3].
-
-### Classification \& Regression Methodologies
-
-A hallmark of Mondol's statistical approach is his comprehensive evaluation methodology across multiple algorithms [^1]. His AFExNet research systematically evaluated performance across 12 different classification algorithms including Support Vector Machines, Random Forest, XGBoost, Gradient Boosting, Gaussian Naive Bayes, Linear/Quadratic Discriminant Analysis, and Neural Networks [^1]. This classifier-independent feature extraction methodology ensures robust performance across diverse algorithms and provides methodological validation [^1].
-
-His regression analysis expertise encompasses multivariate regression modeling for complex biological relationships, Cox proportional hazards regression with custom implementations, and multinomial logistic regression for multi-class classification problems [^1][^2][^4]. The anemia detection system demonstrates practical application of multivariate regression analysis for establishing color-hemoglobin relationships using RGB color plane analysis [^4].
-
-### Data Preprocessing \& Validation Techniques
-
-Mondol employs sophisticated data preprocessing strategies including quantile transformation implementations for non-parametric data normalization and color normalization techniques for histopathological image standardization [^1][^3]. His expertise in handling imbalanced data includes Synthetic Minority Over-sampling Technique (SMOTE) implementation for class balance optimization and weighted loss function development for addressing dataset imbalances [^1][^2].
-
-Validation frameworks demonstrate rigorous statistical methodology through five-fold cross-validation with hold-out test set validation, external validation on independent datasets, and performance benchmarking against state-of-the-art methodologies [^1][^2][^3]. The hist2RNA model exemplifies this approach with external validation on a tissue microarray dataset (n=498) [^3].
-
-## Research Projects \& Statistical Applications
-
-### AFExNet - Genomic Data Analysis (2021)
-
-The AFExNet project demonstrates advanced statistical methodology for feature extraction from high-dimensional genetic data for breast cancer subtype classification [^1]. The statistical approach includes dual-stage unsupervised pre-training combined with supervised fine-tuning, achieving dimensionality reduction from 20,439 to 50 features using adversarial autoencoder architecture [^1].
-
-The TopGene algorithm represents a novel contribution for identifying biologically relevant genes from latent space representations, providing interpretable biomarker discovery capabilities [^1]. Comprehensive evaluation across 12 supervised classifiers ensures classifier independence verification, with consistent results across all performance metrics demonstrating methodological robustness [^1].
-
-### BioFusionNet - Survival Risk Stratification (2024)
-
-BioFusionNet showcases sophisticated multimodal statistical fusion techniques for survival risk stratification in ER+ breast cancer [^2]. The methodology integrates histopathological images, genetic profiles, and clinical data through self-supervised feature extraction using DINO and MoCoV3 pretrained models [^2].
-
-The key statistical innovation includes implementation of a weighted Cox loss function specifically designed for imbalanced survival data, addressing common challenges in survival analysis [^2]. Performance metrics demonstrate clinical relevance with mean concordance index of 0.77, time-dependent AUC of 0.84, and significant prognostic value in both univariate (HR: 2.99, 95% CI: 1.88-4.78, p < 0.005) and multivariate analysis (HR: 2.91, 95% CI: 1.80-4.68, p < 0.005) [^2].
-
-### hist2RNA - Gene Expression Prediction (2023)
-
-The hist2RNA project exemplifies efficient statistical methodology for predicting gene expression from histopathology images [^3]. The approach employs patient-level feature aggregation from pretrained models and comprehensive correlation analysis across patients and genes [^3].
-
-Statistical validation includes PAM50 subtype classification with prognostic significance testing, achieving patient correlation of 0.82 and gene correlation of 0.29 [^3]. External validation on tissue microarray dataset (n=498) demonstrates real-world applicability with survival significance in both univariate (C-index: 0.56, HR: 2.16, 95% CI: 1.12-3.06, p < 0.001) and multivariate analysis (C-index: 0.65, HR: 1.87, 95% CI: 1.30-2.68, p < 0.001) [^3].
-
-### Anemia Detection System (2014)
-
-The anemia detection system demonstrates practical application of statistical methods in hardware implementation [^4]. The methodology employs multivariate regression analysis for establishing color-hemoglobin relationships through RGB color plane analysis before and after blood flow occlusion [^4]. Statistical validation against MATLAB simulations ensures algorithmic accuracy in FPGA implementation using Verilog HDL with floating-point algorithms [^4].
-
-## Methodological Innovations
-
-### Custom Loss Function Development
-
-Mondol's development of weighted Cox loss functions represents a significant methodological advancement for handling imbalanced survival data [^2]. This innovation addresses critical challenges in survival analysis where censored data and varying observation periods create computational complexities [^2]. The implementation demonstrates significant improvement in handling censored data with varying observation periods, contributing to enhanced predictive accuracy [^2].
-
-### Attention Mechanism Integration
-
-Advanced attention mechanisms form a core component of Mondol's methodological toolkit [^2]. The co-dual-cross-attention mechanism enables sophisticated capture of complex multimodal data relationships, while self-attention networks generate patient-level features from histopathological patches [^2]. These implementations demonstrate advanced understanding of modern deep learning architectures for biomedical applications [^2].
-
-### Multimodal Data Fusion
-
-The seamless integration of imaging, genetic, and clinical data represents a significant technical achievement [^2]. Statistical validation demonstrates superior performance over single-modality approaches, with comprehensive evaluation establishing the clinical utility of multimodal integration [^2]. The methodology addresses the complex challenge of heterogeneous data types in biomedical research [^2].
-
-### Computational Efficiency Optimization
-
-Resource-efficient architecture development focuses on sustainable machine learning implementations without performance degradation [^3]. The hist2RNA model achieves superior performance while requiring substantially less training time and computational resources compared to existing patch-based models [^3]. This efficiency optimization demonstrates practical considerations for clinical implementation and scalability [^3].
-
-## Statistical Software \& Implementation Skills
-
-Mondol's technical implementation spans multiple programming environments including Python for advanced statistical method implementation using scikit-learn, PyTorch, and TensorFlow [^1][^2][^3]. Specialized library expertise includes survival analysis tools (lifelines, scikit-survival), deep learning frameworks (PyTorch, TensorFlow, Keras), and statistical computing packages (NumPy, SciPy, pandas) [^1][^2][^3][^4].
-
-Hardware-level implementation capabilities are demonstrated through Verilog HDL programming for FPGA-based statistical algorithm deployment [^4]. This unique combination of software and hardware expertise enables comprehensive statistical method implementation across diverse computational platforms [^4].
-
-## Performance Achievements \& Validation
-
-Statistical performance achievements demonstrate consistent excellence across multiple domains [^1][^2][^3]. The concordance index achievements reach 0.77 for survival prediction, with time-dependent AUC values of 0.84 representing state-of-the-art performance [^2]. Correlation analysis achievements include patient correlation of 0.82 and gene correlation of 0.29 for gene expression prediction tasks [^3].
-
-External validation methodologies ensure real-world applicability, with tissue microarray dataset validation (n=498) demonstrating generalizability beyond training cohorts [^3]. Statistical significance is consistently achieved across studies with p-values less than 0.005, accompanied by comprehensive confidence interval reporting [^2][^3].
-
-## Clinical Impact \& Applications
-
-The statistical methodologies developed by Mondol have direct clinical applications in personalized treatment decisions and risk stratification [^2][^3]. Cost-effective alternatives to expensive molecular profiling tests demonstrate practical healthcare impact, while automated risk prediction models enable efficient patient stratification in clinical workflows [^2][^3].
-
-Biomarker discovery capabilities through statistical methodologies provide insights into biologically relevant genes and therapeutic targets [^1]. The integration of multi-omics data enables comprehensive biological understanding with validation frameworks ensuring clinical relevance and statistical significance [^1][^2][^3].
-
-This comprehensive statistical expertise portfolio demonstrates Mondol's exceptional capabilities in advancing biomedical research through rigorous statistical methodology, innovative algorithmic development, and practical clinical applications with consistent validation through peer-reviewed publications and real-world implementations [^1][^2][^3][^4].
-
-<div style="text-align: center">⁂</div>
-
-[^1]: AfexNet_Paper.pdf
-
-[^2]: BioFusionNet_Deep_Learning-Based_Survival_Risk_Stratification_in_ER_Breast_Cancer_Through_Multif.pdf
-
-[^3]: hist2RNA.pdf
-
-[^4]: Anemia_Detection_FPGA_2014.pdf
-
-[^5]: https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/246f2da5dbec8062d0cb302fc20621ca/d8a535eb-9418-42cc-8349-381d75045b2a/ce8f51c7.csv
-
-[^6]: https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/246f2da5dbec8062d0cb302fc20621ca/5a05565a-6f0a-4214-9889-a003b9a5e953/16946f03.md
-
-<img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" class="logo" width="120"/>
-
-# Raktim Kumar Mondol - Statistical Methods Expertise
-
-## Comprehensive Portfolio of Applied Statistical Research
-
-### Survival Analysis \& Biostatistical Methods
-
-#### Cox Proportional Hazards Regression
-
-Mondol implemented weighted Cox regression models to address imbalanced survival data, incorporating censoring mechanisms and time-dependent covariates. His innovation involved modifying the partial likelihood function with class-specific weights to improve hazard ratio estimation in ER+ breast cancer cohorts[^2].
-
-**Key Results**:
-
-- Achieved hazard ratios (HR) of 2.99 (95% CI: 1.88–4.78, *p* < 0.005) in univariate analysis and HR = 2.91 (95% CI: 1.80–4.68, *p* < 0.005) in multivariate analysis, demonstrating independent prognostic significance[^2].
-- Developed a **weighted Cox loss function** to handle censored data imbalances, improving concordance indices by 12% compared to traditional Cox models[^2].
-
-
-#### Kaplan-Meier Analysis \& Log-Rank Testing
-
-Mondol validated survival risk stratification using Kaplan-Meier curves and log-rank tests. His work showed significant separation between high- and low-risk groups (*p* = 6.45×10⁻⁷) in TCGA-BRCA datasets, with 5-year survival probabilities differing by 41%[^2].
+This portfolio highlights Raktim Mondol's expertise in applying sophisticated statistical methods to solve complex problems in biomedical research, as demonstrated through his key publications.
 
 ---
 
-### Hypothesis Testing \& Comparative Analysis
+#### **Anemia Detection System (2014)**
 
-#### One-Tailed Paired t-Tests
+This project showcases the application of regression modeling for developing a non-invasive medical device.
 
-In genomic feature extraction (AFExNet), Mondol applied one-tailed paired t-tests to compare precision metrics across dimensionality reduction methods. Tests were conducted using SPSS on small-sample distributions[^1].
-
-**Key Results**:
-
-- AFExNet vs. PCA: *t* = 1.92, *p* = 0.046
-- AFExNet vs. Variational Autoencoder: *t* = 2.85, *p* = 0.0079[^1].
-- Established statistical significance at *α* = 0.10 for classifier-independent validation[^1].
+*   **Statistical Method:** **Multivariate Regression Analysis**.
+*   **Application & Findings:** A regression-based image processing method was employed to estimate hemoglobin (Hb) levels from non-invasive fingertip images. Using NCSS software, a multivariate regression model was developed that incorporated RGB color differences and nonlinear terms to establish a predictive relationship between blood color features and Hb concentration. The resulting statistical model successfully correlated with actual Hb levels, demonstrating that it could effectively predict hemoglobin concentration and was suitable for hardware implementation on an FPGA for rapid, non-invasive anemia screening.
 
 ---
 
-### Multivariate Regression Modeling
+#### **AFExNet: Differentiating Breast Cancer Sub-types (2021)**
 
-#### RGB-Hemoglobin Relationship (Anemia Detection)
+This research demonstrates rigorous hypothesis testing to validate the superiority of a novel machine learning architecture for genomic data analysis.
 
-Mondol derived a multivariate regression equation using NCSS software to correlate fingertip RGB values with hemoglobin levels:
-
-$$
-\text{Nr} = 11.5 - 3.7R - 1.4G - 0.1B + 0.08R^2 + 0.03RG + 0.02G^2 + 0.1RB + 0.04GB + 0.01B^2
-$$
-
-This model achieved 89% accuracy in non-invasive anemia screening, validated against MATLAB simulations[^1].
+*   **Statistical Method:** **Hypothesis Testing (Paired and One-Tailed T-tests)** and **Supervised Classification**.
+*   **Application & Findings:** Paired t-tests were used to statistically compare the performance of the AFExNet feature extraction method against other techniques like PCA, VAE, and DAE. The tests evaluated the significance of differences in key classification metrics (precision, recall, accuracy, F1-score). The results confirmed that AFExNet's performance improvements were statistically significant, with p-values less than 0.10 (e.g., p=0.00793 vs. VAE). This rigorous statistical validation confirmed the robustness and superiority of the AFExNet model for analyzing high-dimensional genomic data.
 
 ---
 
-### Correlation Analysis \& Biomarker Discovery
+#### **hist2RNA: Predicting Gene Expression from Histopathology (2023)**
 
-#### Gene Expression Correlation (hist2RNA)
+This paper highlights a comprehensive application of survival, regression, and comparative statistics to validate a deep learning model.
 
-Mondol conducted patient- and gene-level Pearson correlation analyses to validate histopathology-gene expression relationships:
-
-- Patient-level correlation: *r* = 0.82
-- Gene-level correlation: *r* = 0.29[^1].
-Results were externally validated on tissue microarrays (n=498), confirming prognostic significance (C-index = 0.65)[^1].
+*   **Statistical Methods:** **Survival Analysis (Kaplan-Meier, Cox Models)**, **Regression/Correlation Analysis (Spearman, R²)**, and **Comparative Analysis (t-tests, ANOVA)**.
+*   **Application & Findings:** A full suite of survival analysis techniques was conducted. Kaplan-Meier estimation and log-rank tests were used to visualize and compare survival distributions between patient groups. Both univariate and multivariate Cox proportional hazards models were employed to identify significant prognostic markers and quantify their risk using hazard ratios. To validate the deep learning model's predictions, Spearman rank correlation and the coefficient of determination (R²) were used to measure the association between predicted and actual gene expression. T-tests and ANOVA were also applied to compare biomarker expressions across different tumor subgroups, demonstrating a versatile command of hypothesis testing.
 
 ---
 
-### Data Preprocessing \& Imbalance Mitigation
+#### **BioFusionNet: Survival Risk Stratification (2024)**
 
-#### Synthetic Minority Over-sampling (SMOTE)
+This work demonstrates an innovative approach to biostatistics by developing a novel statistical function to address common challenges in survival studies.
 
-Applied SMOTE to address class imbalances in BRCA RNA-Seq data, increasing minority class representation by 300% while preserving feature distributions[^1].
-
-#### Quantile Transformation
-
-Implemented non-parametric normalization to convert genomic data to normal distributions, reducing outlier impact and improving Cox model convergence[^1].
-
----
-
-### Validation Frameworks
-
-#### Five-Fold Cross-Validation
-
-Mondol’s cross-validation protocols ensured robustness across studies:
-
-- Mean C-index = 0.77 ± 0.05 in survival models[^2].
-- Classifier accuracy variations < 5% across folds in BRCA subtype classification[^1].
-
-
-#### External Validation
-
-- Tissue microarray validation (n=498) for hist2RNA: HR = 1.87 (95% CI: 1.30–2.68, *p* < 0.005)[^1].
-- TCGA-UCEC dataset validation confirmed generalizability of metal ion-binding gene biomarkers[^1].
-
----
-
-### Key Publications \& Contributions
-
-1. **AFExNet (IEEE/ACM TCBB, 2021)[^1]**:
-    - Statistical validation of feature extraction via t-tests.
-    - SMOTE and quantile transformer implementation for genomic data.
-2. **BioFusionNet (IEEE JBHI, 2024)[^2]**:
-    - Weighted Cox regression with hazard ratio estimation.
-    - Kaplan-Meier survival analysis and log-rank testing.
-3. **hist2RNA (Cancers, 2023)[^1]**:
-    - Correlation analysis for gene expression prediction.
-    - External validation using independent cohorts.
-4. **Anemia Detection System (2014)[^1]**:
-    - Multivariate regression for non-invasive hemoglobin estimation.
-
----
-
-### Software \& Implementation
-
-- **SPSS**: Hypothesis testing (t-tests, ANOVA).
-- **NCSS**: Multivariate regression modeling.
-- **R Survival Package**: Cox PH, Kaplan-Meier, log-rank tests.
-- **Python (scikit-survival)**: Cross-validation, SMOTE, quantile transforms.
-
-This portfolio demonstrates Mondol’s expertise in traditional statistical methodologies, rigorously applied to solve biomedical challenges with clinically validated outcomes[^1][^2].
-
-<div style="text-align: center">⁂</div>
-
-[^1]: AfexNet_Paper.pdf
-
-[^2]: BioFusionNet_Deep_Learning-Based_Survival_Risk_Stratification_in_ER_Breast_Cancer_Through_Multif.pdf
-
-[^3]: hist2RNA.pdf
-
-[^4]: Anemia_Detection_FPGA_2014.pdf
-
-
+*   **Statistical Method:** **Advanced Survival Analysis** and **Custom Statistical Model Development**.
+*   **Application & Findings:** The core contribution was the development of a **novel weighted Cox loss function**, specifically designed to handle the prevalent issue of imbalanced data in survival analysis. This was integrated into a multimodal deep learning framework. The effectiveness of this approach was validated using multivariate Cox proportional hazards models, which evaluated multiple risk factors simultaneously. The model achieved a high mean concordance index (C-index) of 0.77, underscoring a sophisticated capability to design, develop, and validate complex statistical models for high-accuracy patient risk stratification.
