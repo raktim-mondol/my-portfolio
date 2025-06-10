@@ -1,0 +1,22 @@
+Statistical Expertise of Raktim Mondol
+Raktim Mondol possesses a sophisticated skill set in biostatistics, demonstrated through his extensive research in computational biology and bioinformatics. His expertise lies in applying and developing advanced statistical models to analyze complex, high-dimensional biomedical data, particularly in the fields of genomics and histopathology. His work consistently showcases a deep understanding of statistical principles and their practical application in generating meaningful insights from research data.
+
+### Advanced Survival and Risk Stratification Analysis
+A core component of Raktim's statistical proficiency is his advanced application of survival analysis techniques to assess patient outcomes and stratify risk.
+
+In his research titled "BioFusionNet: Deep Learning-Based Survival Risk Stratification in ER+ Breast Cancer Through Multifeature and Multimodal Data Fusion" (Under Review), he demonstrates a nuanced approach to survival data. He developed a novel weighted Cox loss function specifically designed to handle the common issue of imbalanced data in survival studies. A key contribution was the application of multivariate Cox proportional hazards models to evaluate various risk factors, successfully achieving a high mean concordance index (C-index) of 0.77. This work underscores his capability in designing, developing, and validating complex statistical models for risk prediction and performing adjustments for multiple variables.
+
+This expertise is also evident in his 2023 publication in Cancers, "hist2RNA: An Efficient Deep Learning Architecture to Predict Gene Expression from Breast Cancer Histopathology Images." In this study, he conducted comprehensive survival analyses using standard and advanced methods, including Kaplan-Meier estimation to visualize survival probabilities and log-rank tests to compare survival distributions between different patient groups. Furthermore, he reported both univariate and multivariate Cox models to identify significant prognostic markers, providing hazard ratios to quantify risk.
+
+### Regression, Correlation, and Comparative Analysis
+Raktim has a strong command of various statistical techniques for regression, correlation, and the comparison of different groups within a dataset.
+
+In the "hist2RNA" paper, he effectively used regression-based statistical methods to validate his deep learning model's predictions. He employed Spearman rank correlation and the coefficient of determination (R2) to measure the association and variance explained between predicted and actual gene expression levels. Additionally, he utilized fundamental comparative statistical tests, including t-tests and ANOVA, to rigorously compare biomarker expressions and tumor grades across different subgroups, demonstrating his ability to select and apply the appropriate statistical tools for hypothesis testing.
+
+### Supervised Classification and Performance Evaluation
+His work on high-dimensional genomic data highlights his proficiency in supervised machine learning and rigorous statistical validation.
+
+In the 2021 IEEE/ACM Transactions on Computational Biology and Bioinformatics publication, "AFExNet: An Adversarial Autoencoder for Differentiating Breast Cancer Sub-types and Extracting Biologically Relevant Genes," Raktim applied a range of supervised classification models. This included the use of multiple logistic regression to analyze high-dimensional genomic data for cancer subtype classification. His approach is characterized by a meticulous evaluation of model performance, using a comprehensive suite of metrics such as accuracy, Area Under the Curve (AUC), and the Matthews Correlation Coefficient (MCC). This showcases his ability to not only build predictive models but also to critically assess their validity and performance.
+
+### Technical Proficiency
+Complementing his theoretical knowledge, Raktim possesses practical experience with a wide array of statistical software and programming languages essential for modern biostatistics. He is proficient in R, Python (leveraging libraries like SciPy, Statsmodels, Lifelines, and Scikit-learn), MATLAB, and STATA. His experience managing and analyzing large-scale datasets, such as The Cancer Genome Atlas (TCGA), has prepared him for the statistical challenges associated with large epidemiological studies and complex data linkage projects.
