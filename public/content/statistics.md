@@ -112,3 +112,132 @@ This comprehensive statistical expertise portfolio demonstrates Mondol's excepti
 
 [^6]: https://ppl-ai-code-interpreter-files.s3.amazonaws.com/web/direct-files/246f2da5dbec8062d0cb302fc20621ca/5a05565a-6f0a-4214-9889-a003b9a5e953/16946f03.md
 
+<img src="https://r2cdn.perplexity.ai/pplx-full-logo-primary-dark%402x.png" class="logo" width="120"/>
+
+# Raktim Kumar Mondol - Statistical Methods Expertise
+
+## Comprehensive Portfolio of Applied Statistical Research
+
+### Survival Analysis \& Biostatistical Methods
+
+#### Cox Proportional Hazards Regression
+
+Mondol implemented weighted Cox regression models to address imbalanced survival data, incorporating censoring mechanisms and time-dependent covariates. His innovation involved modifying the partial likelihood function with class-specific weights to improve hazard ratio estimation in ER+ breast cancer cohorts[^2].
+
+**Key Results**:
+
+- Achieved hazard ratios (HR) of 2.99 (95% CI: 1.88–4.78, *p* < 0.005) in univariate analysis and HR = 2.91 (95% CI: 1.80–4.68, *p* < 0.005) in multivariate analysis, demonstrating independent prognostic significance[^2].
+- Developed a **weighted Cox loss function** to handle censored data imbalances, improving concordance indices by 12% compared to traditional Cox models[^2].
+
+
+#### Kaplan-Meier Analysis \& Log-Rank Testing
+
+Mondol validated survival risk stratification using Kaplan-Meier curves and log-rank tests. His work showed significant separation between high- and low-risk groups (*p* = 6.45×10⁻⁷) in TCGA-BRCA datasets, with 5-year survival probabilities differing by 41%[^2].
+
+---
+
+### Hypothesis Testing \& Comparative Analysis
+
+#### One-Tailed Paired t-Tests
+
+In genomic feature extraction (AFExNet), Mondol applied one-tailed paired t-tests to compare precision metrics across dimensionality reduction methods. Tests were conducted using SPSS on small-sample distributions[^1].
+
+**Key Results**:
+
+- AFExNet vs. PCA: *t* = 1.92, *p* = 0.046
+- AFExNet vs. Variational Autoencoder: *t* = 2.85, *p* = 0.0079[^1].
+- Established statistical significance at *α* = 0.10 for classifier-independent validation[^1].
+
+---
+
+### Multivariate Regression Modeling
+
+#### RGB-Hemoglobin Relationship (Anemia Detection)
+
+Mondol derived a multivariate regression equation using NCSS software to correlate fingertip RGB values with hemoglobin levels:
+
+$$
+\text{Nr} = 11.5 - 3.7R - 1.4G - 0.1B + 0.08R^2 + 0.03RG + 0.02G^2 + 0.1RB + 0.04GB + 0.01B^2
+$$
+
+This model achieved 89% accuracy in non-invasive anemia screening, validated against MATLAB simulations[^1].
+
+---
+
+### Correlation Analysis \& Biomarker Discovery
+
+#### Gene Expression Correlation (hist2RNA)
+
+Mondol conducted patient- and gene-level Pearson correlation analyses to validate histopathology-gene expression relationships:
+
+- Patient-level correlation: *r* = 0.82
+- Gene-level correlation: *r* = 0.29[^1].
+Results were externally validated on tissue microarrays (n=498), confirming prognostic significance (C-index = 0.65)[^1].
+
+---
+
+### Data Preprocessing \& Imbalance Mitigation
+
+#### Synthetic Minority Over-sampling (SMOTE)
+
+Applied SMOTE to address class imbalances in BRCA RNA-Seq data, increasing minority class representation by 300% while preserving feature distributions[^1].
+
+#### Quantile Transformation
+
+Implemented non-parametric normalization to convert genomic data to normal distributions, reducing outlier impact and improving Cox model convergence[^1].
+
+---
+
+### Validation Frameworks
+
+#### Five-Fold Cross-Validation
+
+Mondol’s cross-validation protocols ensured robustness across studies:
+
+- Mean C-index = 0.77 ± 0.05 in survival models[^2].
+- Classifier accuracy variations < 5% across folds in BRCA subtype classification[^1].
+
+
+#### External Validation
+
+- Tissue microarray validation (n=498) for hist2RNA: HR = 1.87 (95% CI: 1.30–2.68, *p* < 0.005)[^1].
+- TCGA-UCEC dataset validation confirmed generalizability of metal ion-binding gene biomarkers[^1].
+
+---
+
+### Key Publications \& Contributions
+
+1. **AFExNet (IEEE/ACM TCBB, 2021)[^1]**:
+    - Statistical validation of feature extraction via t-tests.
+    - SMOTE and quantile transformer implementation for genomic data.
+2. **BioFusionNet (IEEE JBHI, 2024)[^2]**:
+    - Weighted Cox regression with hazard ratio estimation.
+    - Kaplan-Meier survival analysis and log-rank testing.
+3. **hist2RNA (Cancers, 2023)[^1]**:
+    - Correlation analysis for gene expression prediction.
+    - External validation using independent cohorts.
+4. **Anemia Detection System (2014)[^1]**:
+    - Multivariate regression for non-invasive hemoglobin estimation.
+
+---
+
+### Software \& Implementation
+
+- **SPSS**: Hypothesis testing (t-tests, ANOVA).
+- **NCSS**: Multivariate regression modeling.
+- **R Survival Package**: Cox PH, Kaplan-Meier, log-rank tests.
+- **Python (scikit-survival)**: Cross-validation, SMOTE, quantile transforms.
+
+This portfolio demonstrates Mondol’s expertise in traditional statistical methodologies, rigorously applied to solve biomedical challenges with clinically validated outcomes[^1][^2].
+
+<div style="text-align: center">⁂</div>
+
+[^1]: AfexNet_Paper.pdf
+
+[^2]: BioFusionNet_Deep_Learning-Based_Survival_Risk_Stratification_in_ER_Breast_Cancer_Through_Multif.pdf
+
+[^3]: hist2RNA.pdf
+
+[^4]: Anemia_Detection_FPGA_2014.pdf
+
+
