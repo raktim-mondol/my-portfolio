@@ -59,7 +59,7 @@ const skillCategories = [
   {
     title: "Statistical Analysis",
     icon: Database,
-    skills: ["Stata", "SPSS"]
+    skills: ["Stata", "SPSS", SAS, NCSS]
   },
   {
     title: "Development Tools",
