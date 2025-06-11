@@ -62,7 +62,7 @@ I am an experienced data scientist and programmer with deep expertise in artific
 ## TECHNICAL SKILLS
 
 *   **Languages:** Python, R, SQL, LaTeX
-*   **Software:** MATLAB, STATA, SPSS
+*   **Software:** MATLAB, STATA, SPSS, SAS, NCSS
 *   **Deep Learning Framework:** Tensorflow, Pytorch
 *   **Distributed & Cloud Computing:** AWS, GCP, GALAXY
 *   **Operating Systems:** Windows, Linux
