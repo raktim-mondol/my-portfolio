@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookText } from 'lucide-react';
+import { BookText, Github } from 'lucide-react';
 import AudioPlayer from './AudioPlayer';
 
 const publications = [
@@ -60,7 +60,7 @@ export default function Publications() {
                       href={pub.paperUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center text-[#94c973] hover:text-[#7fb95e]"
+                      className="inline-flex items-center text-[#94c973] hover:text-[#7fb95e] transition-colors"
                     >
                       <span>Read Paper</span>
                       <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,12 +71,10 @@ export default function Publications() {
                       href={pub.codeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center text-[#94c973] hover:text-[#7fb95e]"
+                      className="inline-flex items-center px-3 py-1.5 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors group"
                     >
-                      <span>View Code</span>
-                      <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                      </svg>
+                      <Github className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
+                      <span className="font-medium">View Code</span>
                     </a>
                   </div>
                   
