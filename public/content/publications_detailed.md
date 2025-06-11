@@ -1,4 +1,4 @@
-# Detailed Publications and Research Contributions
+# Detailed Publications and Research Contributions 
 
 ## BioFusionNet (2024)
 **Full Title**: "BioFusionNet: Deep Learning-Based Survival Risk Stratification in ER+ Breast Cancer Through Multifeature and Multimodal Data Fusion"
@@ -18,6 +18,7 @@
 - Achieves C-index of 0.78 on validation datasets
 
 **Impact**: This work provides clinicians with a comprehensive tool for patient risk assessment, enabling personalized treatment planning.
+<!-- This is code for this paper -->
 **GitHub**: [raktim-mondol/BioFusionNet](https://github.com/raktim-mondol/BioFusionNet)
 
 ## hist2RNA (2023)
@@ -38,6 +39,7 @@
 - Correlation analysis with known biological pathways
 
 **Impact**: Enables gene expression profiling without expensive molecular assays, making personalized medicine more accessible.
+<!-- This is code for this paper -->
 **GitHub**: [raktim-mondol/hist2RNA](https://github.com/raktim-mondol/hist2RNA)
 
 ## AFExNet (2021)
@@ -58,6 +60,7 @@
 - Pathway enrichment analysis
 
 **Impact**: Provides insights into cancer biology while achieving high classification accuracy.
+<!-- This is code for this paper -->
 **GitHub**: [raktim-mondol/breast-cancer-sub-types](https://github.com/raktim-mondol/breast-cancer-sub-types)
 
 ## Ongoing Research
