@@ -18,6 +18,7 @@
 - Achieves C-index of 0.78 on validation datasets
 
 **Impact**: This work provides clinicians with a comprehensive tool for patient risk assessment, enabling personalized treatment planning.
+**GitHub**: [raktim-mondol/BioFusionNet](https://github.com/raktim-mondol/BioFusionNet)
 
 ## hist2RNA (2023)
 **Full Title**: "hist2RNA: An Efficient Deep Learning Architecture to Predict Gene Expression from Breast Cancer Histopathology Images"
@@ -37,6 +38,7 @@
 - Correlation analysis with known biological pathways
 
 **Impact**: Enables gene expression profiling without expensive molecular assays, making personalized medicine more accessible.
+**GitHub**: [raktim-mondol/hist2RNA](https://github.com/raktim-mondol/hist2RNA)
 
 ## AFExNet (2021)
 **Full Title**: "AFExNet: An Adversarial Autoencoder for Differentiating Breast Cancer Sub-types and Extracting Biologically Relevant Genes"
@@ -56,6 +58,7 @@
 - Pathway enrichment analysis
 
 **Impact**: Provides insights into cancer biology while achieving high classification accuracy.
+**GitHub**: [raktim-mondol/breast-cancer-sub-types](https://github.com/raktim-mondol/breast-cancer-sub-types)
 
 ## Ongoing Research
 
@@ -64,10 +67,11 @@
 - Pre-training on large-scale medical datasets
 - Transfer learning for rare diseases
 
-### Federated Learning for Healthcare
-- Privacy-preserving machine learning
-- Collaborative model training across institutions
-- Differential privacy techniques
+### Ongoing Research
+- Large Language Models (LLMs)  
+- Retrieval-Augmented Generation (RAG)  
+- Fine-tuning and domain adaptation  
+
 
 ### AI Ethics in Healthcare
 - Bias detection and mitigation
