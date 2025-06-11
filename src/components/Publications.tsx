@@ -71,7 +71,7 @@ export default function Publications() {
                       href={pub.codeUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 py-1.5 bg-gray-900 dark:bg-gray-700 text-white rounded-lg hover:bg-gray-800 dark:hover:bg-gray-600 transition-colors group"
+                      className="inline-flex items-center px-3 py-1.5 border-2 border-gray-900 dark:border-gray-300 text-gray-900 dark:text-gray-300 rounded-lg hover:bg-gray-900 hover:text-white dark:hover:bg-gray-300 dark:hover:text-gray-900 transition-colors group"
                     >
                       <Github className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
                       <span className="font-medium">View Code</span>
