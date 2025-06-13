@@ -80,7 +80,7 @@ This project showcases the application of regression modeling for developing a n
 
 ---
 
-## 4. Hardware Architecture Design of Anemia Detecting Regression Model (2014) :contentReference[oaicite:0]{index=0}  
+## 4. Hardware Architecture Design of Anemia Detecting Regression Model (2014) 
 
 | Statistical method | Why used / implication | Technical depth | Key results |
 |---|---|---|---|
@@ -90,14 +90,14 @@ This project showcases the application of regression modeling for developing a n
 
 ---
 
-## 5. FPGA-Based Leaf Chlorophyll Estimating Regression Model (2014) :contentReference[oaicite:4]{index=4}  
+## 5. FPGA-Based Leaf Chlorophyll Estimating Regression Model (2014)
 
 | Statistical method | Why used / implication | Technical depth | Key results |
 |---|---|---|---|
-| **Stepwise multivariate linear regression with nonlinear terms** | Finds the lightest model that still predicts chlorophyll (Ch) from RGB + normalised channels; ideal for resource-limited FPGA. | • Starts with R,G,B,N1,N2; iteratively adds R², G², B², GB, RB until Adj-R² drops.<br>• Terms with poor p-value (G×R, N3) removed. | Final Eq 5 yields **R² = 0.99, Adj-R² = 0.99, RMSE = 3.32**, *p* = 3.14×10⁻⁷, F ≈ 6.18×10¹² (15 samples, EDF = 5) :contentReference[oaicite:5]{index=5}. |
-| **Hougen nonlinear regression (P/Q form)** | Benchmarks whether a chemical-kinetics-style ratio boosts accuracy. | 5 free coefficients; fitted by non-linear least squares. | R² = 0.91, RMSE = 5.75 – inferior to stepwise model, so not implemented :contentReference[oaicite:6]{index=6}. |
-| **Model-diagnostic plots** (normal probability, residuals vs fit, lagged residuals) | Confirms homoscedastic, un-autocorrelated errors → validates linear assumptions before hardware port. | Figures 2–5 in the paper show tight residual cloud within 0.5 σ :contentReference[oaicite:7]{index=7}. |
-| **Comparative metrics table** (14 simpler fits) | Quantifies trade-offs so designers can justify chosen complexity. | Table I lists R², RMSE, F, EDF for each candidate model. | Stepwise model dominates all baselines (next-best linear RGB has R² = 0.88) :contentReference[oaicite:8]{index=8}. |
+| **Stepwise multivariate linear regression with nonlinear terms** | Finds the lightest model that still predicts chlorophyll (Ch) from RGB + normalised channels; ideal for resource-limited FPGA. | • Starts with R,G,B,N1,N2; iteratively adds R², G², B², GB, RB until Adj-R² drops.<br>• Terms with poor p-value (G×R, N3) removed. | Final Eq 5 yields **R² = 0.99, Adj-R² = 0.99, RMSE = 3.32**, *p* = 3.14×10⁻⁷, F ≈ 6.18×10¹² (15 samples, EDF = 5) |
+| **Hougen nonlinear regression (P/Q form)** | Benchmarks whether a chemical-kinetics-style ratio boosts accuracy. | 5 free coefficients; fitted by non-linear least squares. | R² = 0.91, RMSE = 5.75 – inferior to stepwise model, so not implemented |
+| **Model-diagnostic plots** (normal probability, residuals vs fit, lagged residuals) | Confirms homoscedastic, un-autocorrelated errors → validates linear assumptions before hardware port. | Figures 2–5 in the paper show tight residual cloud within 0.5 σ  |
+| **Comparative metrics table** (14 simpler fits) | Quantifies trade-offs so designers can justify chosen complexity. | Table I lists R², RMSE, F, EDF for each candidate model. | Stepwise model dominates all baselines (next-best linear RGB has R² = 0.88) |
 
 ---
 
