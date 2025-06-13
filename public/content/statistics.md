@@ -3,7 +3,7 @@
 This portfolio highlights Raktim Mondol's expertise in applying sophisticated statistical methods to solve complex problems in biomedical research, as demonstrated through his key publications.
 
 ---
-## **1. BioFusionNet: Survival Risk Stratification (2024) IEEE JBHI 2024**
+## **1. BioFusionNet: Survival Risk Stratification *IEEE JBHI 2024* **
 
 This work demonstrates an innovative approach to biostatistics by developing a novel statistical function to address common challenges in survival studies.
 
