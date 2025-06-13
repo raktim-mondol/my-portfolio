@@ -83,6 +83,45 @@ Citations point to the PDFs you shared so the portfolio stays fully traceable.
 
 ---
 
+Below is a “stats-at-a-glance” sheet for Raktim’s two 2014 FPGA papers.  
+For each study you’ll find **(i)** every statistical technique used, **(ii)** why it was chosen (implication), **(iii)** technical depth, and **(iv)** headline results exactly as reported in the manuscript.
+
+---
+
+## 1. Hardware Architecture Design of Anemia Detecting Regression Model (2014) :contentReference[oaicite:0]{index=0}  
+
+| Statistical method | Why used / implication | Technical depth | Key results |
+|---|---|---|---|
+| **Multivariate polynomial regression** (quadratic & interaction terms) forming a **ratio model**: Hb = *N<sub>r</sub>/D<sub>r</sub>* | Maps colour-change features (ΔR, ΔG, ΔB) from fingertip images to haemoglobin level, enabling a fully non-invasive test. | • 9 predictors + constant per numerator/denominator (Eqs 4–6).<br>• Fitted with NCSS; coefficients quantised to IEEE-754 for FPGA. | Closed-form eq. exactly given in paper :contentReference[oaicite:1]{index=1}. |
+| **Hardware/MATLAB parity test** | Verifies that floating-point RTL reproduces regression output *bit-for-bit* → builds trust in deployment. | Table III compares 5 pixel samples (R₁,G₁,B₁ …) through pipeline. | Hb error = **0** for all samples (e.g. 8.5692 g/dL in both MATLAB & Verilog) :contentReference[oaicite:2]{index=2}. |
+| **Threshold rule (≤ 10 g/dL)** | Converts continuous Hb to binary “anemic / normal” output for clinical screening. | Simple comparator inside FPGA; threshold from WHO ranges :contentReference[oaicite:3]{index=3}. | Device toggles 1-bit flag when Hb ≤ 10 g/dL (figure shows 7-segment display). |
+
+---
+
+## 2. FPGA-Based Leaf Chlorophyll Estimating Regression Model (2014) :contentReference[oaicite:4]{index=4}  
+
+| Statistical method | Why used / implication | Technical depth | Key results |
+|---|---|---|---|
+| **Stepwise multivariate linear regression with nonlinear terms** | Finds the lightest model that still predicts chlorophyll (Ch) from RGB + normalised channels; ideal for resource-limited FPGA. | • Starts with R,G,B,N1,N2; iteratively adds R², G², B², GB, RB until Adj-R² drops.<br>• Terms with poor p-value (G×R, N3) removed. | Final Eq 5 yields **R² = 0.99, Adj-R² = 0.99, RMSE = 3.32**, *p* = 3.14×10⁻⁷, F ≈ 6.18×10¹² (15 samples, EDF = 5) :contentReference[oaicite:5]{index=5}. |
+| **Hougen nonlinear regression (P/Q form)** | Benchmarks whether a chemical-kinetics-style ratio boosts accuracy. | 5 free coefficients; fitted by non-linear least squares. | R² = 0.91, RMSE = 5.75 – inferior to stepwise model, so not implemented :contentReference[oaicite:6]{index=6}. |
+| **Model-diagnostic plots** (normal probability, residuals vs fit, lagged residuals) | Confirms homoscedastic, un-autocorrelated errors → validates linear assumptions before hardware port. | Figures 2–5 in the paper show tight residual cloud within 0.5 σ :contentReference[oaicite:7]{index=7}. |
+| **Comparative metrics table** (14 simpler fits) | Quantifies trade-offs so designers can justify chosen complexity. | Table I lists R², RMSE, F, EDF for each candidate model. | Stepwise model dominates all baselines (next-best linear RGB has R² = 0.88) :contentReference[oaicite:8]{index=8}. |
+
+---
+
+## How these studies extend Raktim’s biostatistics portfolio
+
+| Capability demonstrated | Evidence |
+|---|---|
+| **Design & validation of polynomial and ratio regressions** | Anemia model’s Hb = *N/D* with quadratic terms :contentReference[oaicite:9]{index=9}. |
+| **Model-selection & diagnostics** | Stepwise search + residual checks in chlorophyll paper :contentReference[oaicite:10]{index=10}turn6file15. |
+| **Goodness-of-fit & error reporting (R², Adj-R², RMSE, F, p)** | Full metric table for 14 fits :contentReference[oaicite:11]{index=11}. |
+| **Hardware-level verification of statistical models** | MATLAB vs RTL parity Table III for Hb :contentReference[oaicite:12]{index=12}. |
+| **Clinical/agronomic decision thresholds** | 10 g/dL anemia flag :contentReference[oaicite:13]{index=13}; Ch threshold in FPGA logic. |
+
+**Bottom line:** even a decade ago, Raktim melded rigorous regression modelling (selection, diagnostics, validation) with real-time FPGA deployment—skills that anchor a robust, application-focused biostatistics profile.
+
+
 ## How this builds Raktim’s biostatistics portfolio  
 
 | Capability demonstrated | Evidence from papers |
