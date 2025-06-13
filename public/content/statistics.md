@@ -40,7 +40,7 @@ This paper highlights a comprehensive application of survival, regression, and c
 
 ---
 
-## **3. AFExNet: Differentiating Breast Cancer Sub-types *IEEE/ACM TCBB (2021)***
+## **3. AFExNet: Differentiating Breast Cancer Sub-types *IEEE/ACM TCBB 2021***
 
 This research demonstrates rigorous hypothesis testing to validate the superiority of a novel machine learning architecture for genomic data analysis.
 
@@ -69,7 +69,7 @@ This project showcases the application of regression modeling for developing a n
 | **Hardware/MATLAB parity test** | Verifies that floating-point RTL reproduces regression output *bit-for-bit* → builds trust in deployment. | Table III compares 5 pixel samples (R₁,G₁,B₁ …) through pipeline. | Hb error = **0** for all samples (e.g. 8.5692 g/dL in both MATLAB & Verilog)  |
 | **Threshold rule (≤ 10 g/dL)** | Converts continuous Hb to binary “anemic / normal” output for clinical screening. | Simple comparator inside FPGA; threshold from WHO ranges | Device toggles 1-bit flag when Hb ≤ 10 g/dL (figure shows 7-segment display). |
 
-#### **5. Leaf Chlorophyll Estimation System *IEEE Proceedings 2014***
+## **5. Leaf Chlorophyll Estimation System *IEEE Proceedings 2014***
 
 This project applies statistical modeling to create a low-cost, non-destructive sensor for plant health monitoring.
 
