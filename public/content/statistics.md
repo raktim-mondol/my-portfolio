@@ -3,7 +3,7 @@
 This portfolio highlights Raktim Mondol's expertise in applying sophisticated statistical methods to solve complex problems in biomedical research, as demonstrated through his key publications.
 
 ---
-## **BioFusionNet: Survival Risk Stratification (2024) IEEE JBHI 2024**
+## **1. BioFusionNet: Survival Risk Stratification (2024) IEEE JBHI 2024**
 
 This work demonstrates an innovative approach to biostatistics by developing a novel statistical function to address common challenges in survival studies.
 
@@ -21,13 +21,12 @@ This work demonstrates an innovative approach to biostatistics by developing a n
 | **Paired model benchmarking** | Compared C-index / AUC vs six multimodal baselines. | Uses identical Optuna-tuned hyper-parms for fair test. | BioFusionNet best by ≥ 0.07 C-index. |
 ---
 
-#### **hist2RNA: Predicting Gene Expression from Histopathology (2023)**
+#### **2. hist2RNA: Predicting Gene Expression from Histopathology (2023) *Cancers* 2023**
 
 This paper highlights a comprehensive application of survival, regression, and comparative statistics to validate a deep learning model.
 
 *   **Statistical Methods:** **Survival Analysis (Kaplan-Meier, Cox Models)**, **Regression/Correlation Analysis (Spearman, R²)**, and **Comparative Analysis (t-tests, ANOVA)**.
 *   **Application & Findings:** A full suite of survival analysis techniques was conducted. Kaplan-Meier estimation and log-rank tests were used to visualize and compare survival distributions between patient groups. Both univariate and multivariate Cox proportional hazards models were employed to identify significant prognostic markers and quantify their risk using hazard ratios. To validate the deep learning model's predictions, Spearman rank correlation and the coefficient of determination (R²) were used to measure the association between predicted and actual gene expression. T-tests and ANOVA were also applied to compare biomarker expressions across different tumor subgroups, demonstrating a versatile command of hypothesis testing.
-## 2. hist2RNA – *Cancers* 2023
 
 | Statistical method | Why used / implication | Technical depth | Key results |
 |---|---|---|---|
