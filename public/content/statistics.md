@@ -10,35 +10,6 @@ This work demonstrates an innovative approach to biostatistics by developing a n
 *   **Statistical Method:** **Advanced Survival Analysis** and **Custom Statistical Model Development**.
 *   **Application & Findings:** The core contribution was the development of a **novel weighted Cox loss function**, specifically designed to handle the prevalent issue of imbalanced data in survival analysis. This was integrated into a multimodal deep learning framework. The effectiveness of this approach was validated using multivariate Cox proportional hazards models, which evaluated multiple risk factors simultaneously. The model achieved a high mean concordance index (C-index) of 0.77, underscoring a sophisticated capability to design, develop, and validate complex statistical models for high-accuracy patient risk stratification.
 
----
-
-#### **hist2RNA: Predicting Gene Expression from Histopathology (2023)**
-
-This paper highlights a comprehensive application of survival, regression, and comparative statistics to validate a deep learning model.
-
-*   **Statistical Methods:** **Survival Analysis (Kaplan-Meier, Cox Models)**, **Regression/Correlation Analysis (Spearman, R²)**, and **Comparative Analysis (t-tests, ANOVA)**.
-*   **Application & Findings:** A full suite of survival analysis techniques was conducted. Kaplan-Meier estimation and log-rank tests were used to visualize and compare survival distributions between patient groups. Both univariate and multivariate Cox proportional hazards models were employed to identify significant prognostic markers and quantify their risk using hazard ratios. To validate the deep learning model's predictions, Spearman rank correlation and the coefficient of determination (R²) were used to measure the association between predicted and actual gene expression. T-tests and ANOVA were also applied to compare biomarker expressions across different tumor subgroups, demonstrating a versatile command of hypothesis testing.
-
----
-
-#### **AFExNet: Differentiating Breast Cancer Sub-types (2021)**
-
-This research demonstrates rigorous hypothesis testing to validate the superiority of a novel machine learning architecture for genomic data analysis.
-
-*   **Statistical Method:** **Hypothesis Testing (Paired and One-Tailed T-tests)** 
-*   **Application & Findings:** Paired t-tests were used to statistically compare the performance of the AFExNet feature extraction method against other techniques like PCA, VAE, and DAE. The tests evaluated the significance of differences in key classification metrics (precision, recall, accuracy, F1-score). The results confirmed that AFExNet's performance improvements were statistically significant, with p-values less than 0.10 (e.g., p=0.00793 vs. VAE). This rigorous statistical validation confirmed the robustness and superiority of the AFExNet model for analyzing high-dimensional genomic data.
-
----
-
-#### **Anemia Detection System (2014)**
-
-This project showcases the application of regression modeling for developing a non-invasive medical device.
-
-*   **Statistical Method:** **Multivariate Regression Analysis**.
-*   **Application & Findings:** A regression-based image processing method was employed to estimate hemoglobin (Hb) levels from non-invasive fingertip images. Using NCSS software, a multivariate regression model was developed that incorporated RGB color differences and nonlinear terms to establish a predictive relationship between blood color features and Hb concentration. The resulting statistical model successfully correlated with actual Hb levels, demonstrating that it could effectively predict hemoglobin concentration and was suitable for hardware implementation on an FPGA for rapid, non-invasive anemia screening.
-
-
----
 ## 1. BioFusionNet – *IEEE JBHI 2024*
 
 | Statistical method | Why used / implication | Technical depth | Key results |
@@ -50,10 +21,14 @@ This project showcases the application of regression modeling for developing a n
 | **Kaplan–Meier & log-rank** | Visual confirmation of high- vs low-risk separation. | Standard survival plotting. | Log-rank p = 6.45 × 10⁻⁷. |
 | **Five-fold stratified cross-validation** | Robust estimate of generalisation; preserves event ratio. | Good ML practice. | Fold C-indices: 0.72–0.82. |
 | **Paired model benchmarking** | Compared C-index / AUC vs six multimodal baselines. | Uses identical Optuna-tuned hyper-parms for fair test. | BioFusionNet best by ≥ 0.07 C-index. |
-
-
-
 ---
+
+#### **hist2RNA: Predicting Gene Expression from Histopathology (2023)**
+
+This paper highlights a comprehensive application of survival, regression, and comparative statistics to validate a deep learning model.
+
+*   **Statistical Methods:** **Survival Analysis (Kaplan-Meier, Cox Models)**, **Regression/Correlation Analysis (Spearman, R²)**, and **Comparative Analysis (t-tests, ANOVA)**.
+*   **Application & Findings:** A full suite of survival analysis techniques was conducted. Kaplan-Meier estimation and log-rank tests were used to visualize and compare survival distributions between patient groups. Both univariate and multivariate Cox proportional hazards models were employed to identify significant prognostic markers and quantify their risk using hazard ratios. To validate the deep learning model's predictions, Spearman rank correlation and the coefficient of determination (R²) were used to measure the association between predicted and actual gene expression. T-tests and ANOVA were also applied to compare biomarker expressions across different tumor subgroups, demonstrating a versatile command of hypothesis testing.
 ## 2. hist2RNA – *Cancers* 2023
 
 | Statistical method | Why used / implication | Technical depth | Key results |
@@ -68,6 +43,13 @@ This project showcases the application of regression modeling for developing a n
 
 ---
 
+#### **AFExNet: Differentiating Breast Cancer Sub-types (2021)**
+
+This research demonstrates rigorous hypothesis testing to validate the superiority of a novel machine learning architecture for genomic data analysis.
+
+*   **Statistical Method:** **Hypothesis Testing (Paired and One-Tailed T-tests)** 
+*   **Application & Findings:** Paired t-tests were used to statistically compare the performance of the AFExNet feature extraction method against other techniques like PCA, VAE, and DAE. The tests evaluated the significance of differences in key classification metrics (precision, recall, accuracy, F1-score). The results confirmed that AFExNet's performance improvements were statistically significant, with p-values less than 0.10 (e.g., p=0.00793 vs. VAE). This rigorous statistical validation confirmed the robustness and superiority of the AFExNet model for analyzing high-dimensional genomic data.
+
 ## 3. AFExNet – *IEEE/ACM TCBB* 2021
 
 | Statistical method | Why used / implication | Technical depth | Key results |
@@ -77,9 +59,14 @@ This project showcases the application of regression modeling for developing a n
 | **Confusion-matrix–derived metrics** – accuracy, precision, recall, F1, MCC, Cohen’s κ, ROC-AUC | Multi-faceted performance portrait across imbalanced classes. | Mix of parametric & rank-based indices. | MCC 0.70 with voting classifier; AUC 0.84 with SVM. |
 | **GO-term & KEGG pathway enrichment (DAVID)** with corrected p-values | Biological validation of genes extracted via latent-weight analysis. | Multiple-testing correction inside DAVID; p-value interpretation. | Top GO term “olfactory receptor activity”, p = 5.92 × 10⁻²; pathway “olfactory transduction”, p = 5.23 × 10⁻². |
 | **SMOTE sampling** | Synthetic oversampling to counter class imbalance before training. | Resampling technique; not an inferential test but key pre-processing step. | Balanced minority classes without inflating Type I error downstream. |
-
 ---
 
+#### **Anemia Detection System (2014)**
+
+This project showcases the application of regression modeling for developing a non-invasive medical device.
+
+*   **Statistical Method:** **Multivariate Regression Analysis**.
+*   **Application & Findings:** A regression-based image processing method was employed to estimate hemoglobin (Hb) levels from non-invasive fingertip images. Using NCSS software, a multivariate regression model was developed that incorporated RGB color differences and nonlinear terms to establish a predictive relationship between blood color features and Hb concentration. The resulting statistical model successfully correlated with actual Hb levels, demonstrating that it could effectively predict hemoglobin concentration and was suitable for hardware implementation on an FPGA for rapid, non-invasive anemia screening.
 ## 4. Hardware Architecture Design of Anemia Detecting Regression Model (2014) 
 
 | Statistical method | Why used / implication | Technical depth | Key results |
@@ -87,8 +74,6 @@ This project showcases the application of regression modeling for developing a n
 | **Multivariate polynomial regression** (quadratic & interaction terms) forming a **ratio model**: Hb = *N<sub>r</sub>/D<sub>r</sub>* | Maps colour-change features (ΔR, ΔG, ΔB) from fingertip images to haemoglobin level, enabling a fully non-invasive test. | • 9 predictors + constant per numerator/denominator (Eqs 4–6).<br>• Fitted with NCSS; coefficients quantised to IEEE-754 for FPGA. | Closed-form eq. exactly given in paper :contentReference[oaicite:1]{index=1}. |
 | **Hardware/MATLAB parity test** | Verifies that floating-point RTL reproduces regression output *bit-for-bit* → builds trust in deployment. | Table III compares 5 pixel samples (R₁,G₁,B₁ …) through pipeline. | Hb error = **0** for all samples (e.g. 8.5692 g/dL in both MATLAB & Verilog) :contentReference[oaicite:2]{index=2}. |
 | **Threshold rule (≤ 10 g/dL)** | Converts continuous Hb to binary “anemic / normal” output for clinical screening. | Simple comparator inside FPGA; threshold from WHO ranges :contentReference[oaicite:3]{index=3}. | Device toggles 1-bit flag when Hb ≤ 10 g/dL (figure shows 7-segment display). |
-
----
 
 ## 5. FPGA-Based Leaf Chlorophyll Estimating Regression Model (2014)
 
@@ -98,7 +83,6 @@ This project showcases the application of regression modeling for developing a n
 | **Hougen nonlinear regression (P/Q form)** | Benchmarks whether a chemical-kinetics-style ratio boosts accuracy. | 5 free coefficients; fitted by non-linear least squares. | R² = 0.91, RMSE = 5.75 – inferior to stepwise model, so not implemented |
 | **Model-diagnostic plots** (normal probability, residuals vs fit, lagged residuals) | Confirms homoscedastic, un-autocorrelated errors → validates linear assumptions before hardware port. | Figures 2–5 in the paper show tight residual cloud within 0.5 σ  |
 | **Comparative metrics table** (14 simpler fits) | Quantifies trade-offs so designers can justify chosen complexity. | Table I lists R², RMSE, F, EDF for each candidate model. | Stepwise model dominates all baselines (next-best linear RGB has R² = 0.88) |
-
 ---
 
 ## Raktim’s biostatistics portfolio  
