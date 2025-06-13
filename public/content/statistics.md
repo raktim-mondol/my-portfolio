@@ -101,7 +101,7 @@ This project showcases the application of regression modeling for developing a n
 
 ---
 
-## How this builds Raktim’s biostatistics portfolio  
+## Raktim’s biostatistics portfolio  
 
 | Capability demonstrated | Evidence from papers |
 |---|---|
