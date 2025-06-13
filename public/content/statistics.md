@@ -42,22 +42,7 @@ For each study I list **(i)** every statistical technique Raktim deployed, **(ii
 Citations point to the PDFs you shared so the portfolio stays fully traceable.
 
 ---
-
-## 1. hist2RNA – *Cancers* 2023
-
-| Statistical method | Why used / implication | Technical depth | Key results |
-|---|---|---|---|
-| **Spearman rank correlation (ρ)** with Benjamini-Hochberg **FDR** adjustment | Quantify how well predicted vs. true gene-expression ranks agree; FDR guards against 138 parallel tests. | Non-parametric; multiple-testing control. | Across patients: median ρ = 0.82 (p = 4.3 × 10⁻⁶⁴). Across genes: median ρ = 0.29 with 105/138 genes significant at 5 % FDR. |
-| **Coefficient of determination (R²)** | Measures variance explained by the model for each gene. | Classical regression statistic. | 32 genes had R² ≥ 0.10; 17 belong to PAM50 set. |
-| **Two-sample t-tests** | Compare predicted gene expression between IHC-positive vs. IHC-negative tumours (ER, PR, HER2). | Parametric difference-of-means; assumes normality. | e.g., ESR1 t-test p = 4.2 × 10⁻⁵⁴ (ER⁺ vs ER⁻). |
-| **One-way ANOVA** | Assess trends in predicted MKI67 across tumour grades 1–3. | Parametric multi-group comparison. | MKI67 ANOVA p = 9.9 × 10⁻⁹. |
-| **Concordance index (c-index)** | Rank-based discrimination for survival predictions. | Survival-analysis metric independent of time scale. | c-index = 0.56 (univariate) improved to 0.65 in multivariate Cox model. |
-| **Cox proportional-hazards (univariate & multivariate)** with **hazard ratio (HR ± 95 % CI)** | Test whether hist2RNA-derived luminal subtype is prognostic after adjusting for clinicopathology. | Semi-parametric survival model. | HR = 2.16 (1.12–3.06) univariate; HR = 1.87 (1.30–2.68) multivariate; p < 5 × 10⁻³. |
-| **Log-rank test & Kaplan–Meier curves** | Visual and inferential check of survival separation between predicted LumA vs LumB. | Non-parametric time-to-event comparison. | Log-rank p < 5 × 10⁻³; clear survival divergence. |
-
----
-
-## 2. BioFusionNet – *IEEE JBHI*
+## 1. BioFusionNet – *IEEE JBHI 2024*
 
 | Statistical method | Why used / implication | Technical depth | Key results |
 |---|---|---|---|
@@ -68,6 +53,21 @@ Citations point to the PDFs you shared so the portfolio stays fully traceable.
 | **Kaplan–Meier & log-rank** | Visual confirmation of high- vs low-risk separation. | Standard survival plotting. | Log-rank p = 6.45 × 10⁻⁷. |
 | **Five-fold stratified cross-validation** | Robust estimate of generalisation; preserves event ratio. | Good ML practice. | Fold C-indices: 0.72–0.82. |
 | **Paired model benchmarking** | Compared C-index / AUC vs six multimodal baselines. | Uses identical Optuna-tuned hyper-parms for fair test. | BioFusionNet best by ≥ 0.07 C-index. |
+
+
+
+---
+## 2. hist2RNA – *Cancers* 2023
+
+| Statistical method | Why used / implication | Technical depth | Key results |
+|---|---|---|---|
+| **Spearman rank correlation (ρ)** with Benjamini-Hochberg **FDR** adjustment | Quantify how well predicted vs. true gene-expression ranks agree; FDR guards against 138 parallel tests. | Non-parametric; multiple-testing control. | Across patients: median ρ = 0.82 (p = 4.3 × 10⁻⁶⁴). Across genes: median ρ = 0.29 with 105/138 genes significant at 5 % FDR. |
+| **Coefficient of determination (R²)** | Measures variance explained by the model for each gene. | Classical regression statistic. | 32 genes had R² ≥ 0.10; 17 belong to PAM50 set. |
+| **Two-sample t-tests** | Compare predicted gene expression between IHC-positive vs. IHC-negative tumours (ER, PR, HER2). | Parametric difference-of-means; assumes normality. | e.g., ESR1 t-test p = 4.2 × 10⁻⁵⁴ (ER⁺ vs ER⁻). |
+| **One-way ANOVA** | Assess trends in predicted MKI67 across tumour grades 1–3. | Parametric multi-group comparison. | MKI67 ANOVA p = 9.9 × 10⁻⁹. |
+| **Concordance index (c-index)** | Rank-based discrimination for survival predictions. | Survival-analysis metric independent of time scale. | c-index = 0.56 (univariate) improved to 0.65 in multivariate Cox model. |
+| **Cox proportional-hazards (univariate & multivariate)** with **hazard ratio (HR ± 95 % CI)** | Test whether hist2RNA-derived luminal subtype is prognostic after adjusting for clinicopathology. | Semi-parametric survival model. | HR = 2.16 (1.12–3.06) univariate; HR = 1.87 (1.30–2.68) multivariate; p < 5 × 10⁻³. |
+| **Log-rank test & Kaplan–Meier curves** | Visual and inferential check of survival separation between predicted LumA vs LumB. | Non-parametric time-to-event comparison. | Log-rank p < 5 × 10⁻³; clear survival divergence. |
 
 ---
 
