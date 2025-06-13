@@ -3,14 +3,12 @@
 This portfolio highlights Raktim Mondol's expertise in applying sophisticated statistical methods to solve complex problems in biomedical research, as demonstrated through his key publications.
 
 ---
-#### **BioFusionNet: Survival Risk Stratification (2024)**
+## **BioFusionNet: Survival Risk Stratification (2024) IEEE JBHI 2024**
 
 This work demonstrates an innovative approach to biostatistics by developing a novel statistical function to address common challenges in survival studies.
 
 *   **Statistical Method:** **Advanced Survival Analysis** and **Custom Statistical Model Development**.
 *   **Application & Findings:** The core contribution was the development of a **novel weighted Cox loss function**, specifically designed to handle the prevalent issue of imbalanced data in survival analysis. This was integrated into a multimodal deep learning framework. The effectiveness of this approach was validated using multivariate Cox proportional hazards models, which evaluated multiple risk factors simultaneously. The model achieved a high mean concordance index (C-index) of 0.77, underscoring a sophisticated capability to design, develop, and validate complex statistical models for high-accuracy patient risk stratification.
-
-## 1. BioFusionNet – *IEEE JBHI 2024*
 
 | Statistical method | Why used / implication | Technical depth | Key results |
 |---|---|---|---|
