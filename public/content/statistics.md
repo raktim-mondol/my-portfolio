@@ -21,7 +21,7 @@ This work demonstrates an innovative approach to biostatistics by developing a n
 | **Paired model benchmarking** | Compared C-index / AUC vs six multimodal baselines. | Uses identical Optuna-tuned hyper-parms for fair test. | BioFusionNet best by ≥ 0.07 C-index. |
 ---
 
-## **2. hist2RNA: Predicting Gene Expression from Histopathology (2023) *Cancers* 2023**
+## **2. hist2RNA: Predicting Gene Expression from Histopathology *Cancers 2023***
 
 This paper highlights a comprehensive application of survival, regression, and comparative statistics to validate a deep learning model.
 
@@ -40,14 +40,12 @@ This paper highlights a comprehensive application of survival, regression, and c
 
 ---
 
-#### **AFExNet: Differentiating Breast Cancer Sub-types (2021)**
+#### **3. AFExNet: Differentiating Breast Cancer Sub-types *IEEE/ACM TCBB (2021)***
 
 This research demonstrates rigorous hypothesis testing to validate the superiority of a novel machine learning architecture for genomic data analysis.
 
 *   **Statistical Method:** **Hypothesis Testing (Paired and One-Tailed T-tests)** 
 *   **Application & Findings:** Paired t-tests were used to statistically compare the performance of the AFExNet feature extraction method against other techniques like PCA, VAE, and DAE. The tests evaluated the significance of differences in key classification metrics (precision, recall, accuracy, F1-score). The results confirmed that AFExNet's performance improvements were statistically significant, with p-values less than 0.10 (e.g., p=0.00793 vs. VAE). This rigorous statistical validation confirmed the robustness and superiority of the AFExNet model for analyzing high-dimensional genomic data.
-
-## 3. AFExNet – *IEEE/ACM TCBB* 2021
 
 | Statistical method | Why used / implication | Technical depth | Key results |
 |---|---|---|---|
@@ -58,21 +56,26 @@ This research demonstrates rigorous hypothesis testing to validate the superiori
 | **SMOTE sampling** | Synthetic oversampling to counter class imbalance before training. | Resampling technique; not an inferential test but key pre-processing step. | Balanced minority classes without inflating Type I error downstream. |
 ---
 
-#### **Anemia Detection System (2014)**
+#### **4. Anemia Detection System *IEEE Proceedings 2014***
 
 This project showcases the application of regression modeling for developing a non-invasive medical device.
 
 *   **Statistical Method:** **Multivariate Regression Analysis**.
 *   **Application & Findings:** A regression-based image processing method was employed to estimate hemoglobin (Hb) levels from non-invasive fingertip images. Using NCSS software, a multivariate regression model was developed that incorporated RGB color differences and nonlinear terms to establish a predictive relationship between blood color features and Hb concentration. The resulting statistical model successfully correlated with actual Hb levels, demonstrating that it could effectively predict hemoglobin concentration and was suitable for hardware implementation on an FPGA for rapid, non-invasive anemia screening.
-## 4. Hardware Architecture Design of Anemia Detecting Regression Model (2014) 
 
 | Statistical method | Why used / implication | Technical depth | Key results |
 |---|---|---|---|
 | **Multivariate polynomial regression** (quadratic & interaction terms) forming a **ratio model**: Hb = *N<sub>r</sub>/D<sub>r</sub>* | Maps colour-change features (ΔR, ΔG, ΔB) from fingertip images to haemoglobin level, enabling a fully non-invasive test. | • 9 predictors + constant per numerator/denominator (Eqs 4–6).<br>• Fitted with NCSS; coefficients quantised to IEEE-754 for FPGA. | Closed-form eq. exactly given in paper :contentReference[oaicite:1]{index=1}. |
-| **Hardware/MATLAB parity test** | Verifies that floating-point RTL reproduces regression output *bit-for-bit* → builds trust in deployment. | Table III compares 5 pixel samples (R₁,G₁,B₁ …) through pipeline. | Hb error = **0** for all samples (e.g. 8.5692 g/dL in both MATLAB & Verilog) :contentReference[oaicite:2]{index=2}. |
-| **Threshold rule (≤ 10 g/dL)** | Converts continuous Hb to binary “anemic / normal” output for clinical screening. | Simple comparator inside FPGA; threshold from WHO ranges :contentReference[oaicite:3]{index=3}. | Device toggles 1-bit flag when Hb ≤ 10 g/dL (figure shows 7-segment display). |
+| **Hardware/MATLAB parity test** | Verifies that floating-point RTL reproduces regression output *bit-for-bit* → builds trust in deployment. | Table III compares 5 pixel samples (R₁,G₁,B₁ …) through pipeline. | Hb error = **0** for all samples (e.g. 8.5692 g/dL in both MATLAB & Verilog)  |
+| **Threshold rule (≤ 10 g/dL)** | Converts continuous Hb to binary “anemic / normal” output for clinical screening. | Simple comparator inside FPGA; threshold from WHO ranges | Device toggles 1-bit flag when Hb ≤ 10 g/dL (figure shows 7-segment display). |
 
-## 5. FPGA-Based Leaf Chlorophyll Estimating Regression Model (2014)
+#### **5. Leaf Chlorophyll Estimation System *IEEE Proceedings 2014***
+
+This project applies statistical modeling to create a low-cost, non-destructive sensor for plant health monitoring.
+
+* **Statistical Method:** **Stepwise Multivariate Regression Analysis** (quadratic and interaction terms, with a Hougen non-linear model evaluated for comparison).  
+* **Application & Findings:** RGB and normalised colour features from leaf images were fed into a stepwise regression routine that automatically selected the most informative linear, quadratic and cross-product terms. The final model (Adj-R² ≈ 0.99, RMSE ≈ 3.3) accurately predicted chlorophyll concentration while remaining lightweight enough for real-time FPGA deployment. Non-linear Hougen fits were tested but offered lower accuracy, so the stepwise model was chosen, giving growers a fast, camera-based alternative to destructive lab assays.
+
 
 | Statistical method | Why used / implication | Technical depth | Key results |
 |---|---|---|---|
