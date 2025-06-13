@@ -21,7 +21,7 @@ This work demonstrates an innovative approach to biostatistics by developing a n
 | **Paired model benchmarking** | Compared C-index / AUC vs six multimodal baselines. | Uses identical Optuna-tuned hyper-parms for fair test. | BioFusionNet best by ≥ 0.07 C-index. |
 ---
 
-#### **2. hist2RNA: Predicting Gene Expression from Histopathology (2023) *Cancers* 2023**
+## **2. hist2RNA: Predicting Gene Expression from Histopathology (2023) *Cancers* 2023**
 
 This paper highlights a comprehensive application of survival, regression, and comparative statistics to validate a deep learning model.
 
