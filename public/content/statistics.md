@@ -94,7 +94,7 @@ Citations point to the PDFs you shared so the portfolio stays fully traceable.
 | **Omics feature validation** (GO / pathway enrichment) | AFExNet links latent-space genes to olfactory-transduction pathway. |
 | **Rigorous cross-validation & benchmarking** | 5-fold experiments compare up to 12 classifiers (AFExNet) and 6 fusion baselines (BioFusionNet). |
 
-**In short:** Raktim’s body of work covers the full biostatistical spectrum—from classic parametric tests and survival modelling to modern cross-validated machine-learning metrics and enrichment analyses—illustrating both theoretical command and practical execution in large-scale omics studies.
+**In short:** Raktim’s work covers the full biostatistical spectrum—from classic parametric tests and survival modelling to modern cross-validated machine-learning metrics and enrichment analyses—illustrating both theoretical command and practical execution in large-scale omics studies.
 
 
 
