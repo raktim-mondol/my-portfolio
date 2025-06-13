@@ -37,5 +37,65 @@ This project showcases the application of regression modeling for developing a n
 *   **Statistical Method:** **Multivariate Regression Analysis**.
 *   **Application & Findings:** A regression-based image processing method was employed to estimate hemoglobin (Hb) levels from non-invasive fingertip images. Using NCSS software, a multivariate regression model was developed that incorporated RGB color differences and nonlinear terms to establish a predictive relationship between blood color features and Hb concentration. The resulting statistical model successfully correlated with actual Hb levels, demonstrating that it could effectively predict hemoglobin concentration and was suitable for hardware implementation on an FPGA for rapid, non-invasive anemia screening.
 
+Below is a compact “stats-at-a-glance” dossier for the three papers you uploaded.  
+For each study I list **(i)** every statistical technique Raktim deployed, **(ii)** what question it answered and why that matters (implication), **(iii)** a note on the technical depth/complexity, and **(iv)** the headline results exactly as reported in the paper.  
+Citations point to the PDFs you shared so the portfolio stays fully traceable.
+
+---
+
+## 1. hist2RNA – *Cancers* 2023
+
+| Statistical method | Why used / implication | Technical depth | Key results |
+|---|---|---|---|
+| **Spearman rank correlation (ρ)** with Benjamini-Hochberg **FDR** adjustment | Quantify how well predicted vs. true gene-expression ranks agree; FDR guards against 138 parallel tests. | Non-parametric; multiple-testing control. | Across patients: median ρ = 0.82 (p = 4.3 × 10⁻⁶⁴). Across genes: median ρ = 0.29 with 105/138 genes significant at 5 % FDR. |
+| **Coefficient of determination (R²)** | Measures variance explained by the model for each gene. | Classical regression statistic. | 32 genes had R² ≥ 0.10; 17 belong to PAM50 set. |
+| **Two-sample t-tests** | Compare predicted gene expression between IHC-positive vs. IHC-negative tumours (ER, PR, HER2). | Parametric difference-of-means; assumes normality. | e.g., ESR1 t-test p = 4.2 × 10⁻⁵⁴ (ER⁺ vs ER⁻). |
+| **One-way ANOVA** | Assess trends in predicted MKI67 across tumour grades 1–3. | Parametric multi-group comparison. | MKI67 ANOVA p = 9.9 × 10⁻⁹. |
+| **Concordance index (c-index)** | Rank-based discrimination for survival predictions. | Survival-analysis metric independent of time scale. | c-index = 0.56 (univariate) improved to 0.65 in multivariate Cox model. |
+| **Cox proportional-hazards (univariate & multivariate)** with **hazard ratio (HR ± 95 % CI)** | Test whether hist2RNA-derived luminal subtype is prognostic after adjusting for clinicopathology. | Semi-parametric survival model. | HR = 2.16 (1.12–3.06) univariate; HR = 1.87 (1.30–2.68) multivariate; p < 5 × 10⁻³. |
+| **Log-rank test & Kaplan–Meier curves** | Visual and inferential check of survival separation between predicted LumA vs LumB. | Non-parametric time-to-event comparison. | Log-rank p < 5 × 10⁻³; clear survival divergence. |
+
+---
+
+## 2. BioFusionNet – *IEEE JBHI*
+
+| Statistical method | Why used / implication | Technical depth | Key results |
+|---|---|---|---|
+| **Weighted Cox loss** (novel) | Custom loss to up-weight rare death events during deep-net training. | Implements instance-level weighting inside mini-batch; balances censoring. | Outperformed classic Cox loss: C-index↑ from 0.67 → 0.77 (mean over 5 folds). |
+| **Concordance index (C-index)** | Primary metric for patient-level risk ranking. | Survival-analysis staple; here averaged over 5-fold CV. | Mean C-index = 0.77 ± 0.05. |
+| **Time-dependent AUC** | Evaluates discrimination at multiple horizons (0–10 y). | Integrates cumulative/dynamic ROC; more demanding than simple AUC. | Mean AUC = 0.84 ± 0.05. |
+| **Univariate & multivariate Cox models** | Compare BioFusionNet risk groups to standard clinico-path variables. | Same framework as hist2RNA but with weighting. | Univariate HR = 2.99 (1.88–4.78); multivariate HR = 2.91 (1.80–4.68); both p < 0.005. |
+| **Kaplan–Meier & log-rank** | Visual confirmation of high- vs low-risk separation. | Standard survival plotting. | Log-rank p = 6.45 × 10⁻⁷. |
+| **Five-fold stratified cross-validation** | Robust estimate of generalisation; preserves event ratio. | Good ML practice. | Fold C-indices: 0.72–0.82. |
+| **Paired model benchmarking** | Compared C-index / AUC vs six multimodal baselines. | Uses identical Optuna-tuned hyper-parms for fair test. | BioFusionNet best by ≥ 0.07 C-index. |
+
+---
+
+## 3. AFExNet – *IEEE/ACM TCBB* 2021
+
+| Statistical method | Why used / implication | Technical depth | Key results |
+|---|---|---|---|
+| **One-tail paired Student t-tests** | Show that AFExNet’s precision/recall gains vs. PCA, AE, VAE, DAE are not by chance. | Parametric paired design; reports t & p for four method comparisons. | Example: vs. PCA t = 1.92, p = 0.047 (precision); vs. VAE t = 2.85, p = 0.0079. |
+| **Cross-validation (5-fold)** | Stability check of all 12 classifiers across metrics. | Standard ML validation. | Precision up to 85.9 %, recall 85.8 % with SVM. |
+| **Confusion-matrix–derived metrics** – accuracy, precision, recall, F1, MCC, Cohen’s κ, ROC-AUC | Multi-faceted performance portrait across imbalanced classes. | Mix of parametric & rank-based indices. | MCC 0.70 with voting classifier; AUC 0.84 with SVM. |
+| **GO-term & KEGG pathway enrichment (DAVID)** with corrected p-values | Biological validation of genes extracted via latent-weight analysis. | Multiple-testing correction inside DAVID; p-value interpretation. | Top GO term “olfactory receptor activity”, p = 5.92 × 10⁻²; pathway “olfactory transduction”, p = 5.23 × 10⁻². |
+| **SMOTE sampling** | Synthetic oversampling to counter class imbalance before training. | Resampling technique; not an inferential test but key pre-processing step. | Balanced minority classes without inflating Type I error downstream. |
+
+---
+
+## How this builds Raktim’s biostatistics portfolio  
+
+| Capability demonstrated | Evidence from papers |
+|---|---|
+| **Modern survival analysis** (Cox PH, c-index, weighted loss, K-M, log-rank) | hist2RNA & BioFusionNet show classical and deep-learning-specific implementations. |
+| **Comparative hypothesis testing** (t-test, ANOVA, paired design) | hist2RNA uses group t-tests & ANOVA; AFExNet runs paired t-tests against baselines. |
+| **Correlation & multiple-testing control** | Spearman + FDR across 138 genes in hist2RNA. |
+| **Model-evaluation under class imbalance** | AFExNet employs SMOTE and reports MCC, κ; BioFusionNet designs weighted loss. |
+| **Omics feature validation** (GO / pathway enrichment) | AFExNet links latent-space genes to olfactory-transduction pathway. |
+| **Rigorous cross-validation & benchmarking** | 5-fold experiments compare up to 12 classifiers (AFExNet) and 6 fusion baselines (BioFusionNet). |
+
+**In short:** Raktim’s body of work covers the full biostatistical spectrum—from classic parametric tests and survival modelling to modern cross-validated machine-learning metrics and enrichment analyses—illustrating both theoretical command and practical execution in large-scale omics studies.
+
+
 
 
