@@ -40,7 +40,7 @@ This paper highlights a comprehensive application of survival, regression, and c
 
 ---
 
-#### **3. AFExNet: Differentiating Breast Cancer Sub-types *IEEE/ACM TCBB (2021)***
+## **3. AFExNet: Differentiating Breast Cancer Sub-types *IEEE/ACM TCBB (2021)***
 
 This research demonstrates rigorous hypothesis testing to validate the superiority of a novel machine learning architecture for genomic data analysis.
 
@@ -56,7 +56,7 @@ This research demonstrates rigorous hypothesis testing to validate the superiori
 | **SMOTE sampling** | Synthetic oversampling to counter class imbalance before training. | Resampling technique; not an inferential test but key pre-processing step. | Balanced minority classes without inflating Type I error downstream. |
 ---
 
-#### **4. Anemia Detection System *IEEE Proceedings 2014***
+## **4. Anemia Detection System *IEEE Proceedings 2014***
 
 This project showcases the application of regression modeling for developing a non-invasive medical device.
 
