@@ -37,9 +37,6 @@ This project showcases the application of regression modeling for developing a n
 *   **Statistical Method:** **Multivariate Regression Analysis**.
 *   **Application & Findings:** A regression-based image processing method was employed to estimate hemoglobin (Hb) levels from non-invasive fingertip images. Using NCSS software, a multivariate regression model was developed that incorporated RGB color differences and nonlinear terms to establish a predictive relationship between blood color features and Hb concentration. The resulting statistical model successfully correlated with actual Hb levels, demonstrating that it could effectively predict hemoglobin concentration and was suitable for hardware implementation on an FPGA for rapid, non-invasive anemia screening.
 
-Below is a compact “stats-at-a-glance” dossier for the three papers you uploaded.  
-For each study I list **(i)** every statistical technique Raktim deployed, **(ii)** what question it answered and why that matters (implication), **(iii)** a note on the technical depth/complexity, and **(iv)** the headline results exactly as reported in the paper.  
-Citations point to the PDFs you shared so the portfolio stays fully traceable.
 
 ---
 ## 1. BioFusionNet – *IEEE JBHI 2024*
@@ -83,11 +80,6 @@ Citations point to the PDFs you shared so the portfolio stays fully traceable.
 
 ---
 
-Below is a “stats-at-a-glance” sheet for Raktim’s two 2014 FPGA papers.  
-For each study you’ll find **(i)** every statistical technique used, **(ii)** why it was chosen (implication), **(iii)** technical depth, and **(iv)** headline results exactly as reported in the manuscript.
-
----
-
 ## 1. Hardware Architecture Design of Anemia Detecting Regression Model (2014) :contentReference[oaicite:0]{index=0}  
 
 | Statistical method | Why used / implication | Technical depth | Key results |
@@ -109,19 +101,6 @@ For each study you’ll find **(i)** every statistical technique used, **(ii)** 
 
 ---
 
-## How these studies extend Raktim’s biostatistics portfolio
-
-| Capability demonstrated | Evidence |
-|---|---|
-| **Design & validation of polynomial and ratio regressions** | Anemia model’s Hb = *N/D* with quadratic terms :contentReference[oaicite:9]{index=9}. |
-| **Model-selection & diagnostics** | Stepwise search + residual checks in chlorophyll paper :contentReference[oaicite:10]{index=10}turn6file15. |
-| **Goodness-of-fit & error reporting (R², Adj-R², RMSE, F, p)** | Full metric table for 14 fits :contentReference[oaicite:11]{index=11}. |
-| **Hardware-level verification of statistical models** | MATLAB vs RTL parity Table III for Hb :contentReference[oaicite:12]{index=12}. |
-| **Clinical/agronomic decision thresholds** | 10 g/dL anemia flag :contentReference[oaicite:13]{index=13}; Ch threshold in FPGA logic. |
-
-**Bottom line:** even a decade ago, Raktim melded rigorous regression modelling (selection, diagnostics, validation) with real-time FPGA deployment—skills that anchor a robust, application-focused biostatistics profile.
-
-
 ## How this builds Raktim’s biostatistics portfolio  
 
 | Capability demonstrated | Evidence from papers |
@@ -132,6 +111,12 @@ For each study you’ll find **(i)** every statistical technique used, **(ii)** 
 | **Model-evaluation under class imbalance** | AFExNet employs SMOTE and reports MCC, κ; BioFusionNet designs weighted loss. |
 | **Omics feature validation** (GO / pathway enrichment) | AFExNet links latent-space genes to olfactory-transduction pathway. |
 | **Rigorous cross-validation & benchmarking** | 5-fold experiments compare up to 12 classifiers (AFExNet) and 6 fusion baselines (BioFusionNet). |
+| **Design & validation of polynomial and ratio regressions** | Anemia paper’s Hb = *N*⁄*D* quadratic model ported to FPGA with bit-exact MATLAB parity  |
+| **Model-selection & residual diagnostics for linear/non-linear regression** | Stepwise search, Hougen non-linear comparison, and residual plots in chlorophyll paper  |
+| **Goodness-of-fit metric reporting (R², Adj-R², RMSE, F, p)** | Chlorophyll study publishes a 14-model table with full metrics to justify choice :contentReference[oaicite:0]{index=0} |
+| **Hardware-level verification of statistical models** | FPGA RTL vs MATLAB parity test confirms fixed-point implementation accuracy for Hb regression :contentReference[oaicite:1]{index=1} |
+| **Threshold-based clinical/agronomic decision rules** | 10 g/dL anemia flag and chlorophyll thresholds hard-wired in FPGA logic  |
+
 
 **In short:** Raktim’s work covers the full biostatistical spectrum—from classic parametric tests and survival modelling to modern cross-validated machine-learning metrics and enrichment analyses—illustrating both theoretical command and practical execution in large-scale omics studies.
 
