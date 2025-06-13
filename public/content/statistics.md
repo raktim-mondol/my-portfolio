@@ -80,7 +80,7 @@ This project showcases the application of regression modeling for developing a n
 
 ---
 
-## 1. Hardware Architecture Design of Anemia Detecting Regression Model (2014) :contentReference[oaicite:0]{index=0}  
+## 4. Hardware Architecture Design of Anemia Detecting Regression Model (2014) :contentReference[oaicite:0]{index=0}  
 
 | Statistical method | Why used / implication | Technical depth | Key results |
 |---|---|---|---|
@@ -90,7 +90,7 @@ This project showcases the application of regression modeling for developing a n
 
 ---
 
-## 2. FPGA-Based Leaf Chlorophyll Estimating Regression Model (2014) :contentReference[oaicite:4]{index=4}  
+## 5. FPGA-Based Leaf Chlorophyll Estimating Regression Model (2014) :contentReference[oaicite:4]{index=4}  
 
 | Statistical method | Why used / implication | Technical depth | Key results |
 |---|---|---|---|
