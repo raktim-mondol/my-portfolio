@@ -72,9 +72,9 @@ export default function RAGtimBot() {
       id: Date.now().toString(),
       role: 'assistant',
       content: isUsingHybrid
-        ? "Hello! I'm RAGtim Bot powered by a cutting-edge hybrid system! I use Hugging Face Transformers for GPU-accelerated semantic search and DeepSeek LLM for natural response generation. This gives you the best of both worlds - fast, accurate search with intelligent conversational responses. Ask me anything about Raktim Mondol!"
+        ? "Hello! I'm RAGtim Bot powered by a cutting-edge hybrid system! I use Hugging Face Transformers for GPU-accelerated semantic search and DeepSeek LLM for natural response generation via Gradio API. This gives you the best of both worlds - fast, accurate search with intelligent conversational responses. Ask me anything about Raktim Mondol!"
         : isUsingHuggingFace 
-          ? "Hello! I'm RAGtim Bot, powered by Hugging Face Transformers! I'm an AI assistant trained on Raktim Mondol's portfolio and can answer questions about his research, publications, skills, experience, and more. What would you like to know?"
+          ? "Hello! I'm RAGtim Bot, powered by Hugging Face Transformers via Gradio API! I'm an AI assistant trained on Raktim Mondol's portfolio and can answer questions about his research, publications, skills, experience, and more. What would you like to know?"
           : ragService.hasApiKey()
             ? "Hello! I'm RAGtim Bot, your enhanced AI assistant powered by advanced hybrid search technology. I combine semantic vector search with BM25 ranking to provide comprehensive and accurate answers about Raktim Mondol. I can provide detailed information about his education, research, publications, skills, experience, and more. What would you like to know?"
             : "⚠️ The chatbot is currently unavailable. The API key needs to be configured in the Netlify environment variables. Please contact the site administrator.",
@@ -105,6 +105,7 @@ export default function RAGtimBot() {
       setKnowledgeStats(stats);
     } catch (error) {
       console.error('❌ Failed to load knowledge base stats:', error);
+      toast.error('Failed to load system statistics');
     }
   };
 
@@ -129,10 +130,23 @@ export default function RAGtimBot() {
     setInputMessage('');
     setIsLoading(true);
 
+    // Show loading toast for Hugging Face Space
+    let loadingToast: string | undefined;
+    if (isUsingHuggingFace || isUsingHybrid) {
+      loadingToast = toast.loading('Connecting to Hugging Face Space...', {
+        duration: 10000
+      });
+    }
+
     try {
       console.log('🚀 Generating response...');
       const response = await ragService.generateResponse(userMessage.content, messages);
       console.log('✅ Response received:', response.substring(0, 100) + '...');
+      
+      // Dismiss loading toast
+      if (loadingToast) {
+        toast.dismiss(loadingToast);
+      }
       
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -142,17 +156,38 @@ export default function RAGtimBot() {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Show success toast for first successful interaction
+      if (messages.length <= 1) {
+        toast.success('Connected to Hugging Face Space!');
+      }
     } catch (error) {
       console.error('❌ Error sending message:', error);
-      toast.error('Failed to send message. Please try again.');
       
-      const errorMessage: ChatMessage = {
+      // Dismiss loading toast
+      if (loadingToast) {
+        toast.dismiss(loadingToast);
+      }
+      
+      let errorMessage = 'Failed to send message. Please try again.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Gradio') || error.message.includes('Space')) {
+          errorMessage = 'Hugging Face Space is starting up. Please wait 30-60 seconds and try again.';
+        } else if (error.message.includes('network')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        }
+      }
+      
+      toast.error(errorMessage);
+      
+      const errorResponseMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "I apologize, but I encountered an error while processing your request. Please try again.",
+        content: "I apologize, but I encountered an error while processing your request. The Hugging Face Space may be starting up. Please try again in a moment.",
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages(prev => [...prev, errorResponseMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -260,6 +295,9 @@ export default function RAGtimBot() {
                 </h3>
                 <p className="text-xs opacity-90">
                   {systemInfo.description}
+                  {(isUsingHybrid || isUsingHuggingFace) && (
+                    <span className="block">via Gradio API</span>
+                  )}
                 </p>
               </div>
             </div>
@@ -337,15 +375,15 @@ export default function RAGtimBot() {
                     </div>
                     <p className="text-sm">
                       {isUsingHybrid 
-                        ? 'Hybrid RAG system ready! GPU search + AI responses.'
+                        ? 'Hybrid RAG system ready! GPU search + AI responses via Gradio API.'
                         : isUsingHuggingFace 
-                          ? 'Hugging Face Transformers ready! Ask me anything about Raktim Mondol.'
+                          ? 'Hugging Face Transformers ready via Gradio API! Ask me anything about Raktim Mondol.'
                           : 'Advanced RAG system ready! Ask me anything about Raktim Mondol.'
                       }
                     </p>
                     <p className="text-xs mt-2 opacity-70">
                       {isUsingHybrid 
-                        ? 'Powered by HuggingFace search + DeepSeek generation.'
+                        ? 'Powered by HuggingFace search + DeepSeek generation via Gradio.'
                         : 'Powered by semantic search for precise answers.'
                       }
                     </p>
@@ -390,6 +428,9 @@ export default function RAGtimBot() {
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {(isUsingHybrid || isUsingHuggingFace) ? 'Connecting to Hugging Face Space...' : 'Thinking...'}
+                  </p>
                 </div>
               </div>
             )}
@@ -418,6 +459,11 @@ export default function RAGtimBot() {
                 <Send className="h-4 w-4" />
               </button>
             </div>
+            {(isUsingHybrid || isUsingHuggingFace) && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Powered by Hugging Face Space via Gradio API
+              </p>
+            )}
           </div>
         </div>
       )}

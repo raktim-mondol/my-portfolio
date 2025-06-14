@@ -87,142 +87,70 @@ export class HybridRAGService {
     return hasKey;
   }
 
-  private async checkHuggingFaceHealth(): Promise<boolean> {
+  private async callGradioAPI(apiName: string, data: any[]): Promise<any> {
     try {
-      console.log('🏥 Checking Hugging Face health...');
+      console.log(`🤗 Calling Gradio API: ${apiName}`, data);
       
-      // First try to wake up the space by visiting the main page
-      console.log('🏥 Step 1: Waking up Hugging Face Space...');
-      try {
-        const wakeUpResponse = await fetch(this.huggingFaceUrl, {
-          method: 'GET',
-          mode: 'no-cors' // This prevents CORS issues for the wake-up call
-        });
-        console.log('🏥 Wake-up call completed');
-      } catch (wakeUpError) {
-        console.log('🏥 Wake-up call failed (expected for no-cors):', wakeUpError.message);
-      }
-
-      // Wait a moment for the space to start
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Now try the API endpoint with proper error handling
-      console.log('🏥 Step 2: Testing API endpoint...');
-      console.log('🏥 Health check URL:', `${this.huggingFaceUrl}/api/stats`);
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-      
-      const response = await fetch(`${this.huggingFaceUrl}/api/stats`, {
-        method: 'GET',
+      const response = await fetch(`${this.huggingFaceUrl}/api/predict`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
-        signal: controller.signal
+        body: JSON.stringify({
+          data: data,
+          fn_index: this.getFunctionIndex(apiName)
+        }),
       });
-      
-      clearTimeout(timeoutId);
-      
-      console.log('🏥 HF Health Response:', response.status, response.statusText);
-      console.log('🏥 Response headers:', Object.fromEntries(response.headers.entries()));
-      
-      if (response.ok) {
-        const contentType = response.headers.get('content-type');
-        console.log('🏥 Content-Type:', contentType);
-        
-        if (contentType && contentType.includes('application/json')) {
-          try {
-            const data = await response.json();
-            console.log('🏥 HF Health Data:', data);
-            return true;
-          } catch (jsonError) {
-            console.error('🏥 Failed to parse JSON response:', jsonError);
-            return false;
-          }
-        } else {
-          // If we get HTML, the space is probably still starting up
-          const textResponse = await response.text();
-          console.log('🏥 Non-JSON response (first 200 chars):', textResponse.substring(0, 200));
-          
-          if (textResponse.includes('<!doctype') || textResponse.includes('<html')) {
-            console.log('🏥 Space is returning HTML - likely still starting up');
-            return false;
-          }
-          
-          return false;
-        }
-      } else {
-        const errorText = await response.text();
-        console.error('🏥 HF Health Error:', response.status, errorText);
-        return false;
+
+      if (!response.ok) {
+        throw new Error(`Gradio API error: ${response.status} ${response.statusText}`);
       }
+
+      const result = await response.json();
+      console.log(`🤗 Gradio API response for ${apiName}:`, result);
+      
+      return result;
     } catch (error) {
-      console.error('❌ Hugging Face health check failed:', error);
-      if (error instanceof Error) {
-        console.error('❌ Error details:', {
-          name: error.name,
-          message: error.message,
-          cause: error.cause
-        });
-      }
-      return false;
+      console.error(`❌ Gradio API call failed for ${apiName}:`, error);
+      throw error;
     }
+  }
+
+  private getFunctionIndex(apiName: string): number {
+    // Map API names to function indices based on the Gradio interface order
+    const functionMap: Record<string, number> = {
+      'chat': 0,      // First interface (chat)
+      'search': 1,    // Second interface (search)
+      'stats': 2      // Third interface (stats)
+    };
+    
+    return functionMap[apiName] || 0;
   }
 
   private async searchHuggingFaceHybrid(query: string, topK: number = 8): Promise<SearchResult[]> {
     try {
-      console.log('🔍 Starting Hugging Face hybrid search...');
+      console.log('🔍 Starting Hugging Face hybrid search via Gradio API...');
       console.log('- Query:', query);
-      console.log('- URL:', `${this.huggingFaceUrl}/api/search`);
+      console.log('- Top K:', topK);
       
-      const requestBody = {
-        query,
-        top_k: topK,
-        search_type: 'hybrid',
-        vector_weight: 0.6,
-        bm25_weight: 0.4
-      };
+      const result = await this.callGradioAPI('search', [
+        query,           // Search query
+        topK,           // Top K results
+        'hybrid',       // Search type
+        0.6,           // Vector weight
+        0.4            // BM25 weight
+      ]);
       
-      console.log('📤 Request body:', requestBody);
-      
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-      
-      const response = await fetch(`${this.huggingFaceUrl}/api/search`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-      
-      console.log('📥 HF Search Response:', response.status, response.statusText);
-      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ HF Search Error Response:', errorText);
-        throw new Error(`Hugging Face hybrid search failed: ${response.status} - ${errorText}`);
+      if (!result.data || result.data.length === 0) {
+        console.log('❌ No data in Gradio response');
+        return [];
       }
 
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const textResponse = await response.text();
-        console.error('❌ Non-JSON response from search API:', textResponse.substring(0, 200));
-        throw new Error('Hugging Face API returned non-JSON response');
-      }
-
-      const data = await response.json();
-      console.log('📊 HF Search Data received, keys:', Object.keys(data));
-      console.log('📊 Results count:', data.results?.length || 0);
+      const searchData = result.data[0];
+      console.log('📊 Search data received:', searchData);
       
-      // Transform Hugging Face results to our format
-      const results = data.results?.map((result: any, index: number) => {
+      // Transform Gradio results to our format
+      const results = searchData.results?.map((result: any, index: number) => {
         console.log(`📊 Processing result ${index}:`, {
           hasDocument: !!result.document,
           hasContent: !!result.document?.content,
@@ -252,13 +180,6 @@ export class HybridRAGService {
       return results;
     } catch (error) {
       console.error('❌ Hugging Face hybrid search error:', error);
-      if (error instanceof Error) {
-        console.error('❌ Search error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack?.split('\n').slice(0, 3)
-        });
-      }
       throw error;
     }
   }
@@ -327,19 +248,8 @@ export class HybridRAGService {
     }
 
     try {
-      // Step 1: Check if Hugging Face Space is available
-      console.log('🔍 Step 1: Checking Hugging Face Space availability...');
-      const isHFHealthy = await this.checkHuggingFaceHealth();
-      
-      if (!isHFHealthy) {
-        const errorMsg = "The Hugging Face Space is currently starting up or sleeping. This is normal for free Hugging Face Spaces. Please wait 30-60 seconds and try again. The space should wake up automatically.";
-        console.log('❌ HF not healthy:', errorMsg);
-        return errorMsg;
-      }
-      console.log('✅ Hugging Face Space is healthy');
-
-      // Step 2: Use Hugging Face for hybrid search (Vector + BM25)
-      console.log('🔥 Step 2: Performing hybrid search with Hugging Face transformers...');
+      // Step 1: Use Hugging Face for hybrid search via Gradio API
+      console.log('🔥 Step 1: Performing hybrid search with Hugging Face via Gradio API...');
       const searchResults = await this.searchHuggingFaceHybrid(userQuery, 8);
       
       if (searchResults.length === 0) {
@@ -349,13 +259,13 @@ export class HybridRAGService {
       }
       console.log(`✅ Got ${searchResults.length} search results`);
 
-      // Step 3: Build rich context from hybrid search results
-      console.log('📄 Step 3: Building context from search results...');
+      // Step 2: Build rich context from hybrid search results
+      console.log('📄 Step 2: Building context from search results...');
       const context = this.buildContext(searchResults);
       console.log(`📄 Context built from ${searchResults.length} hybrid search results`);
 
-      // Step 4: Use DeepSeek for natural response generation
-      console.log('🧠 Step 4: Generating natural response with DeepSeek LLM...');
+      // Step 3: Use DeepSeek for natural response generation
+      console.log('🧠 Step 3: Generating natural response with DeepSeek LLM...');
       
       const systemMessage = `You are RAGtim Bot, an advanced AI assistant powered by a cutting-edge hybrid search system:
 
@@ -364,6 +274,7 @@ export class HybridRAGService {
 - BM25 Keyword Search: Advanced TF-IDF ranking with term frequency and document length normalization  
 - Intelligent Fusion: Weighted combination (60% vector + 40% BM25) for optimal relevance
 - DeepSeek LLM: Natural language generation for conversational responses
+- Gradio API Integration: Seamless communication with Hugging Face Space
 
 This hybrid approach combines the best of both worlds - semantic understanding AND exact keyword matching.
 
@@ -389,7 +300,7 @@ RESPONSE GUIDELINES:
 - Use natural language flow without any special formatting whatsoever
 
 HYBRID SEARCH CONTEXT:
-The following information was retrieved using our advanced hybrid search system. Each section shows the search method and relevance scores:
+The following information was retrieved using our advanced hybrid search system via Gradio API. Each section shows the search method and relevance scores:
 
 ${context}
 
@@ -451,7 +362,7 @@ Remember to provide comprehensive answers based on this rich context from our hy
           stack: error.stack?.split('\n').slice(0, 5)
         });
         
-        if (error.message.includes('Hugging Face') || error.message.includes('non-JSON')) {
+        if (error.message.includes('Gradio') || error.message.includes('API')) {
           return "The Hugging Face Space is currently starting up. Free Hugging Face Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
         }
         
@@ -474,47 +385,35 @@ Remember to provide comprehensive answers based on this rich context from our hy
 
   public async getKnowledgeBaseStats(): Promise<any> {
     try {
-      console.log('📊 Getting knowledge base stats from Hugging Face...');
+      console.log('📊 Getting knowledge base stats from Hugging Face via Gradio API...');
       
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const result = await this.callGradioAPI('stats', []);
       
-      const response = await fetch(`${this.huggingFaceUrl}/api/stats`, {
-        headers: {
-          'Accept': 'application/json'
-        },
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (response.ok) {
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.includes('application/json')) {
-          const stats = await response.json();
-          console.log('📊 HF Stats received:', stats);
-          return {
-            ...stats,
-            searchProvider: 'Hugging Face Transformers',
-            responseProvider: 'DeepSeek LLM',
-            architecture: 'Hybrid RAG System',
-            searchCapabilities: [
-              'GPU-Accelerated Vector Search', 
-              'BM25 Keyword Search', 
-              'Hybrid Fusion (Vector + BM25)',
-              'Transformer Embeddings',
-              'DeepSeek Response Generation'
-            ],
-            isHybridSystem: true,
-            hybridWeights: {
-              vector: 0.6,
-              bm25: 0.4
-            }
-          };
-        }
+      if (result.data && result.data.length > 0) {
+        const stats = result.data[0];
+        console.log('📊 HF Stats received via Gradio:', stats);
+        return {
+          ...stats,
+          searchProvider: 'Hugging Face Transformers',
+          responseProvider: 'DeepSeek LLM',
+          architecture: 'Hybrid RAG System (Gradio API)',
+          searchCapabilities: [
+            'GPU-Accelerated Vector Search', 
+            'BM25 Keyword Search', 
+            'Hybrid Fusion (Vector + BM25)',
+            'Transformer Embeddings',
+            'DeepSeek Response Generation',
+            'Gradio API Integration'
+          ],
+          isHybridSystem: true,
+          hybridWeights: {
+            vector: 0.6,
+            bm25: 0.4
+          }
+        };
       }
     } catch (error) {
-      console.warn('⚠️ Could not fetch stats from Hugging Face:', error);
+      console.warn('⚠️ Could not fetch stats from Hugging Face via Gradio:', error);
     }
 
     // Fallback stats
@@ -522,13 +421,14 @@ Remember to provide comprehensive answers based on this rich context from our hy
       totalDocuments: 64,
       searchProvider: 'Hugging Face Transformers',
       responseProvider: 'DeepSeek LLM',
-      architecture: 'Hybrid RAG System',
+      architecture: 'Hybrid RAG System (Gradio API)',
       searchCapabilities: [
         'GPU-Accelerated Vector Search', 
         'BM25 Keyword Search', 
         'Hybrid Fusion (Vector + BM25)',
         'Transformer Embeddings',
-        'DeepSeek Response Generation'
+        'DeepSeek Response Generation',
+        'Gradio API Integration'
       ],
       isHybridSystem: true,
       modelName: 'sentence-transformers/all-MiniLM-L6-v2',
