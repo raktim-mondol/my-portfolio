@@ -721,11 +721,10 @@ demo = gr.TabbedInterface(
     title="🔥 Hybrid Search RAGtim Bot - Vector + BM25 Fusion"
 )
 
-# Add API routes for external access
-def api_search(request: gr.Request):
-    """Handle API search requests"""
+# Create API endpoints using Gradio's built-in API functionality
+def api_search_get(request: gr.Request):
+    """Handle GET requests to /api/search"""
     try:
-        # Get query parameters
         query = request.query_params.get('query', '')
         top_k = int(request.query_params.get('top_k', 5))
         search_type = request.query_params.get('search_type', 'hybrid')
@@ -739,15 +738,60 @@ def api_search(request: gr.Request):
     except Exception as e:
         return {"error": str(e)}
 
-def api_stats(request: gr.Request):
-    """Handle API stats requests"""
+def api_search_post(query: str, top_k: int = 5, search_type: str = "hybrid", vector_weight: float = 0.6, bm25_weight: float = 0.4):
+    """Handle POST requests to /api/search"""
+    try:
+        if not query:
+            return {"error": "Query is required"}
+        
+        return search_api(query, top_k, search_type, vector_weight, bm25_weight)
+    except Exception as e:
+        return {"error": str(e)}
+
+def api_stats():
+    """Handle requests to /api/stats"""
     try:
         return get_stats_api()
     except Exception as e:
         return {"error": str(e)}
 
-# Mount API endpoints
-demo.mount_gradio_app = lambda: None  # Disable default mounting
+# Add API endpoints to the demo
+demo.api_name = "hybrid_search_api"
+
+# Add the API functions as named endpoints
+demo.fn_index_to_fn_name = {
+    len(demo.fns): "search_get",
+    len(demo.fns) + 1: "search_post", 
+    len(demo.fns) + 2: "stats"
+}
+
+# Add API functions to the demo
+demo.fns.append(gr.Interface(
+    fn=api_search_get,
+    inputs=gr.Request(),
+    outputs=gr.JSON(),
+    api_name="search_get"
+))
+
+demo.fns.append(gr.Interface(
+    fn=api_search_post,
+    inputs=[
+        gr.Textbox(label="query"),
+        gr.Number(label="top_k", value=5),
+        gr.Textbox(label="search_type", value="hybrid"),
+        gr.Number(label="vector_weight", value=0.6),
+        gr.Number(label="bm25_weight", value=0.4)
+    ],
+    outputs=gr.JSON(),
+    api_name="search_post"
+))
+
+demo.fns.append(gr.Interface(
+    fn=api_stats,
+    inputs=[],
+    outputs=gr.JSON(),
+    api_name="stats"
+))
 
 if __name__ == "__main__":
     print("🚀 Launching Hybrid Search RAGtim Bot...")
@@ -756,60 +800,6 @@ if __name__ == "__main__":
     print(f"🧠 Vector embeddings: {len(bot.embeddings)} documents")
     print("🔥 Hybrid search ready: Semantic + Keyword fusion!")
     
-    # Create a custom app with API routes
-    import uvicorn
-    from fastapi import FastAPI, Request
-    from fastapi.responses import JSONResponse
-    
-    app = FastAPI()
-    
-    @app.get("/api/search")
-    async def search_endpoint(request: Request):
-        try:
-            query = request.query_params.get('query', '')
-            top_k = int(request.query_params.get('top_k', 5))
-            search_type = request.query_params.get('search_type', 'hybrid')
-            vector_weight = float(request.query_params.get('vector_weight', 0.6))
-            bm25_weight = float(request.query_params.get('bm25_weight', 0.4))
-            
-            if not query:
-                return JSONResponse({"error": "Query parameter is required"}, status_code=400)
-            
-            result = search_api(query, top_k, search_type, vector_weight, bm25_weight)
-            return JSONResponse(result)
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
-    
-    @app.post("/api/search")
-    async def search_endpoint_post(request: Request):
-        try:
-            body = await request.json()
-            query = body.get('query', '')
-            top_k = body.get('top_k', 5)
-            search_type = body.get('search_type', 'hybrid')
-            vector_weight = body.get('vector_weight', 0.6)
-            bm25_weight = body.get('bm25_weight', 0.4)
-            
-            if not query:
-                return JSONResponse({"error": "Query is required"}, status_code=400)
-            
-            result = search_api(query, top_k, search_type, vector_weight, bm25_weight)
-            return JSONResponse(result)
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
-    
-    @app.get("/api/stats")
-    async def stats_endpoint():
-        try:
-            result = get_stats_api()
-            return JSONResponse(result)
-        except Exception as e:
-            return JSONResponse({"error": str(e)}, status_code=500)
-    
-    # Mount Gradio app
-    app = gr.mount_gradio_app(app, demo, path="/")
-    
-    # For Hugging Face Spaces, just launch the demo
     demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
