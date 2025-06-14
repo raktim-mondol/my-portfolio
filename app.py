@@ -721,77 +721,46 @@ demo = gr.TabbedInterface(
     title="🔥 Hybrid Search RAGtim Bot - Vector + BM25 Fusion"
 )
 
-# Create API endpoints using Gradio's built-in API functionality
-def api_search_get(request: gr.Request):
-    """Handle GET requests to /api/search"""
+# Create API functions for external access
+def api_search_function(query: str, top_k: int = 5, search_type: str = "hybrid", vector_weight: float = 0.6, bm25_weight: float = 0.4):
+    """API function for search - accessible via Gradio API"""
     try:
-        query = request.query_params.get('query', '')
-        top_k = int(request.query_params.get('top_k', 5))
-        search_type = request.query_params.get('search_type', 'hybrid')
-        vector_weight = float(request.query_params.get('vector_weight', 0.6))
-        bm25_weight = float(request.query_params.get('bm25_weight', 0.4))
-        
-        if not query:
+        if not query or not query.strip():
             return {"error": "Query parameter is required"}
         
-        return search_api(query, top_k, search_type, vector_weight, bm25_weight)
+        return search_api(query.strip(), top_k, search_type, vector_weight, bm25_weight)
     except Exception as e:
         return {"error": str(e)}
 
-def api_search_post(query: str, top_k: int = 5, search_type: str = "hybrid", vector_weight: float = 0.6, bm25_weight: float = 0.4):
-    """Handle POST requests to /api/search"""
-    try:
-        if not query:
-            return {"error": "Query is required"}
-        
-        return search_api(query, top_k, search_type, vector_weight, bm25_weight)
-    except Exception as e:
-        return {"error": str(e)}
-
-def api_stats():
-    """Handle requests to /api/stats"""
+def api_stats_function():
+    """API function for stats - accessible via Gradio API"""
     try:
         return get_stats_api()
     except Exception as e:
         return {"error": str(e)}
 
-# Add API endpoints to the demo
-demo.api_name = "hybrid_search_api"
-
-# Add the API functions as named endpoints
-demo.fn_index_to_fn_name = {
-    len(demo.fns): "search_get",
-    len(demo.fns) + 1: "search_post", 
-    len(demo.fns) + 2: "stats"
-}
-
-# Add API functions to the demo
-demo.fns.append(gr.Interface(
-    fn=api_search_get,
-    inputs=gr.Request(),
-    outputs=gr.JSON(),
-    api_name="search_get"
-))
-
-demo.fns.append(gr.Interface(
-    fn=api_search_post,
+# Create separate API interfaces that can be accessed via HTTP
+search_api_interface = gr.Interface(
+    fn=api_search_function,
     inputs=[
-        gr.Textbox(label="query"),
-        gr.Number(label="top_k", value=5),
-        gr.Textbox(label="search_type", value="hybrid"),
-        gr.Number(label="vector_weight", value=0.6),
-        gr.Number(label="bm25_weight", value=0.4)
+        gr.Textbox(label="query", placeholder="Enter search query"),
+        gr.Number(label="top_k", value=5, minimum=1, maximum=20),
+        gr.Dropdown(label="search_type", choices=["hybrid", "vector", "bm25"], value="hybrid"),
+        gr.Number(label="vector_weight", value=0.6, minimum=0.0, maximum=1.0),
+        gr.Number(label="bm25_weight", value=0.4, minimum=0.0, maximum=1.0)
     ],
-    outputs=gr.JSON(),
-    api_name="search_post"
-))
+    outputs=gr.JSON(label="Search Results"),
+    title="Search API",
+    description="Hybrid search API endpoint"
+)
 
-demo.fns.append(gr.Interface(
-    fn=api_stats,
+stats_api_interface = gr.Interface(
+    fn=api_stats_function,
     inputs=[],
-    outputs=gr.JSON(),
-    api_name="stats"
-))
+    outputs=gr.JSON(label="Statistics"),
+    title="Stats API", 
+    description="Knowledge base statistics API endpoint"
+)
 
 if __name__ == "__main__":
     print("🚀 Launching Hybrid Search RAGtim Bot...")
@@ -800,9 +769,15 @@ if __name__ == "__main__":
     print(f"🧠 Vector embeddings: {len(bot.embeddings)} documents")
     print("🔥 Hybrid search ready: Semantic + Keyword fusion!")
     
+    # Launch the main demo
     demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
         share=False,
         show_error=True
     )
+    
+    # Note: The API interfaces are available at:
+    # - Main interface: https://your-space-url.hf.space
+    # - Search API: https://your-space-url.hf.space/api/search (via the main interface)
+    # - Stats API: https://your-space-url.hf.space/api/stats (via the main interface)
