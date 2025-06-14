@@ -384,7 +384,8 @@ class HybridSearchRAGBot:
 print("Initializing Hybrid Search RAGtim Bot...")
 bot = HybridSearchRAGBot()
 
-def search_api(query, top_k=5, search_type="hybrid", vector_weight=0.6, bm25_weight=0.4):
+# API Functions for Gradio Client
+def search_api(query: str, top_k: int = 5, search_type: str = "hybrid", vector_weight: float = 0.6, bm25_weight: float = 0.4):
     """API endpoint for hybrid search functionality"""
     try:
         if search_type == "hybrid":
@@ -507,253 +508,53 @@ def chat_interface(message, history):
         print(f"Error in chat interface: {e}")
         return "I'm sorry, I encountered an error while processing your question. Please try again."
 
-# Create Gradio interface
+# Create Gradio interfaces with proper API names
 print("Creating Gradio interface...")
 
-# Custom CSS for better styling
-css = """
-.gradio-container {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-.search-type-radio .wrap {
-    display: flex;
-    gap: 10px;
-}
-.search-weights {
-    background: #f0f0f0;
-    padding: 10px;
-    border-radius: 5px;
-    margin: 10px 0;
-}
-"""
-
-# Create the main chat interface
-with gr.Blocks(
+# Main chat interface
+chat_demo = gr.Interface(
+    fn=chat_interface,
+    inputs=[
+        gr.Textbox(label="Ask about Raktim Mondol", placeholder="What would you like to know about Raktim's research, skills, or experience?"),
+        gr.State([])  # For conversation history
+    ],
+    outputs=gr.Textbox(label="Response"),
     title="🔥 Hybrid Search RAGtim Bot",
-    css=css,
-    theme=gr.themes.Soft(
-        primary_hue="green",
-        secondary_hue="blue",
-        neutral_hue="slate"
-    )
-) as chat_demo:
-    gr.Markdown(f"""
-    # 🔥 Hybrid Search RAGtim Bot - Advanced Search Technology
-    
-    **🚀 Hybrid Search System**: This Space implements **true hybrid search** combining:
-    - 🧠 **Semantic Vector Search**: Transformer embeddings for conceptual similarity
-    - 🔍 **BM25 Keyword Search**: Advanced TF-IDF ranking for exact term matching
-    - ⚖️ **Intelligent Fusion**: Weighted combination for optimal relevance
-    
-    **📚 Knowledge Base**: **{len(bot.knowledge_base)} sections** from comprehensive markdown files:
-    - 📄 **about.md** - Personal info, contact, professional summary
-    - 🔬 **research_details.md** - Research projects, methodologies, innovations
-    - 📚 **publications_detailed.md** - Publications with technical details
-    - 💻 **skills_expertise.md** - Technical skills, LLM expertise, tools
-    - 💼 **experience_detailed.md** - Professional experience, teaching
-    - 📊 **statistics.md** - Statistical methods, biostatistics expertise
-    
-    **🔧 Search Parameters**:
-    - **BM25 Parameters**: k1={bot.k1}, b={bot.b}
-    - **Vocabulary**: {len(bot.document_frequency)} unique terms
-    - **Average Document Length**: {bot.average_doc_length:.1f} words
-    - **Embedding Model**: sentence-transformers/all-MiniLM-L6-v2 (384-dim)
-    
-    **💡 Try Different Search Types**:
-    - **Hybrid** (Recommended): Best of both semantic and keyword search
-    - **Vector**: Pure semantic similarity for conceptual queries
-    - **BM25**: Pure keyword matching for specific terms
-    
-    **Ask me anything about Raktim Mondol's research, expertise, and background!**
-    """)
-    
-    chatbot = gr.Chatbot(
-        height=500,
-        show_label=False,
-        container=True,
-        type="messages"
-    )
-    
-    with gr.Row():
-        msg = gr.Textbox(
-            placeholder="Ask about Raktim's research, LLM expertise, publications, statistical methods...",
-            container=False,
-            scale=7,
-            show_label=False
-        )
-        submit_btn = gr.Button("🔍 Hybrid Search", scale=1)
-    
-    # Example buttons
-    with gr.Row():
-        examples = [
-            "What is Raktim's LLM and RAG research?",
-            "Tell me about BioFusionNet statistical methods",
-            "What are his multimodal AI capabilities?",
-            "Describe his biostatistics expertise"
-        ]
-        for example in examples:
-            gr.Button(example, size="sm").click(
-                lambda x=example: x, outputs=msg
-            )
-    
-    def respond(message, history):
-        if not message.strip():
-            return history, ""
-        
-        # Add user message to history
-        history.append({"role": "user", "content": message})
-        
-        # Get bot response
-        bot_response = chat_interface(message, history)
-        
-        # Add bot response to history
-        history.append({"role": "assistant", "content": bot_response})
-        
-        return history, ""
-    
-    submit_btn.click(respond, [msg, chatbot], [chatbot, msg])
-    msg.submit(respond, [msg, chatbot], [chatbot, msg])
-
-# Create advanced search interface
-with gr.Blocks(title="🔧 Advanced Hybrid Search") as search_demo:
-    gr.Markdown("# 🔧 Advanced Hybrid Search Configuration")
-    gr.Markdown("Fine-tune the hybrid search parameters and compare different search methods")
-    
-    with gr.Row():
-        with gr.Column(scale=2):
-            search_input = gr.Textbox(
-                label="Search Query", 
-                placeholder="Enter your search query about Raktim Mondol..."
-            )
-            
-            with gr.Row():
-                search_type = gr.Radio(
-                    choices=["hybrid", "vector", "bm25"],
-                    value="hybrid",
-                    label="Search Method",
-                    elem_classes=["search-type-radio"]
-                )
-                top_k_slider = gr.Slider(
-                    minimum=1, 
-                    maximum=15, 
-                    value=5, 
-                    step=1, 
-                    label="Top K Results"
-                )
-            
-            # Hybrid search weights (only shown when hybrid is selected)
-            with gr.Group(visible=True) as weight_group:
-                gr.Markdown("**Hybrid Search Weights**")
-                vector_weight = gr.Slider(
-                    minimum=0.0,
-                    maximum=1.0,
-                    value=0.6,
-                    step=0.1,
-                    label="Vector Weight (Semantic)"
-                )
-                bm25_weight = gr.Slider(
-                    minimum=0.0,
-                    maximum=1.0,
-                    value=0.4,
-                    step=0.1,
-                    label="BM25 Weight (Keyword)"
-                )
-        
-        with gr.Column(scale=1):
-            gr.Markdown("**Search Method Guide:**")
-            gr.Markdown("""
-            **🔥 Hybrid**: Combines semantic + keyword
-            - Best for most queries
-            - Balances meaning and exact terms
-            
-            **🧠 Vector**: Pure semantic similarity
-            - Good for conceptual questions
-            - Finds related concepts
-            
-            **🔍 BM25**: Pure keyword matching
-            - Good for specific terms
-            - Traditional search ranking
-            """)
-    
-    search_output = gr.JSON(label="Hybrid Search Results", height=400)
-    search_btn = gr.Button("🔍 Search with Custom Parameters", variant="primary")
-    
-    def update_weights_visibility(search_type):
-        return gr.Group(visible=(search_type == "hybrid"))
-    
-    search_type.change(update_weights_visibility, inputs=[search_type], outputs=[weight_group])
-    
-    def normalize_weights(vector_w, bm25_w):
-        total = vector_w + bm25_w
-        if total > 0:
-            return vector_w / total, bm25_w / total
-        return 0.6, 0.4
-    
-    def advanced_search(query, search_type, top_k, vector_w, bm25_w):
-        # Normalize weights
-        vector_weight, bm25_weight = normalize_weights(vector_w, bm25_w)
-        return search_api(query, top_k, search_type, vector_weight, bm25_weight)
-    
-    search_btn.click(
-        advanced_search,
-        inputs=[search_input, search_type, top_k_slider, vector_weight, bm25_weight],
-        outputs=search_output
-    )
-
-# Create stats interface
-with gr.Blocks(title="📊 System Statistics") as stats_demo:
-    gr.Markdown("# 📊 Hybrid Search System Statistics")
-    gr.Markdown("Detailed information about the knowledge base and search capabilities")
-    
-    stats_output = gr.JSON(label="System Statistics", height=500)
-    stats_btn = gr.Button("📊 Get System Statistics", variant="primary")
-    
-    stats_btn.click(
-        get_stats_api,
-        inputs=[],
-        outputs=stats_output
-    )
-
-# Combine interfaces using TabbedInterface
-demo = gr.TabbedInterface(
-    [chat_demo, search_demo, stats_demo],
-    ["💬 Hybrid Chat", "🔧 Advanced Search", "📊 Statistics"],
-    title="🔥 Hybrid Search RAGtim Bot - Vector + BM25 Fusion"
+    description="Ask me anything about Raktim Mondol! I use advanced hybrid search combining semantic similarity and keyword matching.",
+    api_name="chat"
 )
 
-# Create API endpoints for external access
-def api_search(query: str, top_k: int = 5, search_type: str = "hybrid", vector_weight: float = 0.6, bm25_weight: float = 0.4):
-    """External API endpoint for search"""
-    return search_api(query, top_k, search_type, vector_weight, bm25_weight)
-
-def api_stats():
-    """External API endpoint for stats"""
-    return get_stats_api()
-
-# Add API endpoints to the demo
-demo.api_name = "hybrid_search_api"
-
-# Create separate API interface for external access
-api_interface = gr.Interface(
-    fn=api_search,
+# Search API interface
+search_demo = gr.Interface(
+    fn=search_api,
     inputs=[
-        gr.Textbox(label="Query", placeholder="Enter your search query"),
-        gr.Number(label="Top K", value=5, minimum=1, maximum=20),
+        gr.Textbox(label="Search Query", placeholder="Enter your search query"),
+        gr.Number(label="Top K Results", value=5, minimum=1, maximum=20),
         gr.Radio(choices=["hybrid", "vector", "bm25"], value="hybrid", label="Search Type"),
         gr.Slider(minimum=0.0, maximum=1.0, value=0.6, label="Vector Weight"),
         gr.Slider(minimum=0.0, maximum=1.0, value=0.4, label="BM25 Weight")
     ],
     outputs=gr.JSON(label="Search Results"),
     title="🔍 Hybrid Search API",
-    description="API endpoint for hybrid search functionality"
+    description="Direct access to the hybrid search functionality",
+    api_name="search"
 )
 
-stats_interface = gr.Interface(
-    fn=api_stats,
+# Stats API interface
+stats_demo = gr.Interface(
+    fn=get_stats_api,
     inputs=[],
     outputs=gr.JSON(label="System Statistics"),
-    title="📊 Statistics API",
-    description="API endpoint for system statistics"
+    title="📊 System Statistics",
+    description="Knowledge base and system information",
+    api_name="stats"
+)
+
+# Combine interfaces
+demo = gr.TabbedInterface(
+    [chat_demo, search_demo, stats_demo],
+    ["💬 Chat", "🔍 Search API", "📊 Stats API"],
+    title="🔥 Hybrid Search RAGtim Bot - Vector + BM25 Fusion"
 )
 
 if __name__ == "__main__":
