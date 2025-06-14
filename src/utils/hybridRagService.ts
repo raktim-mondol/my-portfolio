@@ -33,17 +33,29 @@ export class HybridRAGService {
     this.apiKey = this.getApiKey();
     this.huggingFaceUrl = import.meta.env.VITE_HUGGING_FACE_SPACE_URL || 'https://raktimhugging-ragtim-bot.hf.space';
     
+    console.log('🔧 HybridRAGService Constructor:');
+    console.log('- API Key present:', !!this.apiKey);
+    console.log('- Hugging Face URL:', this.huggingFaceUrl);
+    
     if (this.apiKey) {
       this.openai = new OpenAI({
         baseURL: 'https://api.deepseek.com',
         apiKey: this.apiKey,
         dangerouslyAllowBrowser: true
       });
+      console.log('✅ OpenAI client initialized for DeepSeek');
+    } else {
+      console.log('❌ No valid API key found');
     }
   }
 
   private getApiKey(): string | null {
     const envApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+    
+    console.log('🔑 API Key Check:');
+    console.log('- Raw env value:', envApiKey ? 'Present' : 'Missing');
+    console.log('- Type:', typeof envApiKey);
+    console.log('- Length:', envApiKey?.length || 0);
     
     if (envApiKey && 
         typeof envApiKey === 'string' && 
@@ -52,9 +64,11 @@ export class HybridRAGService {
         !envApiKey.includes('your_actual') &&
         !envApiKey.includes('your_deepseek_api_key_here') &&
         !envApiKey.includes('sk-your-actual-deepseek-api-key-here')) {
+      console.log('✅ Valid API key found');
       return envApiKey.trim();
     }
     
+    console.log('❌ Invalid or missing API key');
     return null;
   }
 
@@ -64,6 +78,7 @@ export class HybridRAGService {
 
   private async checkHuggingFaceHealth(): Promise<boolean> {
     try {
+      console.log('🏥 Checking Hugging Face health...');
       const response = await fetch(`${this.huggingFaceUrl}/api/stats`, {
         method: 'GET',
         headers: {
@@ -71,37 +86,51 @@ export class HybridRAGService {
         },
       });
       
+      console.log('🏥 HF Health Response:', response.status, response.statusText);
       return response.ok;
     } catch (error) {
-      console.warn('Hugging Face health check failed:', error);
+      console.error('❌ Hugging Face health check failed:', error);
       return false;
     }
   }
 
   private async searchHuggingFaceHybrid(query: string, topK: number = 8): Promise<SearchResult[]> {
     try {
+      console.log('🔍 Starting Hugging Face hybrid search...');
+      console.log('- Query:', query);
+      console.log('- URL:', `${this.huggingFaceUrl}/api/search`);
+      
+      const requestBody = {
+        query,
+        top_k: topK,
+        search_type: 'hybrid',
+        vector_weight: 0.6,
+        bm25_weight: 0.4
+      };
+      
+      console.log('📤 Request body:', requestBody);
+      
       const response = await fetch(`${this.huggingFaceUrl}/api/search`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          query,
-          top_k: topK,
-          search_type: 'hybrid',
-          vector_weight: 0.6,
-          bm25_weight: 0.4
-        }),
+        body: JSON.stringify(requestBody),
       });
 
+      console.log('📥 HF Search Response:', response.status, response.statusText);
+
       if (!response.ok) {
-        throw new Error(`Hugging Face hybrid search failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ HF Search Error Response:', errorText);
+        throw new Error(`Hugging Face hybrid search failed: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('📊 HF Search Data:', data);
       
       // Transform Hugging Face results to our format
-      return data.results?.map((result: any) => ({
+      const results = data.results?.map((result: any) => ({
         document: {
           id: result.document?.id || Math.random().toString(),
           content: result.document?.content || result.content || '',
@@ -117,8 +146,11 @@ export class HybridRAGService {
         vector_score: result.vector_score,
         bm25_score: result.bm25_score
       })) || [];
+      
+      console.log(`✅ Processed ${results.length} search results`);
+      return results;
     } catch (error) {
-      console.error('Hugging Face hybrid search error:', error);
+      console.error('❌ Hugging Face hybrid search error:', error);
       throw error;
     }
   }
@@ -164,33 +196,46 @@ export class HybridRAGService {
   }
 
   public async generateResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
+    console.log('🚀 Starting hybrid response generation...');
+    console.log('- User query:', userQuery);
+    console.log('- Has API key:', !!this.apiKey);
+    console.log('- Has OpenAI client:', !!this.openai);
+    
     if (!this.apiKey || !this.openai) {
-      return "The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured with your actual DeepSeek API key.";
+      const errorMsg = "The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured with your actual DeepSeek API key.";
+      console.log('❌ Missing API key or OpenAI client:', errorMsg);
+      return errorMsg;
     }
 
     try {
       // Step 1: Check if Hugging Face Space is available
-      console.log('🔍 Checking Hugging Face Space availability...');
+      console.log('🔍 Step 1: Checking Hugging Face Space availability...');
       const isHFHealthy = await this.checkHuggingFaceHealth();
       
       if (!isHFHealthy) {
-        return "The hybrid search service is currently unavailable. The Hugging Face Space may be starting up or experiencing issues. Please try again in a moment.";
+        const errorMsg = "The hybrid search service is currently unavailable. The Hugging Face Space may be starting up or experiencing issues. Please try again in a moment.";
+        console.log('❌ HF not healthy:', errorMsg);
+        return errorMsg;
       }
 
       // Step 2: Use Hugging Face for hybrid search (Vector + BM25)
-      console.log('🔥 Performing hybrid search with Hugging Face transformers...');
+      console.log('🔥 Step 2: Performing hybrid search with Hugging Face transformers...');
       const searchResults = await this.searchHuggingFaceHybrid(userQuery, 8);
       
       if (searchResults.length === 0) {
-        return "I don't have specific information about that topic in my knowledge base. Could you please ask something else about Raktim Mondol's research, experience, or expertise?";
+        const errorMsg = "I don't have specific information about that topic in my knowledge base. Could you please ask something else about Raktim Mondol's research, experience, or expertise?";
+        console.log('⚠️ No search results:', errorMsg);
+        return errorMsg;
       }
 
       // Step 3: Build rich context from hybrid search results
+      console.log('📄 Step 3: Building context from search results...');
       const context = this.buildContext(searchResults);
       console.log(`📄 Context built from ${searchResults.length} hybrid search results`);
+      console.log('📄 Context preview:', context.substring(0, 200) + '...');
 
       // Step 4: Use DeepSeek for natural response generation
-      console.log('🧠 Generating natural response with DeepSeek LLM...');
+      console.log('🧠 Step 4: Generating natural response with DeepSeek LLM...');
       const messages: any[] = [
         {
           role: "system",
@@ -250,6 +295,10 @@ Remember to provide comprehensive answers based on this rich context from our hy
         content: userQuery
       });
 
+      console.log('🧠 Sending request to DeepSeek...');
+      console.log('- Messages count:', messages.length);
+      console.log('- System message length:', messages[0].content.length);
+
       const completion = await this.openai.chat.completions.create({
         messages,
         model: "deepseek-chat",
@@ -258,13 +307,23 @@ Remember to provide comprehensive answers based on this rich context from our hy
         top_p: 0.9
       });
 
+      console.log('✅ DeepSeek response received');
       const response = completion.choices[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
       
-      return this.stripMarkdown(response);
+      const finalResponse = this.stripMarkdown(response);
+      console.log('✅ Final response prepared, length:', finalResponse.length);
+      
+      return finalResponse;
     } catch (error) {
-      console.error('Error in hybrid RAG service:', error);
+      console.error('❌ Error in hybrid RAG service:', error);
       
       if (error instanceof Error) {
+        console.error('❌ Error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        });
+        
         if (error.message.includes('Hugging Face')) {
           return "The hybrid search service is currently unavailable. This may be because the Hugging Face Space is starting up or experiencing issues. Please try again in a moment.";
         }
@@ -284,11 +343,13 @@ Remember to provide comprehensive answers based on this rich context from our hy
 
   public async getKnowledgeBaseStats(): Promise<any> {
     try {
+      console.log('📊 Getting knowledge base stats from Hugging Face...');
       // Get stats from Hugging Face Space
       const response = await fetch(`${this.huggingFaceUrl}/api/stats`);
       
       if (response.ok) {
         const stats = await response.json();
+        console.log('📊 HF Stats received:', stats);
         return {
           ...stats,
           searchProvider: 'Hugging Face Transformers',
@@ -309,7 +370,7 @@ Remember to provide comprehensive answers based on this rich context from our hy
         };
       }
     } catch (error) {
-      console.warn('Could not fetch stats from Hugging Face:', error);
+      console.warn('⚠️ Could not fetch stats from Hugging Face:', error);
     }
 
     // Fallback stats
