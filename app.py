@@ -297,11 +297,19 @@ css = """
 }
 """
 
-# Create the main chat interface - FIXED VERSION
-iface = gr.ChatInterface(
-    fn=chat_interface,
+# Create the main chat interface - UPDATED FOR GRADIO 5.34.0
+with gr.Blocks(
     title="🤖 RAGtim Bot - Markdown Knowledge Base",
-    description=f"""
+    css=css,
+    theme=gr.themes.Soft(
+        primary_hue="green",
+        secondary_hue="blue",
+        neutral_hue="slate"
+    )
+) as chat_demo:
+    gr.Markdown(f"""
+    # 🤖 RAGtim Bot - Markdown Knowledge Base
+    
     **Complete Markdown Knowledge Base**: This Hugging Face Space loads all markdown files from Raktim Mondol's portfolio with **{len(bot.knowledge_base)} knowledge sections**.
     
     **Loaded Markdown Files:**
@@ -333,66 +341,99 @@ iface = gr.ChatInterface(
     - Contact information and collaboration opportunities
     
     **Note**: This demo shows search results from the complete markdown knowledge base. In hybrid mode, these results are passed to DeepSeek LLM for natural response generation.
-    """,
-    examples=[
-        "What is Raktim's research about?",
-        "Tell me about BioFusionNet in detail",
-        "What are his LLM and RAG expertise?",
-        "Describe his statistical methods and biostatistics work",
-        "What programming languages and frameworks does he use?",
-        "Tell me about his educational background",
-        "What is his current position at UNSW?",
-        "How can I contact Raktim for collaboration?",
-        "What awards and recognition has he received?",
-        "Explain his multimodal AI research",
-        "What is hist2RNA and its impact?",
-        "Tell me about his teaching experience"
-    ],
-    css=css,
-    theme=gr.themes.Soft(
-        primary_hue="green",
-        secondary_hue="blue",
-        neutral_hue="slate"
-    ),
-    # FIXED: Use type='messages' and remove deprecated parameters
-    type='messages',
-    chatbot=gr.Chatbot(
+    """)
+    
+    chatbot = gr.Chatbot(
         height=600,
         show_label=False,
-        container=True
-    ),
-    textbox=gr.Textbox(
-        placeholder="Ask me anything about Raktim Mondol's research, skills, experience, publications...",
-        container=False,
-        scale=7
-    ),
-    submit_btn="Search Knowledge Base"
-    # REMOVED: retry_btn, undo_btn, clear_btn (deprecated in this version)
-)
+        container=True,
+        type="messages"
+    )
+    
+    with gr.Row():
+        msg = gr.Textbox(
+            placeholder="Ask me anything about Raktim Mondol's research, skills, experience, publications...",
+            container=False,
+            scale=7,
+            show_label=False
+        )
+        submit_btn = gr.Button("Search Knowledge Base", scale=1)
+    
+    # Example buttons
+    with gr.Row():
+        examples = [
+            "What is Raktim's research about?",
+            "Tell me about BioFusionNet in detail",
+            "What are his LLM and RAG expertise?",
+            "Describe his statistical methods and biostatistics work"
+        ]
+        for example in examples:
+            gr.Button(example, size="sm").click(
+                lambda x=example: x, outputs=msg
+            )
+    
+    def respond(message, history):
+        if not message.strip():
+            return history, ""
+        
+        # Add user message to history
+        history.append({"role": "user", "content": message})
+        
+        # Get bot response
+        bot_response = chat_interface(message, history)
+        
+        # Add bot response to history
+        history.append({"role": "assistant", "content": bot_response})
+        
+        return history, ""
+    
+    submit_btn.click(respond, [msg, chatbot], [chatbot, msg])
+    msg.submit(respond, [msg, chatbot], [chatbot, msg])
 
 # Create API interface for search-only functionality
-search_api = gr.Interface(
-    fn=search_only_api,
-    inputs=[
-        gr.Textbox(label="Search Query", placeholder="Enter your search query about Raktim Mondol..."),
-        gr.Slider(minimum=1, maximum=15, value=5, step=1, label="Top K Results")
-    ],
-    outputs=gr.JSON(label="Markdown Knowledge Base Search Results"),
-    title="🔍 Markdown Knowledge Base Search API",
-    description="Direct access to semantic search across all loaded markdown files"
-)
+with gr.Blocks(title="🔍 Search API") as search_demo:
+    gr.Markdown("# 🔍 Markdown Knowledge Base Search API")
+    gr.Markdown("Direct access to semantic search across all loaded markdown files")
+    
+    with gr.Row():
+        search_input = gr.Textbox(
+            label="Search Query", 
+            placeholder="Enter your search query about Raktim Mondol..."
+        )
+        top_k_slider = gr.Slider(
+            minimum=1, 
+            maximum=15, 
+            value=5, 
+            step=1, 
+            label="Top K Results"
+        )
+    
+    search_output = gr.JSON(label="Markdown Knowledge Base Search Results")
+    search_btn = gr.Button("Search")
+    
+    search_btn.click(
+        search_only_api,
+        inputs=[search_input, top_k_slider],
+        outputs=search_output
+    )
 
-stats_api = gr.Interface(
-    fn=get_stats_api,
-    inputs=[],
-    outputs=gr.JSON(label="Markdown Knowledge Base Statistics"),
-    title="📊 Knowledge Base Stats",
-    description="Detailed statistics about the loaded markdown knowledge base"
-)
+# Create stats interface
+with gr.Blocks(title="📊 Stats API") as stats_demo:
+    gr.Markdown("# 📊 Knowledge Base Stats")
+    gr.Markdown("Detailed statistics about the loaded markdown knowledge base")
+    
+    stats_output = gr.JSON(label="Markdown Knowledge Base Statistics")
+    stats_btn = gr.Button("Get Statistics")
+    
+    stats_btn.click(
+        get_stats_api,
+        inputs=[],
+        outputs=stats_output
+    )
 
-# Combine interfaces
+# Combine interfaces using TabbedInterface
 demo = gr.TabbedInterface(
-    [iface, search_api, stats_api],
+    [chat_demo, search_demo, stats_demo],
     ["💬 Markdown Chat", "🔍 Search API", "📊 Stats API"],
     title="🤖 RAGtim Bot - Complete Markdown Knowledge Base"
 )
