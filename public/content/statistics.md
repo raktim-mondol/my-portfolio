@@ -85,7 +85,7 @@ This project applies statistical modeling to create a low-cost, non-destructive 
 | **Comparative metrics table** (14 simpler fits) | Quantifies trade-offs so designers can justify chosen complexity. | Table I lists R², RMSE, F, EDF for each candidate model. | Stepwise model dominates all baselines (next-best linear RGB has R² = 0.88) |
 ---
 
-## Raktim’s biostatistics portfolio  
+## Raktim’s biostatistics portfolio summary 
 
 | Capability demonstrated | Evidence from papers |
 |---|---|
