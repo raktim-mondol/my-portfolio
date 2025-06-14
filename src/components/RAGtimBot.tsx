@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Shield, AlertCircle, Database, BarChart3, Search, Zap, Target } from 'lucide-react';
-import { RAGService, ChatMessage } from '../utils/ragService';
+import { MessageCircle, X, Send, Shield, AlertCircle, Database, BarChart3, Search, Zap, Target, Server } from 'lucide-react';
+import { BackendRAGService, ChatMessage } from '../utils/backendRagService';
 import toast from 'react-hot-toast';
 
 export default function RAGtimBot() {
@@ -8,32 +8,17 @@ export default function RAGtimBot() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [ragService] = useState(() => new RAGService());
+  const [ragService] = useState(() => new BackendRAGService());
   const [showStats, setShowStats] = useState(false);
   const [knowledgeStats, setKnowledgeStats] = useState<any>(null);
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'available' | 'unavailable'>('checking');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Add initial welcome message
-    if (ragService.hasApiKey()) {
-      const welcomeMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: "Hello! I'm RAGtim Bot, your enhanced AI assistant powered by advanced hybrid search technology. I combine semantic vector search with BM25 ranking to provide comprehensive and accurate answers about Raktim Mondol. I can provide detailed information about his education, research, publications, skills, experience, and more. What would you like to know?",
-        timestamp: new Date()
-      };
-      setMessages([welcomeMessage]);
-    } else {
-      const errorMessage: ChatMessage = {
-        id: Date.now().toString(),
-        role: 'assistant',
-        content: "⚠️ The chatbot is currently unavailable. The API key needs to be configured in the Netlify environment variables. Please contact the site administrator.",
-        timestamp: new Date()
-      };
-      setMessages([errorMessage]);
-    }
+    // Check backend status and add initial welcome message
+    checkBackendStatus();
   }, [ragService]);
 
   useEffect(() => {
@@ -45,6 +30,38 @@ export default function RAGtimBot() {
       inputRef.current.focus();
     }
   }, [isOpen]);
+
+  const checkBackendStatus = async () => {
+    try {
+      const stats = await ragService.getKnowledgeBaseStats();
+      const isBackendAvailable = stats.backendEnabled !== false && !stats.error;
+      
+      setBackendStatus(isBackendAvailable ? 'available' : 'unavailable');
+      
+      if (ragService.hasApiKey()) {
+        const welcomeMessage: ChatMessage = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: isBackendAvailable 
+            ? "Hello! I'm RAGtim Bot, your enhanced AI assistant powered by a high-performance backend transformer service. I use advanced hybrid search technology combining semantic vector search with BM25 ranking, all processed on a dedicated backend server for optimal speed and accuracy. I can provide detailed information about Raktim Mondol's education, research, publications, skills, experience, and more. What would you like to know?"
+            : "Hello! I'm RAGtim Bot. The backend transformer service is currently unavailable, so I'm running in basic mode. I can still answer questions about Raktim Mondol, but with limited search capabilities. What would you like to know?",
+          timestamp: new Date()
+        };
+        setMessages([welcomeMessage]);
+      } else {
+        const errorMessage: ChatMessage = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: "⚠️ The chatbot is currently unavailable. The API key needs to be configured in the Netlify environment variables. Please contact the site administrator.",
+          timestamp: new Date()
+        };
+        setMessages([errorMessage]);
+      }
+    } catch (error) {
+      console.error('Failed to check backend status:', error);
+      setBackendStatus('unavailable');
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -129,6 +146,21 @@ export default function RAGtimBot() {
   };
 
   const hasApiKey = ragService.hasApiKey();
+  const isBackendAvailable = backendStatus === 'available';
+
+  const getStatusColor = () => {
+    if (!hasApiKey) return 'bg-red-500 hover:bg-red-600';
+    if (backendStatus === 'checking') return 'bg-yellow-500 hover:bg-yellow-600';
+    if (isBackendAvailable) return 'bg-[#94c973] hover:bg-[#7fb95e]';
+    return 'bg-orange-500 hover:bg-orange-600';
+  };
+
+  const getStatusIcon = () => {
+    if (!hasApiKey) return '⚠️';
+    if (backendStatus === 'checking') return '⏳';
+    if (isBackendAvailable) return '🚀';
+    return '⚡';
+  };
 
   return (
     <>
@@ -137,24 +169,14 @@ export default function RAGtimBot() {
         {!isOpen && (
           <button
             onClick={() => setIsOpen(true)}
-            className={`${
-              hasApiKey 
-                ? 'bg-[#94c973] hover:bg-[#7fb95e]' 
-                : 'bg-red-500 hover:bg-red-600'
-            } text-white rounded-2xl p-4 shadow-lg transition-all duration-300 hover:scale-110 group relative`}
+            className={`${getStatusColor()} text-white rounded-2xl p-4 shadow-lg transition-all duration-300 hover:scale-110 group relative`}
             aria-label="Open RAGtim Bot"
           >
             <MessageCircle className="h-6 w-6" />
-            <div className={`absolute -top-2 -left-3 text-xl z-10 ${
-              hasApiKey ? '' : 'opacity-75'
-            }`} style={{
-              animation: hasApiKey ? 'bounce 1s infinite, flash 2s infinite' : 'none'
+            <div className="absolute -top-2 -left-3 text-xl z-10" style={{
+              animation: hasApiKey && isBackendAvailable ? 'bounce 1s infinite, flash 2s infinite' : 'none'
             }}>
-              {hasApiKey ? (
-                <span>🔥</span>
-              ) : (
-                <span className="text-red-300 text-lg">⚠️</span>
-              )}
+              <span>{getStatusIcon()}</span>
             </div>
           </button>
         )}
@@ -164,24 +186,28 @@ export default function RAGtimBot() {
       {isOpen && (
         <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50 flex flex-col">
           {/* Header */}
-          <div className={`flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 ${
-            hasApiKey ? 'bg-[#94c973]' : 'bg-red-500'
-          } text-white rounded-t-lg`}>
+          <div className={`flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 ${getStatusColor()} text-white rounded-t-lg`}>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <MessageCircle className="h-4 w-4" />
+                {isBackendAvailable ? <Server className="h-4 w-4" /> : <MessageCircle className="h-4 w-4" />}
               </div>
               <div>
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
                   {hasApiKey ? (
-                    <Shield className="h-3 w-3 ml-1\" title="Hybrid Search Enabled" />
+                    isBackendAvailable ? (
+                      <Shield className="h-3 w-3 ml-1" title="Backend Transformer Service Active" />
+                    ) : (
+                      <AlertCircle className="h-3 w-3 ml-1" title="Backend unavailable - basic mode" />
+                    )
                   ) : (
-                    <AlertCircle className="h-3 w-3 ml-1\" title="Configuration needed" />
+                    <AlertCircle className="h-3 w-3 ml-1" title="Configuration needed" />
                   )}
                 </h3>
                 <p className="text-xs opacity-90">
-                  {hasApiKey ? 'Hybrid Search: Semantic + Keyword' : 'Configuration needed'}
+                  {!hasApiKey ? 'Configuration needed' :
+                   backendStatus === 'checking' ? 'Checking backend...' :
+                   isBackendAvailable ? 'Backend: Vector + BM25' : 'Backend: Unavailable'}
                 </p>
               </div>
             </div>
@@ -217,19 +243,30 @@ export default function RAGtimBot() {
             <div className="p-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
               <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
                 <Target className="h-4 w-4 mr-1" />
-                Hybrid Search System
+                {isBackendAvailable ? 'Backend Transformer Service' : 'Basic Search System'}
               </h4>
               <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                 <div>Documents: {knowledgeStats.totalDocuments}</div>
                 <div>Unique Terms: {knowledgeStats.uniqueTerms}</div>
                 <div>Embeddings: {knowledgeStats.hasEmbeddings}</div>
                 <div>Avg Doc Length: {knowledgeStats.averageDocLength} words</div>
-                <div className="text-xs text-blue-600 dark:text-blue-400">
-                  BM25: k1={knowledgeStats.bm25Parameters?.k1}, b={knowledgeStats.bm25Parameters?.b}
-                </div>
+                {isBackendAvailable && (
+                  <>
+                    <div className="text-xs text-blue-600 dark:text-blue-400">
+                      BM25: k1={knowledgeStats.bm25Parameters?.k1}, b={knowledgeStats.bm25Parameters?.b}
+                    </div>
+                    <div className="text-xs text-green-600 dark:text-green-400">
+                      Backend: {knowledgeStats.backendUrl || 'Active'}
+                    </div>
+                  </>
+                )}
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {knowledgeStats.searchCapabilities.map((capability: string) => (
-                    <span key={capability} className="bg-[#94c973]/20 text-[#94c973] px-2 py-1 rounded text-xs">
+                  {knowledgeStats.searchCapabilities?.map((capability: string) => (
+                    <span key={capability} className={`px-2 py-1 rounded text-xs ${
+                      capability.includes('Backend') ? 'bg-green-100 text-green-700' :
+                      capability.includes('Vector') ? 'bg-[#94c973]/20 text-[#94c973]' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
                       {capability}
                     </span>
                   ))}
@@ -245,8 +282,16 @@ export default function RAGtimBot() {
                 {hasApiKey ? (
                   <>
                     <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-sm">Advanced hybrid RAG system ready! Ask me anything about Raktim Mondol.</p>
-                    <p className="text-xs mt-2 opacity-70">Powered by Vector + BM25 search for precise answers.</p>
+                    <p className="text-sm">
+                      {isBackendAvailable 
+                        ? 'Advanced backend RAG system ready! Ask me anything about Raktim Mondol.'
+                        : 'Basic search mode active. Ask me about Raktim Mondol.'}
+                    </p>
+                    <p className="text-xs mt-2 opacity-70">
+                      {isBackendAvailable 
+                        ? 'Powered by backend Vector + BM25 search for precise answers.'
+                        : 'Backend transformer service unavailable - using fallback mode.'}
+                    </p>
                   </>
                 ) : (
                   <>
