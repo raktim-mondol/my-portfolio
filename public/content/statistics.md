@@ -97,8 +97,8 @@ This project applies statistical modeling to create a low-cost, non-destructive 
 | **Rigorous cross-validation & benchmarking** | 5-fold experiments compare up to 12 classifiers (AFExNet) and 6 fusion baselines (BioFusionNet). |
 | **Design & validation of polynomial and ratio regressions** | Anemia paper’s Hb = *N*⁄*D* quadratic model ported to FPGA with bit-exact MATLAB parity  |
 | **Model-selection & residual diagnostics for linear/non-linear regression** | Stepwise search, Hougen non-linear comparison, and residual plots in chlorophyll paper  |
-| **Goodness-of-fit metric reporting (R², Adj-R², RMSE, F, p)** | Chlorophyll study publishes a 14-model table with full metrics to justify choice :contentReference[oaicite:0]{index=0} |
-| **Hardware-level verification of statistical models** | FPGA RTL vs MATLAB parity test confirms fixed-point implementation accuracy for Hb regression :contentReference[oaicite:1]{index=1} |
+| **Goodness-of-fit metric reporting (R², Adj-R², RMSE, F, p)** | Chlorophyll study publishes a 14-model table with full metrics to justify choice |
+| **Hardware-level verification of statistical models** | FPGA RTL vs MATLAB parity test confirms fixed-point implementation accuracy for Hb regression |
 | **Threshold-based clinical/agronomic decision rules** | 10 g/dL anemia flag and chlorophyll thresholds hard-wired in FPGA logic  |
 
 
