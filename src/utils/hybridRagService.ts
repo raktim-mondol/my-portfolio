@@ -30,22 +30,29 @@ export class HybridRAGService {
   private huggingFaceUrl: string;
 
   constructor() {
+    console.log('🔧 HybridRAGService Constructor Starting...');
+    
     this.apiKey = this.getApiKey();
     this.huggingFaceUrl = import.meta.env.VITE_HUGGING_FACE_SPACE_URL || 'https://raktimhugging-ragtim-bot.hf.space';
     
     console.log('🔧 HybridRAGService Constructor:');
     console.log('- API Key present:', !!this.apiKey);
+    console.log('- API Key length:', this.apiKey?.length || 0);
     console.log('- Hugging Face URL:', this.huggingFaceUrl);
     
     if (this.apiKey) {
-      this.openai = new OpenAI({
-        baseURL: 'https://api.deepseek.com',
-        apiKey: this.apiKey,
-        dangerouslyAllowBrowser: true
-      });
-      console.log('✅ OpenAI client initialized for DeepSeek');
+      try {
+        this.openai = new OpenAI({
+          baseURL: 'https://api.deepseek.com',
+          apiKey: this.apiKey,
+          dangerouslyAllowBrowser: true
+        });
+        console.log('✅ OpenAI client initialized for DeepSeek');
+      } catch (error) {
+        console.error('❌ Failed to initialize OpenAI client:', error);
+      }
     } else {
-      console.log('❌ No valid API key found');
+      console.log('❌ No valid API key found - OpenAI client not initialized');
     }
   }
 
@@ -53,9 +60,10 @@ export class HybridRAGService {
     const envApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
     
     console.log('🔑 API Key Check:');
-    console.log('- Raw env value:', envApiKey ? 'Present' : 'Missing');
+    console.log('- Raw env value exists:', !!envApiKey);
     console.log('- Type:', typeof envApiKey);
     console.log('- Length:', envApiKey?.length || 0);
+    console.log('- Starts with sk-:', envApiKey?.startsWith?.('sk-') || false);
     
     if (envApiKey && 
         typeof envApiKey === 'string' && 
@@ -69,27 +77,54 @@ export class HybridRAGService {
     }
     
     console.log('❌ Invalid or missing API key');
+    console.log('- Contains placeholder text:', envApiKey?.includes('placeholder') || envApiKey?.includes('your_actual'));
     return null;
   }
 
   public hasApiKey(): boolean {
-    return !!this.apiKey;
+    const hasKey = !!this.apiKey;
+    console.log('🔑 hasApiKey() called, result:', hasKey);
+    return hasKey;
   }
 
   private async checkHuggingFaceHealth(): Promise<boolean> {
     try {
       console.log('🏥 Checking Hugging Face health...');
+      console.log('🏥 Health check URL:', `${this.huggingFaceUrl}/api/stats`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
       const response = await fetch(`${this.huggingFaceUrl}/api/stats`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: controller.signal
       });
       
+      clearTimeout(timeoutId);
+      
       console.log('🏥 HF Health Response:', response.status, response.statusText);
-      return response.ok;
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('🏥 HF Health Data:', data);
+        return true;
+      } else {
+        const errorText = await response.text();
+        console.error('🏥 HF Health Error:', errorText);
+        return false;
+      }
     } catch (error) {
       console.error('❌ Hugging Face health check failed:', error);
+      if (error instanceof Error) {
+        console.error('❌ Error details:', {
+          name: error.name,
+          message: error.message,
+          cause: error.cause
+        });
+      }
       return false;
     }
   }
@@ -110,14 +145,20 @@ export class HybridRAGService {
       
       console.log('📤 Request body:', requestBody);
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
       const response = await fetch(`${this.huggingFaceUrl}/api/search`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestBody),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+      
       console.log('📥 HF Search Response:', response.status, response.statusText);
 
       if (!response.ok) {
@@ -127,40 +168,61 @@ export class HybridRAGService {
       }
 
       const data = await response.json();
-      console.log('📊 HF Search Data:', data);
+      console.log('📊 HF Search Data received, keys:', Object.keys(data));
+      console.log('📊 Results count:', data.results?.length || 0);
       
       // Transform Hugging Face results to our format
-      const results = data.results?.map((result: any) => ({
-        document: {
-          id: result.document?.id || Math.random().toString(),
-          content: result.document?.content || result.content || '',
-          metadata: {
-            type: result.document?.metadata?.type || 'general',
-            priority: result.document?.metadata?.priority || 5,
-            section: result.document?.metadata?.section,
-            source: result.document?.metadata?.source
-          }
-        },
-        score: result.score || 0,
-        searchType: result.search_type || 'hybrid',
-        vector_score: result.vector_score,
-        bm25_score: result.bm25_score
-      })) || [];
+      const results = data.results?.map((result: any, index: number) => {
+        console.log(`📊 Processing result ${index}:`, {
+          hasDocument: !!result.document,
+          hasContent: !!result.document?.content,
+          score: result.score,
+          searchType: result.search_type
+        });
+        
+        return {
+          document: {
+            id: result.document?.id || Math.random().toString(),
+            content: result.document?.content || result.content || '',
+            metadata: {
+              type: result.document?.metadata?.type || 'general',
+              priority: result.document?.metadata?.priority || 5,
+              section: result.document?.metadata?.section,
+              source: result.document?.metadata?.source
+            }
+          },
+          score: result.score || 0,
+          searchType: result.search_type || 'hybrid',
+          vector_score: result.vector_score,
+          bm25_score: result.bm25_score
+        };
+      }) || [];
       
       console.log(`✅ Processed ${results.length} search results`);
       return results;
     } catch (error) {
       console.error('❌ Hugging Face hybrid search error:', error);
+      if (error instanceof Error) {
+        console.error('❌ Search error details:', {
+          name: error.name,
+          message: error.message,
+          stack: error.stack?.split('\n').slice(0, 3)
+        });
+      }
       throw error;
     }
   }
 
   private buildContext(searchResults: SearchResult[]): string {
+    console.log('📄 Building context from search results...');
+    
     if (searchResults.length === 0) {
+      console.log('📄 No search results to build context from');
       return "No specific information found. Please provide general information about Raktim Mondol based on your knowledge.";
     }
 
     const topResults = searchResults.slice(0, 6);
+    console.log(`📄 Using top ${topResults.length} results for context`);
     
     const contextParts = topResults.map((result, index) => {
       const doc = result.document;
@@ -173,10 +235,16 @@ export class HybridRAGService {
         searchInfo = `(${result.searchType.toUpperCase()}: ${(result.score * 100).toFixed(1)}%)`;
       }
       
-      return `${section} ${searchInfo}\n${doc.content.trim()}`;
+      const contextPart = `${section} ${searchInfo}\n${doc.content.trim()}`;
+      console.log(`📄 Context part ${index} length:`, contextPart.length);
+      
+      return contextPart;
     });
 
-    return contextParts.join('\n\n---\n\n');
+    const fullContext = contextParts.join('\n\n---\n\n');
+    console.log('📄 Full context length:', fullContext.length);
+    
+    return fullContext;
   }
 
   private stripMarkdown(text: string): string {
@@ -200,6 +268,7 @@ export class HybridRAGService {
     console.log('- User query:', userQuery);
     console.log('- Has API key:', !!this.apiKey);
     console.log('- Has OpenAI client:', !!this.openai);
+    console.log('- Conversation history length:', conversationHistory.length);
     
     if (!this.apiKey || !this.openai) {
       const errorMsg = "The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured with your actual DeepSeek API key.";
@@ -217,6 +286,7 @@ export class HybridRAGService {
         console.log('❌ HF not healthy:', errorMsg);
         return errorMsg;
       }
+      console.log('✅ Hugging Face Space is healthy');
 
       // Step 2: Use Hugging Face for hybrid search (Vector + BM25)
       console.log('🔥 Step 2: Performing hybrid search with Hugging Face transformers...');
@@ -227,19 +297,17 @@ export class HybridRAGService {
         console.log('⚠️ No search results:', errorMsg);
         return errorMsg;
       }
+      console.log(`✅ Got ${searchResults.length} search results`);
 
       // Step 3: Build rich context from hybrid search results
       console.log('📄 Step 3: Building context from search results...');
       const context = this.buildContext(searchResults);
       console.log(`📄 Context built from ${searchResults.length} hybrid search results`);
-      console.log('📄 Context preview:', context.substring(0, 200) + '...');
 
       // Step 4: Use DeepSeek for natural response generation
       console.log('🧠 Step 4: Generating natural response with DeepSeek LLM...');
-      const messages: any[] = [
-        {
-          role: "system",
-          content: `You are RAGtim Bot, an advanced AI assistant powered by a cutting-edge hybrid search system:
+      
+      const systemMessage = `You are RAGtim Bot, an advanced AI assistant powered by a cutting-edge hybrid search system:
 
 🔥 HYBRID SEARCH TECHNOLOGY:
 - Hugging Face Transformers: GPU-accelerated semantic vector search using sentence-transformers/all-MiniLM-L6-v2
@@ -275,7 +343,12 @@ The following information was retrieved using our advanced hybrid search system.
 
 ${context}
 
-Remember to provide comprehensive answers based on this rich context from our hybrid search system, but always respond in plain text without any markdown formatting whatsoever.`
+Remember to provide comprehensive answers based on this rich context from our hybrid search system, but always respond in plain text without any markdown formatting whatsoever.`;
+
+      const messages: any[] = [
+        {
+          role: "system",
+          content: systemMessage
         }
       ];
 
@@ -298,6 +371,7 @@ Remember to provide comprehensive answers based on this rich context from our hy
       console.log('🧠 Sending request to DeepSeek...');
       console.log('- Messages count:', messages.length);
       console.log('- System message length:', messages[0].content.length);
+      console.log('- User query:', userQuery);
 
       const completion = await this.openai.chat.completions.create({
         messages,
@@ -308,6 +382,9 @@ Remember to provide comprehensive answers based on this rich context from our hy
       });
 
       console.log('✅ DeepSeek response received');
+      console.log('- Response choices:', completion.choices?.length || 0);
+      console.log('- First choice content length:', completion.choices[0]?.message?.content?.length || 0);
+      
       const response = completion.choices[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
       
       const finalResponse = this.stripMarkdown(response);
@@ -321,7 +398,7 @@ Remember to provide comprehensive answers based on this rich context from our hy
         console.error('❌ Error details:', {
           name: error.name,
           message: error.message,
-          stack: error.stack
+          stack: error.stack?.split('\n').slice(0, 5)
         });
         
         if (error.message.includes('Hugging Face')) {
@@ -335,6 +412,10 @@ Remember to provide comprehensive answers based on this rich context from our hy
         if (error.message.includes('network') || error.message.includes('fetch')) {
           return "Network error occurred. Please check your internet connection and try again.";
         }
+        
+        if (error.message.includes('AbortError')) {
+          return "Request timed out. The service may be slow. Please try again.";
+        }
       }
       
       return "I apologize, but I'm experiencing technical difficulties with the hybrid search system. Please try again later.";
@@ -344,8 +425,15 @@ Remember to provide comprehensive answers based on this rich context from our hy
   public async getKnowledgeBaseStats(): Promise<any> {
     try {
       console.log('📊 Getting knowledge base stats from Hugging Face...');
-      // Get stats from Hugging Face Space
-      const response = await fetch(`${this.huggingFaceUrl}/api/stats`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
+      const response = await fetch(`${this.huggingFaceUrl}/api/stats`, {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
       
       if (response.ok) {
         const stats = await response.json();
