@@ -14,10 +14,14 @@ export interface SearchResult {
     metadata: {
       type: string;
       priority: number;
+      section?: string;
+      source?: string;
     };
   };
   score: number;
-  searchType: 'semantic';
+  searchType: 'hybrid' | 'vector' | 'bm25';
+  vector_score?: number;
+  bm25_score?: number;
 }
 
 export class HybridRAGService {
@@ -27,7 +31,7 @@ export class HybridRAGService {
 
   constructor() {
     this.apiKey = this.getApiKey();
-    this.huggingFaceUrl = 'https://raktimhugging-ragtim-bot.hf.space';
+    this.huggingFaceUrl = import.meta.env.VITE_HUGGING_FACE_SPACE_URL || 'https://raktimhugging-ragtim-bot.hf.space';
     
     if (this.apiKey) {
       this.openai = new OpenAI({
@@ -46,7 +50,8 @@ export class HybridRAGService {
         envApiKey.trim().length > 0 &&
         !envApiKey.includes('placeholder') &&
         !envApiKey.includes('your_actual') &&
-        !envApiKey.includes('your_deepseek_api_key_here')) {
+        !envApiKey.includes('your_deepseek_api_key_here') &&
+        !envApiKey.includes('sk-your-actual-deepseek-api-key-here')) {
       return envApiKey.trim();
     }
     
@@ -57,9 +62,24 @@ export class HybridRAGService {
     return !!this.apiKey;
   }
 
-  private async searchHuggingFaceTransformers(query: string, topK: number = 5): Promise<SearchResult[]> {
+  private async checkHuggingFaceHealth(): Promise<boolean> {
     try {
-      // Call Hugging Face Space API for search only
+      const response = await fetch(`${this.huggingFaceUrl}/api/stats`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      return response.ok;
+    } catch (error) {
+      console.warn('Hugging Face health check failed:', error);
+      return false;
+    }
+  }
+
+  private async searchHuggingFaceHybrid(query: string, topK: number = 8): Promise<SearchResult[]> {
+    try {
       const response = await fetch(`${this.huggingFaceUrl}/api/search`, {
         method: 'POST',
         headers: {
@@ -68,12 +88,14 @@ export class HybridRAGService {
         body: JSON.stringify({
           query,
           top_k: topK,
-          search_only: true // Flag to indicate we only want search results, not generated response
+          search_type: 'hybrid',
+          vector_weight: 0.6,
+          bm25_weight: 0.4
         }),
       });
 
       if (!response.ok) {
-        throw new Error(`Hugging Face search failed: ${response.status}`);
+        throw new Error(`Hugging Face hybrid search failed: ${response.status}`);
       }
 
       const data = await response.json();
@@ -81,18 +103,22 @@ export class HybridRAGService {
       // Transform Hugging Face results to our format
       return data.results?.map((result: any) => ({
         document: {
-          id: result.id || Math.random().toString(),
-          content: result.content,
+          id: result.document?.id || Math.random().toString(),
+          content: result.document?.content || result.content || '',
           metadata: {
-            type: result.metadata?.type || 'general',
-            priority: result.metadata?.priority || 5
+            type: result.document?.metadata?.type || 'general',
+            priority: result.document?.metadata?.priority || 5,
+            section: result.document?.metadata?.section,
+            source: result.document?.metadata?.source
           }
         },
-        score: result.score,
-        searchType: 'semantic' as const
+        score: result.score || 0,
+        searchType: result.search_type || 'hybrid',
+        vector_score: result.vector_score,
+        bm25_score: result.bm25_score
       })) || [];
     } catch (error) {
-      console.error('Hugging Face search error:', error);
+      console.error('Hugging Face hybrid search error:', error);
       throw error;
     }
   }
@@ -102,14 +128,20 @@ export class HybridRAGService {
       return "No specific information found. Please provide general information about Raktim Mondol based on your knowledge.";
     }
 
-    const topResults = searchResults.slice(0, 6); // Use top 6 results for rich context
+    const topResults = searchResults.slice(0, 6);
     
     const contextParts = topResults.map((result, index) => {
       const doc = result.document;
-      const section = `[${doc.metadata.type}]`;
-      const relevanceScore = `(Relevance: ${(result.score * 100).toFixed(1)}%)`;
+      const section = doc.metadata.section ? `[${doc.metadata.section}]` : `[${doc.metadata.type}]`;
       
-      return `${section} ${relevanceScore}\n${doc.content.trim()}`;
+      let searchInfo = '';
+      if (result.searchType === 'hybrid' && result.vector_score !== undefined && result.bm25_score !== undefined) {
+        searchInfo = `(Hybrid: V=${(result.vector_score * 100).toFixed(1)}%, K=${(result.bm25_score * 100).toFixed(1)}%)`;
+      } else {
+        searchInfo = `(${result.searchType.toUpperCase()}: ${(result.score * 100).toFixed(1)}%)`;
+      }
+      
+      return `${section} ${searchInfo}\n${doc.content.trim()}`;
     });
 
     return contextParts.join('\n\n---\n\n');
@@ -133,33 +165,44 @@ export class HybridRAGService {
 
   public async generateResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
     if (!this.apiKey || !this.openai) {
-      return "The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured.";
+      return "The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured with your actual DeepSeek API key.";
     }
 
     try {
-      // Step 1: Use Hugging Face transformers for semantic search
-      console.log('🔍 Searching with Hugging Face transformers...');
-      const searchResults = await this.searchHuggingFaceTransformers(userQuery, 8);
+      // Step 1: Check if Hugging Face Space is available
+      console.log('🔍 Checking Hugging Face Space availability...');
+      const isHFHealthy = await this.checkHuggingFaceHealth();
       
-      if (searchResults.length === 0) {
-        return "I don't have specific information about that topic. Could you please ask something else about Raktim Mondol's research, experience, or expertise?";
+      if (!isHFHealthy) {
+        return "The hybrid search service is currently unavailable. The Hugging Face Space may be starting up or experiencing issues. Please try again in a moment.";
       }
 
-      // Step 2: Build context from search results
-      const context = this.buildContext(searchResults);
-      console.log('📄 Context built from', searchResults.length, 'relevant documents');
+      // Step 2: Use Hugging Face for hybrid search (Vector + BM25)
+      console.log('🔥 Performing hybrid search with Hugging Face transformers...');
+      const searchResults = await this.searchHuggingFaceHybrid(userQuery, 8);
+      
+      if (searchResults.length === 0) {
+        return "I don't have specific information about that topic in my knowledge base. Could you please ask something else about Raktim Mondol's research, experience, or expertise?";
+      }
 
-      // Step 3: Use DeepSeek for response generation
-      console.log('🧠 Generating response with DeepSeek...');
+      // Step 3: Build rich context from hybrid search results
+      const context = this.buildContext(searchResults);
+      console.log(`📄 Context built from ${searchResults.length} hybrid search results`);
+
+      // Step 4: Use DeepSeek for natural response generation
+      console.log('🧠 Generating natural response with DeepSeek LLM...');
       const messages: any[] = [
         {
           role: "system",
-          content: `You are RAGtim Bot, an intelligent assistant that answers questions about Raktim Mondol using a hybrid AI system:
+          content: `You are RAGtim Bot, an advanced AI assistant powered by a cutting-edge hybrid search system:
 
-🔍 SEARCH TECHNOLOGY:
-- Hugging Face Transformers provide GPU-accelerated semantic search
-- DeepSeek LLM generates natural, conversational responses
-- This hybrid approach combines the best of both worlds
+🔥 HYBRID SEARCH TECHNOLOGY:
+- Hugging Face Transformers: GPU-accelerated semantic vector search using sentence-transformers/all-MiniLM-L6-v2
+- BM25 Keyword Search: Advanced TF-IDF ranking with term frequency and document length normalization  
+- Intelligent Fusion: Weighted combination (60% vector + 40% BM25) for optimal relevance
+- DeepSeek LLM: Natural language generation for conversational responses
+
+This hybrid approach combines the best of both worlds - semantic understanding AND exact keyword matching.
 
 CRITICAL FORMATTING INSTRUCTIONS - ABSOLUTELY NO MARKDOWN:
 - NEVER use any markdown formatting in your responses under any circumstances
@@ -183,11 +226,11 @@ RESPONSE GUIDELINES:
 - Use natural language flow without any special formatting whatsoever
 
 HYBRID SEARCH CONTEXT:
-The following information was retrieved using Hugging Face transformers with semantic similarity search. Each section shows the relevance score and content type:
+The following information was retrieved using our advanced hybrid search system. Each section shows the search method and relevance scores:
 
 ${context}
 
-Remember to provide comprehensive answers based on this rich context, but always respond in plain text without any markdown formatting whatsoever.`
+Remember to provide comprehensive answers based on this rich context from our hybrid search system, but always respond in plain text without any markdown formatting whatsoever.`
         }
       ];
 
@@ -223,11 +266,11 @@ Remember to provide comprehensive answers based on this rich context, but always
       
       if (error instanceof Error) {
         if (error.message.includes('Hugging Face')) {
-          return "The search service is currently unavailable. Please try again later.";
+          return "The hybrid search service is currently unavailable. This may be because the Hugging Face Space is starting up or experiencing issues. Please try again in a moment.";
         }
         
         if (error.message.includes('API key') || error.message.includes('401') || error.message.includes('Authentication')) {
-          return "The API key appears to be invalid or missing. Please contact the site administrator to configure the VITE_DEEPSEEK_API_KEY environment variable.";
+          return "The DeepSeek API key appears to be invalid or missing. Please contact the site administrator to configure the VITE_DEEPSEEK_API_KEY environment variable with a valid DeepSeek API key.";
         }
         
         if (error.message.includes('network') || error.message.includes('fetch')) {
@@ -235,7 +278,7 @@ Remember to provide comprehensive answers based on this rich context, but always
         }
       }
       
-      return "I apologize, but I'm experiencing technical difficulties. Please try again later.";
+      return "I apologize, but I'm experiencing technical difficulties with the hybrid search system. Please try again later.";
     }
   }
 
@@ -251,8 +294,18 @@ Remember to provide comprehensive answers based on this rich context, but always
           searchProvider: 'Hugging Face Transformers',
           responseProvider: 'DeepSeek LLM',
           architecture: 'Hybrid RAG System',
-          searchCapabilities: ['GPU-Accelerated Semantic Search', 'Transformer Embeddings', 'DeepSeek Response Generation'],
-          isHybridSystem: true
+          searchCapabilities: [
+            'GPU-Accelerated Vector Search', 
+            'BM25 Keyword Search', 
+            'Hybrid Fusion (Vector + BM25)',
+            'Transformer Embeddings',
+            'DeepSeek Response Generation'
+          ],
+          isHybridSystem: true,
+          hybridWeights: {
+            vector: 0.6,
+            bm25: 0.4
+          }
         };
       }
     } catch (error) {
@@ -261,14 +314,24 @@ Remember to provide comprehensive answers based on this rich context, but always
 
     // Fallback stats
     return {
-      totalDocuments: 13,
+      totalDocuments: 64,
       searchProvider: 'Hugging Face Transformers',
       responseProvider: 'DeepSeek LLM',
       architecture: 'Hybrid RAG System',
-      searchCapabilities: ['GPU-Accelerated Semantic Search', 'Transformer Embeddings', 'DeepSeek Response Generation'],
+      searchCapabilities: [
+        'GPU-Accelerated Vector Search', 
+        'BM25 Keyword Search', 
+        'Hybrid Fusion (Vector + BM25)',
+        'Transformer Embeddings',
+        'DeepSeek Response Generation'
+      ],
       isHybridSystem: true,
       modelName: 'sentence-transformers/all-MiniLM-L6-v2',
-      embeddingDimension: 384
+      embeddingDimension: 384,
+      hybridWeights: {
+        vector: 0.6,
+        bm25: 0.4
+      }
     };
   }
 }
