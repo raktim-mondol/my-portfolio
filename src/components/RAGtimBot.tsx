@@ -1,88 +1,107 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { MessageCircle, X, Send, Shield, AlertCircle, Database, BarChart3, Search, Zap, Target, ExternalLink, Bot } from 'lucide-react';
 import { ragService } from '../utils/ragService';
+import toast from 'react-hot-toast';
 
-interface Message {
+interface ChatMessage {
   id: string;
-  text: string;
-  isUser: boolean;
+  role: 'user' | 'assistant';
+  content: string;
   timestamp: Date;
 }
 
 export default function RAGtimBot() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: "Hi! I'm RAGtim Bot, your AI assistant trained on Raktim's portfolio. Ask me anything about his research, experience, skills, or projects!",
-      isUser: false,
-      timestamp: new Date(),
-    },
-  ]);
-  const [inputText, setInputText] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const [knowledgeStats, setKnowledgeStats] = useState<any>(null);
+  const [showHuggingFaceOption, setShowHuggingFaceOption] = useState(false);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Check if using Hugging Face
+  const isUsingHuggingFace = import.meta.env.VITE_USE_HUGGING_FACE === 'true';
 
   useEffect(() => {
-    const initializeRAG = async () => {
-      try {
-        await ragService.initialize();
-        setIsInitialized(true);
-      } catch (error) {
-        console.error('Failed to initialize RAG service:', error);
-        setMessages(prev => [...prev, {
-          id: Date.now().toString(),
-          text: "Sorry, I'm having trouble initializing. Please try refreshing the page.",
-          isUser: false,
-          timestamp: new Date(),
-        }]);
-      }
+    // Add initial welcome message
+    const welcomeMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: isUsingHuggingFace 
+        ? "Hello! I'm RAGtim Bot, powered by Hugging Face Transformers! I'm an AI assistant trained on Raktim Mondol's portfolio and can answer questions about his research, publications, skills, experience, and more. What would you like to know?"
+        : ragService.hasApiKey()
+          ? "Hello! I'm RAGtim Bot, your enhanced AI assistant powered by advanced hybrid search technology. I combine semantic vector search with BM25 ranking to provide comprehensive and accurate answers about Raktim Mondol. I can provide detailed information about his education, research, publications, skills, experience, and more. What would you like to know?"
+          : "⚠️ The chatbot is currently unavailable. The API key needs to be configured in the Netlify environment variables. Please contact the site administrator.",
+      timestamp: new Date()
     };
-
-    initializeRAG();
-  }, []);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+    setMessages([welcomeMessage]);
+  }, [isUsingHuggingFace]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputText.trim() || isLoading || !isInitialized) return;
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
 
-    const userMessage: Message = {
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const loadKnowledgeStats = async () => {
+    try {
+      const stats = await ragService.getKnowledgeBaseStats();
+      setKnowledgeStats(stats);
+    } catch (error) {
+      console.error('Failed to load knowledge base stats:', error);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
+
+    if (!isUsingHuggingFace && !ragService.hasApiKey()) {
+      toast.error('The chatbot is currently unavailable. Please contact the site administrator.');
+      return;
+    }
+
+    const userMessage: ChatMessage = {
       id: Date.now().toString(),
-      text: inputText,
-      isUser: true,
-      timestamp: new Date(),
+      role: 'user',
+      content: inputMessage.trim(),
+      timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    setInputText('');
+    setInputMessage('');
     setIsLoading(true);
 
     try {
-      const response = await ragService.query(inputText);
+      const response = await ragService.generateResponse(userMessage.content, messages);
       
-      const botMessage: Message = {
+      const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        text: response,
-        isUser: false,
-        timestamp: new Date(),
+        role: 'assistant',
+        content: response,
+        timestamp: new Date()
       };
 
-      setMessages(prev => [...prev, botMessage]);
+      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error querying RAG service:', error);
-      const errorMessage: Message = {
+      console.error('Error sending message:', error);
+      toast.error('Failed to send message. Please try again.');
+      
+      const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        text: "Sorry, I encountered an error while processing your question. Please try again.",
-        isUser: false,
-        timestamp: new Date(),
+        role: 'assistant',
+        content: "I apologize, but I encountered an error while processing your request. Please try again.",
+        timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -90,88 +109,284 @@ export default function RAGtimBot() {
     }
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+    toast.success('Chat cleared!');
+  };
+
+  const toggleStats = async () => {
+    if (!showStats && !knowledgeStats) {
+      await loadKnowledgeStats();
+    }
+    setShowStats(!showStats);
+  };
+
+  const openHuggingFaceSpace = () => {
+    window.open('https://huggingface.co/spaces/raktimhugging/ragtim-bot', '_blank');
+  };
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const hasApiKey = ragService.hasApiKey();
+  const isAvailable = isUsingHuggingFace || hasApiKey;
+
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-80 h-96 flex flex-col border border-gray-200 dark:border-gray-700">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-lg">
-          <div className="flex items-center space-x-2">
-            <Bot className="w-5 h-5" />
-            <h3 className="font-semibold">RAGtim Bot</h3>
-            {!isInitialized && (
-              <Loader2 className="w-4 h-4 animate-spin" />
+    <>
+      {/* Chat Widget Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        {!isOpen && (
+          <div className="relative">
+            <button
+              onClick={() => setIsOpen(true)}
+              className={`${
+                isAvailable 
+                  ? 'bg-[#94c973] hover:bg-[#7fb95e]' 
+                  : 'bg-red-500 hover:bg-red-600'
+              } text-white rounded-2xl p-4 shadow-lg transition-all duration-300 hover:scale-110 group relative`}
+              aria-label="Open RAGtim Bot"
+            >
+              <MessageCircle className="h-6 w-6" />
+              <div className={`absolute -top-2 -left-3 text-xl z-10 ${
+                isAvailable ? '' : 'opacity-75'
+              }`} style={{
+                animation: isAvailable ? 'bounce 1s infinite, flash 2s infinite' : 'none'
+              }}>
+                {isAvailable ? (
+                  <span>🔥</span>
+                ) : (
+                  <span className="text-red-300 text-lg">⚠️</span>
+                )}
+              </div>
+            </button>
+            
+            {/* Hugging Face Option Button */}
+            {!isUsingHuggingFace && (
+              <button
+                onClick={openHuggingFaceSpace}
+                className="absolute -top-16 right-0 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white rounded-xl px-3 py-2 shadow-lg transition-all duration-300 hover:scale-105 text-sm font-medium flex items-center gap-2"
+                title="Try on Hugging Face Space"
+              >
+                <span>🤗</span>
+                <span>HF Space</span>
+                <ExternalLink className="h-3 w-3" />
+              </button>
             )}
           </div>
-          <p className="text-xs opacity-90 mt-1">
-            {isInitialized ? 'Ask me about Raktim!' : 'Initializing...'}
-          </p>
-        </div>
+        )}
+      </div>
 
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.isUser ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[80%] p-3 rounded-lg ${
-                  message.isUser
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-                }`}
-              >
-                <div className="flex items-start space-x-2">
-                  {!message.isUser && (
-                    <Bot className="w-4 h-4 mt-0.5 flex-shrink-0" />
+      {/* Chat Window */}
+      {isOpen && (
+        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50 flex flex-col">
+          {/* Header */}
+          <div className={`flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 ${
+            isAvailable ? 'bg-[#94c973]' : 'bg-red-500'
+          } text-white rounded-t-lg`}>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                {isUsingHuggingFace ? (
+                  <span className="text-sm">🤗</span>
+                ) : (
+                  <MessageCircle className="h-4 w-4" />
+                )}
+              </div>
+              <div>
+                <h3 className="font-semibold flex items-center">
+                  RAGtim Bot
+                  {isUsingHuggingFace ? (
+                    <span className="ml-1 text-xs bg-white/20 px-2 py-1 rounded">HF</span>
+                  ) : isAvailable ? (
+                    <Shield className="h-3 w-3 ml-1" title="Hybrid Search Enabled" />
+                  ) : (
+                    <AlertCircle className="h-3 w-3 ml-1" title="Configuration needed" />
                   )}
-                  {message.isUser && (
-                    <User className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  )}
-                  <div className="text-sm leading-relaxed">
-                    {message.text}
-                  </div>
-                </div>
+                </h3>
+                <p className="text-xs opacity-90">
+                  {isUsingHuggingFace 
+                    ? 'Powered by Hugging Face Transformers'
+                    : isAvailable 
+                      ? 'Hybrid Search: Semantic + Keyword' 
+                      : 'Configuration needed'
+                  }
+                </p>
               </div>
             </div>
-          ))}
-          {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <Bot className="w-4 h-4" />
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Thinking...
-                  </span>
+            <div className="flex items-center space-x-2">
+              {isAvailable && (
+                <button
+                  onClick={toggleStats}
+                  className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
+                  title="Knowledge base stats"
+                >
+                  <BarChart3 className="h-3 w-3" />
+                </button>
+              )}
+              {!isUsingHuggingFace && (
+                <button
+                  onClick={openHuggingFaceSpace}
+                  className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
+                  title="Try on Hugging Face Space"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </button>
+              )}
+              <button
+                onClick={clearChat}
+                className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
+                title="Clear chat"
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1 hover:bg-white/20 rounded transition-colors"
+                aria-label="Close chat"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Knowledge Base Stats */}
+          {showStats && knowledgeStats && (
+            <div className="p-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
+                <Target className="h-4 w-4 mr-1" />
+                {isUsingHuggingFace ? 'Hugging Face System' : 'Hybrid Search System'}
+              </h4>
+              <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                <div>Documents: {knowledgeStats.totalDocuments}</div>
+                {knowledgeStats.uniqueTerms && <div>Unique Terms: {knowledgeStats.uniqueTerms}</div>}
+                {knowledgeStats.hasEmbeddings && <div>Embeddings: {knowledgeStats.hasEmbeddings}</div>}
+                {knowledgeStats.averageDocLength && <div>Avg Doc Length: {knowledgeStats.averageDocLength} words</div>}
+                {knowledgeStats.modelName && (
+                  <div className="text-xs text-blue-600 dark:text-blue-400">
+                    Model: {knowledgeStats.modelName}
+                  </div>
+                )}
+                {knowledgeStats.bm25Parameters && (
+                  <div className="text-xs text-blue-600 dark:text-blue-400">
+                    BM25: k1={knowledgeStats.bm25Parameters.k1}, b={knowledgeStats.bm25Parameters.b}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {knowledgeStats.searchCapabilities?.map((capability: string) => (
+                    <span key={capability} className="bg-[#94c973]/20 text-[#94c973] px-2 py-1 rounded text-xs">
+                      {capability}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>
           )}
-          <div ref={messagesEndRef} />
-        </div>
 
-        {/* Input */}
-        <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex space-x-2">
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder={isInitialized ? "Ask about Raktim..." : "Initializing..."}
-              disabled={isLoading || !isInitialized}
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white text-sm disabled:opacity-50"
-            />
-            <button
-              type="submit"
-              disabled={isLoading || !isInitialized || !inputText.trim()}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white p-2 rounded-lg transition-colors"
-            >
-              <Send className="w-4 h-4" />
-            </button>
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.length === 0 && (
+              <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+                {isAvailable ? (
+                  <>
+                    <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-sm">
+                      {isUsingHuggingFace 
+                        ? 'Hugging Face Transformers ready! Ask me anything about Raktim Mondol.'
+                        : 'Advanced hybrid RAG system ready! Ask me anything about Raktim Mondol.'
+                      }
+                    </p>
+                    <p className="text-xs mt-2 opacity-70">
+                      {isUsingHuggingFace 
+                        ? 'Powered by GPU-accelerated semantic search.'
+                        : 'Powered by Vector + BM25 search for precise answers.'
+                      }
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50 text-red-500" />
+                    <p className="text-sm">The chatbot is currently unavailable.</p>
+                    <p className="text-xs mt-2 opacity-70">API key needs to be configured in Netlify environment variables.</p>
+                  </>
+                )}
+              </div>
+            )}
+            
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[85%] p-3 rounded-lg ${
+                    message.role === 'user'
+                      ? 'bg-[#94c973] text-white'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className={`text-xs mt-1 opacity-70 ${
+                    message.role === 'user' ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'
+                  }`}>
+                    {formatTime(message.timestamp)}
+                  </p>
+                </div>
+              </div>
+            ))}
+            
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
-        </form>
-      </div>
-    </div>
+
+          {/* Input */}
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex space-x-2">
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder={isAvailable ? "Ask about Raktim's research, skills, experience..." : "Chatbot unavailable"}
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                disabled={isLoading || !isAvailable}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={isLoading || !inputMessage.trim() || !isAvailable}
+                className="px-3 py-2 bg-[#94c973] text-white rounded-lg hover:bg-[#7fb95e] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                aria-label="Send message"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes flash {
+          0%, 50% { opacity: 1; }
+          25%, 75% { opacity: 0.3; }
+        }
+      `}</style>
+    </>
   );
 }
