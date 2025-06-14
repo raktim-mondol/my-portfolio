@@ -4,6 +4,7 @@ const { pipeline, env } = require('@xenova/transformers');
 env.allowRemoteModels = true;
 env.allowLocalModels = true;
 env.cacheDir = './models'; // Local model cache directory
+env.backends.onnx.wasm.wasmOnly = true; // Use WASM backend instead of native addons
 
 class TransformerService {
   constructor() {
