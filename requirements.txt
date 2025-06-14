@@ -1,9 +1,0 @@
-gradio==5.34.0
-transformers==4.36.0
-torch==2.5.0
-sentence-transformers==2.2.2
-numpy==1.24.3
-accelerate==0.25.0
-safetensors==0.4.1
-tokenizers==0.15.0
-huggingface-hub>=0.28.1
