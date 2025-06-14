@@ -17,60 +17,59 @@ export class HuggingFaceRAGService {
     return true; // Hugging Face Space doesn't need API key
   }
 
-  private async callGradioAPI(apiName: string, data: any[]): Promise<any> {
+  private async checkSpaceHealth(): Promise<boolean> {
     try {
-      console.log(`🤗 Calling Gradio API: ${apiName}`, data);
+      console.log('🏥 Checking Hugging Face Space health...');
       
-      const response = await fetch(`${this.spaceUrl}/api/predict`, {
-        method: 'POST',
+      const response = await fetch(`${this.spaceUrl}/`, {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         },
-        body: JSON.stringify({
-          data: data,
-          fn_index: this.getFunctionIndex(apiName)
-        }),
       });
-
-      if (!response.ok) {
-        throw new Error(`Gradio API error: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      console.log(`🤗 Gradio API response for ${apiName}:`, result);
       
-      return result;
+      console.log('🏥 Health check response:', response.status, response.statusText);
+      return response.ok;
     } catch (error) {
-      console.error(`❌ Gradio API call failed for ${apiName}:`, error);
-      throw error;
+      console.warn('⚠️ Hugging Face health check failed:', error);
+      return false;
     }
-  }
-
-  private getFunctionIndex(apiName: string): number {
-    // Map API names to function indices based on the Gradio interface order
-    const functionMap: Record<string, number> = {
-      'chat': 0,      // First interface (chat)
-      'search': 1,    // Second interface (search)
-      'stats': 2      // Third interface (stats)
-    };
-    
-    return functionMap[apiName] || 0;
   }
 
   private async queryHuggingFaceChat(message: string): Promise<string> {
     try {
       console.log('🤗 Querying HF chat with message:', message);
       
-      const result = await this.callGradioAPI('chat', [message]);
+      // Try to use the chat interface directly
+      const chatUrl = `${this.spaceUrl}/api/chat`;
+      console.log('🤗 Calling chat API:', chatUrl);
       
-      // Extract the response from Gradio format
-      if (result.data && result.data.length > 0) {
-        const response = result.data[0];
-        console.log('🤗 Chat response received:', response?.substring(0, 100) + '...');
-        return response || "I apologize, but I couldn't generate a response.";
+      const response = await fetch(chatUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          message: message,
+          history: []
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Hugging Face chat API error: ${response.status} ${response.statusText}`);
       }
+
+      const data = await response.json();
+      console.log('🤗 Chat response received:', data);
       
-      throw new Error('Invalid response format from Hugging Face Space');
+      if (data.response) {
+        return data.response;
+      } else if (data.message) {
+        return data.message;
+      } else {
+        throw new Error('Invalid response format from Hugging Face Space');
+      }
     } catch (error) {
       console.error('❌ Hugging Face chat query error:', error);
       throw error;
@@ -81,21 +80,31 @@ export class HuggingFaceRAGService {
     try {
       console.log('🔍 Querying HF search:', { query, topK });
       
-      const result = await this.callGradioAPI('search', [
-        query,           // Search query
-        topK,           // Top K results
-        'hybrid',       // Search type
-        0.6,           // Vector weight
-        0.4            // BM25 weight
-      ]);
+      const searchUrl = `${this.spaceUrl}/api/search`;
+      console.log('🔍 Calling search API:', searchUrl);
       
-      if (result.data && result.data.length > 0) {
-        const searchResults = result.data[0];
-        console.log('🔍 Search results received:', searchResults);
-        return searchResults;
+      const response = await fetch(searchUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          query: query,
+          top_k: topK,
+          search_type: 'hybrid',
+          vector_weight: 0.6,
+          bm25_weight: 0.4
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Hugging Face search API error: ${response.status} ${response.statusText}`);
       }
-      
-      return { results: [], query, topK };
+
+      const data = await response.json();
+      console.log('🔍 Search results received:', data);
+      return data;
     } catch (error) {
       console.error('❌ Hugging Face search query error:', error);
       throw error;
@@ -106,19 +115,23 @@ export class HuggingFaceRAGService {
     try {
       console.log('📊 Querying HF stats...');
       
-      const result = await this.callGradioAPI('stats', []);
+      const statsUrl = `${this.spaceUrl}/api/stats`;
+      console.log('📊 Calling stats API:', statsUrl);
       
-      if (result.data && result.data.length > 0) {
-        const stats = result.data[0];
-        console.log('📊 Stats received:', stats);
-        return stats;
+      const response = await fetch(statsUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Hugging Face stats API error: ${response.status} ${response.statusText}`);
       }
-      
-      return {
-        totalDocuments: 0,
-        searchCapabilities: ['Hugging Face Space'],
-        status: 'unknown'
-      };
+
+      const data = await response.json();
+      console.log('📊 Stats received:', data);
+      return data;
     } catch (error) {
       console.error('❌ Hugging Face stats query error:', error);
       throw error;
@@ -131,8 +144,13 @@ export class HuggingFaceRAGService {
       console.log('- Query:', userQuery);
       console.log('- History length:', conversationHistory.length);
 
-      // For now, we'll use the simple chat interface
-      // In the future, we could enhance this to include conversation history
+      // Check if space is healthy first
+      const isHealthy = await this.checkSpaceHealth();
+      if (!isHealthy) {
+        return "The Hugging Face Space is currently starting up. Free Hugging Face Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
+      }
+
+      // Use the chat interface
       const response = await this.queryHuggingFaceChat(userQuery);
       
       return response;
@@ -144,8 +162,8 @@ export class HuggingFaceRAGService {
           return "Network error occurred. The Hugging Face Space might be starting up. Please wait 30-60 seconds and try again.";
         }
         
-        if (error.message.includes('Gradio') || error.message.includes('API')) {
-          return "The Hugging Face Space is currently starting up or experiencing issues. Free spaces go to sleep after inactivity. Please wait a moment and try again.";
+        if (error.message.includes('API error') || error.message.includes('404') || error.message.includes('500')) {
+          return "The Hugging Face Space is currently starting up or the API endpoints are not ready yet. Free spaces go to sleep after inactivity. Please wait a moment and try again.";
         }
       }
       
@@ -169,7 +187,7 @@ export class HuggingFaceRAGService {
         backendType: 'Hugging Face Space',
         modelName: 'sentence-transformers/all-MiniLM-L6-v2',
         embeddingDimension: 384,
-        architecture: 'Gradio API Integration'
+        architecture: 'Direct API Integration'
       };
     } catch (error) {
       console.error('❌ Error getting stats:', error);
@@ -181,7 +199,7 @@ export class HuggingFaceRAGService {
         backendType: 'Hugging Face Space',
         modelName: 'sentence-transformers/all-MiniLM-L6-v2',
         embeddingDimension: 384,
-        architecture: 'Gradio API Integration',
+        architecture: 'Direct API Integration',
         status: 'starting'
       };
     }
