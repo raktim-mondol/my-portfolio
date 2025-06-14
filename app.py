@@ -721,33 +721,40 @@ demo = gr.TabbedInterface(
     title="🔥 Hybrid Search RAGtim Bot - Vector + BM25 Fusion"
 )
 
-# Create API endpoints that can be accessed via HTTP
-def api_search_endpoint(request: gr.Request):
-    """HTTP API endpoint for search"""
-    try:
-        # Get query parameters from the request
-        query = request.query_params.get('query', '')
-        top_k = int(request.query_params.get('top_k', 5))
-        search_type = request.query_params.get('search_type', 'hybrid')
-        vector_weight = float(request.query_params.get('vector_weight', 0.6))
-        bm25_weight = float(request.query_params.get('bm25_weight', 0.4))
-        
-        if not query:
-            return {"error": "Query parameter is required"}
-        
-        return search_api(query, top_k, search_type, vector_weight, bm25_weight)
-    except Exception as e:
-        return {"error": str(e)}
+# Create API endpoints for external access
+def api_search(query: str, top_k: int = 5, search_type: str = "hybrid", vector_weight: float = 0.6, bm25_weight: float = 0.4):
+    """External API endpoint for search"""
+    return search_api(query, top_k, search_type, vector_weight, bm25_weight)
 
-def api_stats_endpoint(request: gr.Request):
-    """HTTP API endpoint for stats"""
-    try:
-        return get_stats_api()
-    except Exception as e:
-        return {"error": str(e)}
+def api_stats():
+    """External API endpoint for stats"""
+    return get_stats_api()
 
-# Add API routes to the main demo
+# Add API endpoints to the demo
 demo.api_name = "hybrid_search_api"
+
+# Create separate API interface for external access
+api_interface = gr.Interface(
+    fn=api_search,
+    inputs=[
+        gr.Textbox(label="Query", placeholder="Enter your search query"),
+        gr.Number(label="Top K", value=5, minimum=1, maximum=20),
+        gr.Radio(choices=["hybrid", "vector", "bm25"], value="hybrid", label="Search Type"),
+        gr.Slider(minimum=0.0, maximum=1.0, value=0.6, label="Vector Weight"),
+        gr.Slider(minimum=0.0, maximum=1.0, value=0.4, label="BM25 Weight")
+    ],
+    outputs=gr.JSON(label="Search Results"),
+    title="🔍 Hybrid Search API",
+    description="API endpoint for hybrid search functionality"
+)
+
+stats_interface = gr.Interface(
+    fn=api_stats,
+    inputs=[],
+    outputs=gr.JSON(label="System Statistics"),
+    title="📊 Statistics API",
+    description="API endpoint for system statistics"
+)
 
 if __name__ == "__main__":
     print("🚀 Launching Hybrid Search RAGtim Bot...")
