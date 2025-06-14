@@ -90,15 +90,34 @@ export class HybridRAGService {
   private async checkHuggingFaceHealth(): Promise<boolean> {
     try {
       console.log('🏥 Checking Hugging Face health...');
+      
+      // First try to wake up the space by visiting the main page
+      console.log('🏥 Step 1: Waking up Hugging Face Space...');
+      try {
+        const wakeUpResponse = await fetch(this.huggingFaceUrl, {
+          method: 'GET',
+          mode: 'no-cors' // This prevents CORS issues for the wake-up call
+        });
+        console.log('🏥 Wake-up call completed');
+      } catch (wakeUpError) {
+        console.log('🏥 Wake-up call failed (expected for no-cors):', wakeUpError.message);
+      }
+
+      // Wait a moment for the space to start
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Now try the API endpoint with proper error handling
+      console.log('🏥 Step 2: Testing API endpoint...');
       console.log('🏥 Health check URL:', `${this.huggingFaceUrl}/api/stats`);
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
       
       const response = await fetch(`${this.huggingFaceUrl}/api/stats`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         signal: controller.signal
       });
@@ -106,14 +125,36 @@ export class HybridRAGService {
       clearTimeout(timeoutId);
       
       console.log('🏥 HF Health Response:', response.status, response.statusText);
+      console.log('🏥 Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (response.ok) {
-        const data = await response.json();
-        console.log('🏥 HF Health Data:', data);
-        return true;
+        const contentType = response.headers.get('content-type');
+        console.log('🏥 Content-Type:', contentType);
+        
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            const data = await response.json();
+            console.log('🏥 HF Health Data:', data);
+            return true;
+          } catch (jsonError) {
+            console.error('🏥 Failed to parse JSON response:', jsonError);
+            return false;
+          }
+        } else {
+          // If we get HTML, the space is probably still starting up
+          const textResponse = await response.text();
+          console.log('🏥 Non-JSON response (first 200 chars):', textResponse.substring(0, 200));
+          
+          if (textResponse.includes('<!doctype') || textResponse.includes('<html')) {
+            console.log('🏥 Space is returning HTML - likely still starting up');
+            return false;
+          }
+          
+          return false;
+        }
       } else {
         const errorText = await response.text();
-        console.error('🏥 HF Health Error:', errorText);
+        console.error('🏥 HF Health Error:', response.status, errorText);
         return false;
       }
     } catch (error) {
@@ -152,6 +193,7 @@ export class HybridRAGService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify(requestBody),
         signal: controller.signal
@@ -160,11 +202,19 @@ export class HybridRAGService {
       clearTimeout(timeoutId);
       
       console.log('📥 HF Search Response:', response.status, response.statusText);
+      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ HF Search Error Response:', errorText);
         throw new Error(`Hugging Face hybrid search failed: ${response.status} - ${errorText}`);
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const textResponse = await response.text();
+        console.error('❌ Non-JSON response from search API:', textResponse.substring(0, 200));
+        throw new Error('Hugging Face API returned non-JSON response');
       }
 
       const data = await response.json();
@@ -282,7 +332,7 @@ export class HybridRAGService {
       const isHFHealthy = await this.checkHuggingFaceHealth();
       
       if (!isHFHealthy) {
-        const errorMsg = "The hybrid search service is currently unavailable. The Hugging Face Space may be starting up or experiencing issues. Please try again in a moment.";
+        const errorMsg = "The Hugging Face Space is currently starting up or sleeping. This is normal for free Hugging Face Spaces. Please wait 30-60 seconds and try again. The space should wake up automatically.";
         console.log('❌ HF not healthy:', errorMsg);
         return errorMsg;
       }
@@ -401,8 +451,8 @@ Remember to provide comprehensive answers based on this rich context from our hy
           stack: error.stack?.split('\n').slice(0, 5)
         });
         
-        if (error.message.includes('Hugging Face')) {
-          return "The hybrid search service is currently unavailable. This may be because the Hugging Face Space is starting up or experiencing issues. Please try again in a moment.";
+        if (error.message.includes('Hugging Face') || error.message.includes('non-JSON')) {
+          return "The Hugging Face Space is currently starting up. Free Hugging Face Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
         }
         
         if (error.message.includes('API key') || error.message.includes('401') || error.message.includes('Authentication')) {
@@ -414,7 +464,7 @@ Remember to provide comprehensive answers based on this rich context from our hy
         }
         
         if (error.message.includes('AbortError')) {
-          return "Request timed out. The service may be slow. Please try again.";
+          return "Request timed out. The Hugging Face Space may be slow to respond. Please try again in a moment.";
         }
       }
       
@@ -430,32 +480,38 @@ Remember to provide comprehensive answers based on this rich context from our hy
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
       const response = await fetch(`${this.huggingFaceUrl}/api/stats`, {
+        headers: {
+          'Accept': 'application/json'
+        },
         signal: controller.signal
       });
       
       clearTimeout(timeoutId);
       
       if (response.ok) {
-        const stats = await response.json();
-        console.log('📊 HF Stats received:', stats);
-        return {
-          ...stats,
-          searchProvider: 'Hugging Face Transformers',
-          responseProvider: 'DeepSeek LLM',
-          architecture: 'Hybrid RAG System',
-          searchCapabilities: [
-            'GPU-Accelerated Vector Search', 
-            'BM25 Keyword Search', 
-            'Hybrid Fusion (Vector + BM25)',
-            'Transformer Embeddings',
-            'DeepSeek Response Generation'
-          ],
-          isHybridSystem: true,
-          hybridWeights: {
-            vector: 0.6,
-            bm25: 0.4
-          }
-        };
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const stats = await response.json();
+          console.log('📊 HF Stats received:', stats);
+          return {
+            ...stats,
+            searchProvider: 'Hugging Face Transformers',
+            responseProvider: 'DeepSeek LLM',
+            architecture: 'Hybrid RAG System',
+            searchCapabilities: [
+              'GPU-Accelerated Vector Search', 
+              'BM25 Keyword Search', 
+              'Hybrid Fusion (Vector + BM25)',
+              'Transformer Embeddings',
+              'DeepSeek Response Generation'
+            ],
+            isHybridSystem: true,
+            hybridWeights: {
+              vector: 0.6,
+              bm25: 0.4
+            }
+          };
+        }
       }
     } catch (error) {
       console.warn('⚠️ Could not fetch stats from Hugging Face:', error);
