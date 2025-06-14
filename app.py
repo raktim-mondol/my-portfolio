@@ -456,8 +456,8 @@ def get_stats_api():
             "search_capabilities": ["Error"]
         }
 
-def chat_interface(message, history):
-    """Chat interface with hybrid search"""
+def chat_interface(message: str) -> str:
+    """Simple chat interface without state management"""
     if not message.strip():
         return "Please ask me something about Raktim Mondol! I use hybrid search combining semantic similarity and keyword matching for the best results."
     
@@ -511,16 +511,36 @@ def chat_interface(message, history):
 # Create Gradio interfaces with proper API names
 print("Creating Gradio interface...")
 
-# Main chat interface
+# Main chat interface - simplified without state
 chat_demo = gr.Interface(
     fn=chat_interface,
-    inputs=[
-        gr.Textbox(label="Ask about Raktim Mondol", placeholder="What would you like to know about Raktim's research, skills, or experience?"),
-        gr.State([])  # For conversation history
-    ],
-    outputs=gr.Textbox(label="Response"),
+    inputs=gr.Textbox(
+        label="Ask about Raktim Mondol", 
+        placeholder="What would you like to know about Raktim's research, skills, or experience?",
+        lines=2
+    ),
+    outputs=gr.Textbox(
+        label="Response", 
+        lines=15,
+        max_lines=20
+    ),
     title="🔥 Hybrid Search RAGtim Bot",
-    description="Ask me anything about Raktim Mondol! I use advanced hybrid search combining semantic similarity and keyword matching.",
+    description=f"""
+    **🚀 Hybrid Search System**: This Space implements **true hybrid search** combining:
+    - 🧠 **Semantic Vector Search**: Transformer embeddings for conceptual similarity
+    - 🔍 **BM25 Keyword Search**: Advanced TF-IDF ranking for exact term matching
+    - ⚖️ **Intelligent Fusion**: Weighted combination for optimal relevance
+    
+    **📚 Knowledge Base**: **{len(bot.knowledge_base)} sections** from comprehensive markdown files
+    
+    **Ask me anything about Raktim Mondol's research, expertise, and background!**
+    """,
+    examples=[
+        "What is Raktim's LLM and RAG research?",
+        "Tell me about BioFusionNet statistical methods",
+        "What are his multimodal AI capabilities?",
+        "Describe his biostatistics expertise"
+    ],
     api_name="chat"
 )
 
