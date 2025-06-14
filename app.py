@@ -8,18 +8,33 @@ from typing import List, Dict, Any
 import time
 import requests
 import re
+import math
+from collections import defaultdict, Counter
 
 # Configure device
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
 
-class RAGtimBot:
+class HybridSearchRAGBot:
     def __init__(self):
         self.embedder = None
         self.knowledge_base = []
         self.embeddings = []
+        
+        # BM25 components
+        self.term_frequencies = {}  # doc_id -> {term: frequency}
+        self.document_frequency = {}  # term -> number of docs containing term
+        self.document_lengths = {}  # doc_id -> document length
+        self.average_doc_length = 0
+        self.total_documents = 0
+        
+        # BM25 parameters
+        self.k1 = 1.5  # Controls term frequency saturation
+        self.b = 0.75  # Controls document length normalization
+        
         self.initialize_models()
         self.load_markdown_knowledge_base()
+        self.build_bm25_index()
         
     def initialize_models(self):
         """Initialize the embedding model"""
@@ -80,6 +95,7 @@ class RAGtimBot:
                 # Fallback to zero embedding
                 self.embeddings.append(np.zeros(384))
         
+        self.total_documents = len(self.knowledge_base)
         print(f"✅ Knowledge base loaded with {len(self.knowledge_base)} documents")
     
     def process_markdown_file(self, content: str, filename: str):
@@ -142,77 +158,252 @@ class RAGtimBot:
         
         return sections
     
+    def tokenize(self, text: str) -> List[str]:
+        """Tokenize text for BM25"""
+        # Convert to lowercase and remove punctuation
+        text = re.sub(r'[^\w\s]', ' ', text.lower())
+        # Split into words and filter out short words and stop words
+        words = [word for word in text.split() if len(word) > 2 and not self.is_stop_word(word)]
+        return words
+    
+    def is_stop_word(self, word: str) -> bool:
+        """Check if word is a stop word"""
+        stop_words = {
+            'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
+            'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did',
+            'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those',
+            'from', 'up', 'out', 'down', 'off', 'over', 'under', 'again', 'further', 'then', 'once'
+        }
+        return word in stop_words
+    
+    def build_bm25_index(self):
+        """Build BM25 index for all documents"""
+        print("Building BM25 index...")
+        
+        # Reset indexes
+        self.term_frequencies = {}
+        self.document_frequency = defaultdict(int)
+        self.document_lengths = {}
+        
+        total_length = 0
+        
+        # First pass: calculate term frequencies and document lengths
+        for doc in self.knowledge_base:
+            doc_id = doc['id']
+            terms = self.tokenize(doc['content'])
+            
+            # Calculate term frequencies for this document
+            term_freq = Counter(terms)
+            self.term_frequencies[doc_id] = dict(term_freq)
+            
+            # Store document length
+            doc_length = len(terms)
+            self.document_lengths[doc_id] = doc_length
+            total_length += doc_length
+            
+            # Update document frequencies
+            unique_terms = set(terms)
+            for term in unique_terms:
+                self.document_frequency[term] += 1
+        
+        # Calculate average document length
+        self.average_doc_length = total_length / self.total_documents if self.total_documents > 0 else 0
+        
+        print(f"✅ BM25 index built: {len(self.document_frequency)} unique terms, avg doc length: {self.average_doc_length:.1f}")
+    
+    def calculate_bm25_score(self, term: str, doc_id: str) -> float:
+        """Calculate BM25 score for a term in a document"""
+        # Get term frequency in document
+        tf = self.term_frequencies.get(doc_id, {}).get(term, 0)
+        if tf == 0:
+            return 0.0
+        
+        # Get document frequency and document length
+        df = self.document_frequency.get(term, 1)
+        doc_length = self.document_lengths.get(doc_id, 0)
+        
+        # Calculate IDF: log((N - df + 0.5) / (df + 0.5))
+        idf = math.log((self.total_documents - df + 0.5) / (df + 0.5))
+        
+        # Calculate BM25 score
+        numerator = tf * (self.k1 + 1)
+        denominator = tf + self.k1 * (1 - self.b + self.b * (doc_length / self.average_doc_length))
+        
+        return idf * (numerator / denominator)
+    
+    def bm25_search(self, query: str, top_k: int = 10) -> List[Dict]:
+        """Perform BM25 search"""
+        query_terms = self.tokenize(query)
+        if not query_terms:
+            return []
+        
+        scores = {}
+        
+        # Calculate BM25 score for each document
+        for doc in self.knowledge_base:
+            doc_id = doc['id']
+            score = 0.0
+            
+            for term in query_terms:
+                score += self.calculate_bm25_score(term, doc_id)
+            
+            if score > 0:
+                # Apply priority boost
+                priority_boost = 1 + (doc['metadata']['priority'] / 50)
+                final_score = score * priority_boost
+                
+                scores[doc_id] = {
+                    'document': doc,
+                    'score': final_score,
+                    'search_type': 'bm25'
+                }
+        
+        # Sort by score and return top_k
+        sorted_results = sorted(scores.values(), key=lambda x: x['score'], reverse=True)
+        return sorted_results[:top_k]
+    
     def cosine_similarity(self, a, b):
         """Calculate cosine similarity between two vectors"""
         return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
     
-    def search_knowledge_base(self, query: str, top_k: int = 5) -> List[Dict]:
-        """Search the knowledge base using semantic similarity"""
+    def vector_search(self, query: str, top_k: int = 10) -> List[Dict]:
+        """Perform vector similarity search"""
         try:
             # Generate query embedding
-            query_embedding = self.embedder(query[:500], return_tensors="pt")  # Truncate query too
+            query_embedding = self.embedder(query[:500], return_tensors="pt")  # Truncate query
             query_vector = query_embedding[0].mean(dim=0).detach().cpu().numpy()
             
             # Calculate similarities
             similarities = []
             for i, doc_embedding in enumerate(self.embeddings):
-                similarity = self.cosine_similarity(query_vector, doc_embedding)
-                similarities.append({
-                    "id": self.knowledge_base[i]["id"],
-                    "content": self.knowledge_base[i]["content"],
-                    "metadata": self.knowledge_base[i]["metadata"],
-                    "score": float(similarity),
-                    "index": i
-                })
+                if doc_embedding is not None and len(doc_embedding) > 0:
+                    similarity = self.cosine_similarity(query_vector, doc_embedding)
+                    
+                    # Apply priority boost
+                    priority_boost = 1 + (self.knowledge_base[i]['metadata']['priority'] / 100)
+                    final_score = similarity * priority_boost
+                    
+                    similarities.append({
+                        'document': self.knowledge_base[i],
+                        'score': float(final_score),
+                        'search_type': 'vector'
+                    })
             
-            # Sort by similarity and priority
-            similarities.sort(key=lambda x: (x["score"], x["metadata"]["priority"]), reverse=True)
+            # Sort by similarity and return top_k
+            similarities.sort(key=lambda x: x['score'], reverse=True)
             return similarities[:top_k]
             
         except Exception as e:
-            print(f"Error in search: {e}")
-            # Fallback to keyword search
-            return self.keyword_search(query, top_k)
+            print(f"Error in vector search: {e}")
+            return []
     
-    def keyword_search(self, query: str, top_k: int = 5) -> List[Dict]:
-        """Fallback keyword search"""
-        query_terms = query.lower().split()
-        results = []
-        
-        for i, doc in enumerate(self.knowledge_base):
-            content_lower = doc["content"].lower()
-            score = sum(content_lower.count(term) for term in query_terms)
+    def hybrid_search(self, query: str, top_k: int = 10, vector_weight: float = 0.6, bm25_weight: float = 0.4) -> List[Dict]:
+        """Perform hybrid search combining vector and BM25 results"""
+        try:
+            # Get results from both search methods
+            vector_results = self.vector_search(query, top_k * 2)  # Get more results for better fusion
+            bm25_results = self.bm25_search(query, top_k * 2)
             
-            # Add priority boost
-            priority_boost = doc["metadata"]["priority"] / 10
-            final_score = score + priority_boost
+            # Normalize scores to [0, 1] range
+            if vector_results:
+                max_vector_score = max(r['score'] for r in vector_results)
+                if max_vector_score > 0:
+                    for result in vector_results:
+                        result['normalized_score'] = result['score'] / max_vector_score
+                else:
+                    for result in vector_results:
+                        result['normalized_score'] = 0
             
-            if score > 0:
-                results.append({
-                    "id": doc["id"],
-                    "content": doc["content"],
-                    "metadata": doc["metadata"],
-                    "score": final_score,
-                    "index": i
+            if bm25_results:
+                max_bm25_score = max(r['score'] for r in bm25_results)
+                if max_bm25_score > 0:
+                    for result in bm25_results:
+                        result['normalized_score'] = result['score'] / max_bm25_score
+                else:
+                    for result in bm25_results:
+                        result['normalized_score'] = 0
+            
+            # Combine results
+            combined_scores = {}
+            
+            # Add vector results
+            for result in vector_results:
+                doc_id = result['document']['id']
+                combined_scores[doc_id] = {
+                    'document': result['document'],
+                    'vector_score': result['normalized_score'],
+                    'bm25_score': 0.0,
+                    'search_type': 'vector'
+                }
+            
+            # Add BM25 results
+            for result in bm25_results:
+                doc_id = result['document']['id']
+                if doc_id in combined_scores:
+                    combined_scores[doc_id]['bm25_score'] = result['normalized_score']
+                    combined_scores[doc_id]['search_type'] = 'hybrid'
+                else:
+                    combined_scores[doc_id] = {
+                        'document': result['document'],
+                        'vector_score': 0.0,
+                        'bm25_score': result['normalized_score'],
+                        'search_type': 'bm25'
+                    }
+            
+            # Calculate final hybrid scores
+            final_results = []
+            for doc_id, data in combined_scores.items():
+                hybrid_score = (vector_weight * data['vector_score']) + (bm25_weight * data['bm25_score'])
+                final_results.append({
+                    'document': data['document'],
+                    'score': hybrid_score,
+                    'vector_score': data['vector_score'],
+                    'bm25_score': data['bm25_score'],
+                    'search_type': data['search_type']
                 })
-        
-        results.sort(key=lambda x: x["score"], reverse=True)
-        return results[:top_k]
+            
+            # Sort by hybrid score and return top_k
+            final_results.sort(key=lambda x: x['score'], reverse=True)
+            return final_results[:top_k]
+            
+        except Exception as e:
+            print(f"Error in hybrid search: {e}")
+            # Fallback to vector search only
+            return self.vector_search(query, top_k)
+    
+    def search_knowledge_base(self, query: str, top_k: int = 5, search_type: str = "hybrid") -> List[Dict]:
+        """Search the knowledge base using specified method"""
+        if search_type == "vector":
+            return self.vector_search(query, top_k)
+        elif search_type == "bm25":
+            return self.bm25_search(query, top_k)
+        else:  # hybrid
+            return self.hybrid_search(query, top_k)
 
 # Initialize the bot
-print("Initializing RAGtim Bot with markdown knowledge base...")
-bot = RAGtimBot()
+print("Initializing Hybrid Search RAGtim Bot...")
+bot = HybridSearchRAGBot()
 
-def search_only_api(query, top_k=5):
-    """API endpoint for search-only functionality"""
+def search_api(query, top_k=5, search_type="hybrid", vector_weight=0.6, bm25_weight=0.4):
+    """API endpoint for hybrid search functionality"""
     try:
-        results = bot.search_knowledge_base(query, top_k)
+        if search_type == "hybrid":
+            results = bot.hybrid_search(query, top_k, vector_weight, bm25_weight)
+        else:
+            results = bot.search_knowledge_base(query, top_k, search_type)
+        
         return {
             "results": results,
             "query": query,
             "top_k": top_k,
-            "search_type": "semantic",
-            "total_documents": len(bot.knowledge_base)
+            "search_type": search_type,
+            "total_documents": len(bot.knowledge_base),
+            "search_parameters": {
+                "vector_weight": vector_weight if search_type == "hybrid" else None,
+                "bm25_weight": bm25_weight if search_type == "hybrid" else None,
+                "bm25_k1": bot.k1,
+                "bm25_b": bot.b
+            }
         }
     except Exception as e:
         print(f"Error in search API: {e}")
@@ -237,46 +428,70 @@ def get_stats_api():
         "sections_by_file": sections_by_file,
         "model_name": "sentence-transformers/all-MiniLM-L6-v2",
         "embedding_dimension": 384,
-        "search_capabilities": ["Semantic Search", "GPU Accelerated", "Transformer Embeddings", "Markdown Knowledge Base"],
-        "backend_type": "Hugging Face Space",
+        "search_capabilities": [
+            "Hybrid Search (Vector + BM25)",
+            "Semantic Vector Search", 
+            "BM25 Keyword Search",
+            "GPU Accelerated",
+            "Transformer Embeddings"
+        ],
+        "bm25_parameters": {
+            "k1": bot.k1,
+            "b": bot.b,
+            "unique_terms": len(bot.document_frequency),
+            "average_doc_length": bot.average_doc_length
+        },
+        "backend_type": "Hugging Face Space with Hybrid Search",
         "knowledge_sources": list(sections_by_file.keys())
     }
 
 def chat_interface(message, history):
-    """Chat interface with markdown knowledge base"""
+    """Chat interface with hybrid search"""
     if not message.strip():
-        return "Please ask me something about Raktim Mondol! I have comprehensive information loaded from his complete portfolio markdown files."
+        return "Please ask me something about Raktim Mondol! I use hybrid search combining semantic similarity and keyword matching for the best results."
     
     try:
-        # Search knowledge base
-        search_results = bot.search_knowledge_base(message, top_k=6)
+        # Use hybrid search by default
+        search_results = bot.hybrid_search(message, top_k=6)
         
         if search_results:
             # Build comprehensive response
             response_parts = []
-            response_parts.append(f"Based on my markdown knowledge base (found {len(search_results)} relevant sections):\n")
+            response_parts.append(f"🔍 **Hybrid Search Results** (Vector + BM25 combination, found {len(search_results)} relevant sections):\n")
             
             # Use the best match as primary response
             best_match = search_results[0]
-            response_parts.append(f"**Primary Answer** (Relevance: {best_match['score']:.2f}):")
-            response_parts.append(f"Source: {best_match['metadata']['source']} - {best_match['metadata']['section']}")
-            response_parts.append(f"{best_match['content']}\n")
+            response_parts.append(f"**Primary Answer** (Hybrid Score: {best_match['score']:.3f}):")
+            response_parts.append(f"📄 Source: {best_match['document']['metadata']['source']} - {best_match['document']['metadata']['section']}")
+            response_parts.append(f"🔍 Search Type: {best_match['search_type'].upper()}")
+            
+            # Show score breakdown for hybrid results
+            if 'vector_score' in best_match and 'bm25_score' in best_match:
+                response_parts.append(f"📊 Vector Score: {best_match['vector_score']:.3f} | BM25 Score: {best_match['bm25_score']:.3f}")
+            
+            response_parts.append(f"\n{best_match['document']['content']}\n")
             
             # Add additional context if available
             if len(search_results) > 1:
                 response_parts.append("**Additional Context:**")
                 for i, result in enumerate(search_results[1:3], 1):  # Show up to 2 additional results
-                    section_info = f"{result['metadata']['source']} - {result['metadata']['section']}"
-                    response_parts.append(f"{i}. {section_info} (Relevance: {result['score']:.2f})")
+                    section_info = f"{result['document']['metadata']['source']} - {result['document']['metadata']['section']}"
+                    search_info = f"({result['search_type'].upper()}, Score: {result['score']:.3f})"
+                    response_parts.append(f"{i}. {section_info} {search_info}")
+                    
                     # Add a brief excerpt
-                    excerpt = result['content'][:200] + "..." if len(result['content']) > 200 else result['content']
+                    excerpt = result['document']['content'][:200] + "..." if len(result['document']['content']) > 200 else result['document']['content']
                     response_parts.append(f"   {excerpt}\n")
             
-            response_parts.append("\n[Note: This response is generated from your complete markdown knowledge base. In hybrid mode, DeepSeek LLM would generate more natural responses using this context.]")
+            response_parts.append("\n🤖 **Hybrid Search Technology:**")
+            response_parts.append("• **Vector Search**: Semantic similarity using transformer embeddings")
+            response_parts.append("• **BM25 Search**: Advanced keyword ranking with TF-IDF")
+            response_parts.append("• **Fusion**: Weighted combination for optimal relevance")
+            response_parts.append("\n[Note: This demonstrates hybrid search results. In production, these would be passed to an LLM for natural response generation.]")
             
             return "\n".join(response_parts)
         else:
-            return "I don't have specific information about that topic in my markdown knowledge base. Could you please ask something else about Raktim Mondol?"
+            return "I don't have specific information about that topic in my knowledge base. Could you please ask something else about Raktim Mondol?"
         
     except Exception as e:
         print(f"Error in chat interface: {e}")
@@ -290,16 +505,21 @@ css = """
 .gradio-container {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-.chat-message {
+.search-type-radio .wrap {
+    display: flex;
+    gap: 10px;
+}
+.search-weights {
+    background: #f0f0f0;
     padding: 10px;
-    margin: 5px 0;
-    border-radius: 10px;
+    border-radius: 5px;
+    margin: 10px 0;
 }
 """
 
-# Create the main chat interface - UPDATED FOR GRADIO 5.34.0
+# Create the main chat interface
 with gr.Blocks(
-    title="🤖 RAGtim Bot - Markdown Knowledge Base",
+    title="🔥 Hybrid Search RAGtim Bot",
     css=css,
     theme=gr.themes.Soft(
         primary_hue="green",
@@ -308,43 +528,37 @@ with gr.Blocks(
     )
 ) as chat_demo:
     gr.Markdown(f"""
-    # 🤖 RAGtim Bot - Markdown Knowledge Base
+    # 🔥 Hybrid Search RAGtim Bot - Advanced Search Technology
     
-    **Complete Markdown Knowledge Base**: This Hugging Face Space loads all markdown files from Raktim Mondol's portfolio with **{len(bot.knowledge_base)} knowledge sections**.
+    **🚀 Hybrid Search System**: This Space implements **true hybrid search** combining:
+    - 🧠 **Semantic Vector Search**: Transformer embeddings for conceptual similarity
+    - 🔍 **BM25 Keyword Search**: Advanced TF-IDF ranking for exact term matching
+    - ⚖️ **Intelligent Fusion**: Weighted combination for optimal relevance
     
-    **Loaded Markdown Files:**
-    - 📄 **about.md** - Personal information, contact details, professional summary
-    - 🔬 **research_details.md** - Detailed research projects, methodologies, current work
-    - 📚 **publications_detailed.md** - Complete publication details, technical contributions
-    - 💻 **skills_expertise.md** - Comprehensive technical skills, tools, frameworks
-    - 💼 **experience_detailed.md** - Professional experience, teaching, research roles
-    - 📊 **statistics.md** - Statistical methods, biostatistics expertise, methodologies
+    **📚 Knowledge Base**: **{len(bot.knowledge_base)} sections** from comprehensive markdown files:
+    - 📄 **about.md** - Personal info, contact, professional summary
+    - 🔬 **research_details.md** - Research projects, methodologies, innovations
+    - 📚 **publications_detailed.md** - Publications with technical details
+    - 💻 **skills_expertise.md** - Technical skills, LLM expertise, tools
+    - 💼 **experience_detailed.md** - Professional experience, teaching
+    - 📊 **statistics.md** - Statistical methods, biostatistics expertise
     
-    **Search Capabilities:**
-    - 🔍 Semantic similarity search using transformers
-    - 🚀 GPU-accelerated embeddings with priority ranking
-    - 📊 Relevance scoring across all markdown content
-    - 🎯 Section-level granular search within each file
+    **🔧 Search Parameters**:
+    - **BM25 Parameters**: k1={bot.k1}, b={bot.b}
+    - **Vocabulary**: {len(bot.document_frequency)} unique terms
+    - **Average Document Length**: {bot.average_doc_length:.1f} words
+    - **Embedding Model**: sentence-transformers/all-MiniLM-L6-v2 (384-dim)
     
-    **API Endpoints:**
-    - `/api/search` - Search across complete markdown knowledge base
-    - `/api/stats` - Detailed statistics about loaded content
+    **💡 Try Different Search Types**:
+    - **Hybrid** (Recommended): Best of both semantic and keyword search
+    - **Vector**: Pure semantic similarity for conceptual queries
+    - **BM25**: Pure keyword matching for specific terms
     
-    **Ask me anything about Raktim Mondol:**
-    - Research projects, methodologies, and innovations
-    - Publications with technical details and impact
-    - Technical skills, programming expertise, and tools
-    - Educational background and academic achievements
-    - Professional experience and teaching roles
-    - Statistical methods and biostatistics applications
-    - Awards, recognition, and professional development
-    - Contact information and collaboration opportunities
-    
-    **Note**: This demo shows search results from the complete markdown knowledge base. In hybrid mode, these results are passed to DeepSeek LLM for natural response generation.
+    **Ask me anything about Raktim Mondol's research, expertise, and background!**
     """)
     
     chatbot = gr.Chatbot(
-        height=600,
+        height=500,
         show_label=False,
         container=True,
         type="messages"
@@ -352,20 +566,20 @@ with gr.Blocks(
     
     with gr.Row():
         msg = gr.Textbox(
-            placeholder="Ask me anything about Raktim Mondol's research, skills, experience, publications...",
+            placeholder="Ask about Raktim's research, LLM expertise, publications, statistical methods...",
             container=False,
             scale=7,
             show_label=False
         )
-        submit_btn = gr.Button("Search Knowledge Base", scale=1)
+        submit_btn = gr.Button("🔍 Hybrid Search", scale=1)
     
     # Example buttons
     with gr.Row():
         examples = [
-            "What is Raktim's research about?",
-            "Tell me about BioFusionNet in detail",
-            "What are his LLM and RAG expertise?",
-            "Describe his statistical methods and biostatistics work"
+            "What is Raktim's LLM and RAG research?",
+            "Tell me about BioFusionNet statistical methods",
+            "What are his multimodal AI capabilities?",
+            "Describe his biostatistics expertise"
         ]
         for example in examples:
             gr.Button(example, size="sm").click(
@@ -390,40 +604,99 @@ with gr.Blocks(
     submit_btn.click(respond, [msg, chatbot], [chatbot, msg])
     msg.submit(respond, [msg, chatbot], [chatbot, msg])
 
-# Create API interface for search-only functionality
-with gr.Blocks(title="🔍 Search API") as search_demo:
-    gr.Markdown("# 🔍 Markdown Knowledge Base Search API")
-    gr.Markdown("Direct access to semantic search across all loaded markdown files")
+# Create advanced search interface
+with gr.Blocks(title="🔧 Advanced Hybrid Search") as search_demo:
+    gr.Markdown("# 🔧 Advanced Hybrid Search Configuration")
+    gr.Markdown("Fine-tune the hybrid search parameters and compare different search methods")
     
     with gr.Row():
-        search_input = gr.Textbox(
-            label="Search Query", 
-            placeholder="Enter your search query about Raktim Mondol..."
-        )
-        top_k_slider = gr.Slider(
-            minimum=1, 
-            maximum=15, 
-            value=5, 
-            step=1, 
-            label="Top K Results"
-        )
+        with gr.Column(scale=2):
+            search_input = gr.Textbox(
+                label="Search Query", 
+                placeholder="Enter your search query about Raktim Mondol..."
+            )
+            
+            with gr.Row():
+                search_type = gr.Radio(
+                    choices=["hybrid", "vector", "bm25"],
+                    value="hybrid",
+                    label="Search Method",
+                    elem_classes=["search-type-radio"]
+                )
+                top_k_slider = gr.Slider(
+                    minimum=1, 
+                    maximum=15, 
+                    value=5, 
+                    step=1, 
+                    label="Top K Results"
+                )
+            
+            # Hybrid search weights (only shown when hybrid is selected)
+            with gr.Group(visible=True) as weight_group:
+                gr.Markdown("**Hybrid Search Weights**")
+                vector_weight = gr.Slider(
+                    minimum=0.0,
+                    maximum=1.0,
+                    value=0.6,
+                    step=0.1,
+                    label="Vector Weight (Semantic)"
+                )
+                bm25_weight = gr.Slider(
+                    minimum=0.0,
+                    maximum=1.0,
+                    value=0.4,
+                    step=0.1,
+                    label="BM25 Weight (Keyword)"
+                )
+        
+        with gr.Column(scale=1):
+            gr.Markdown("**Search Method Guide:**")
+            gr.Markdown("""
+            **🔥 Hybrid**: Combines semantic + keyword
+            - Best for most queries
+            - Balances meaning and exact terms
+            
+            **🧠 Vector**: Pure semantic similarity
+            - Good for conceptual questions
+            - Finds related concepts
+            
+            **🔍 BM25**: Pure keyword matching
+            - Good for specific terms
+            - Traditional search ranking
+            """)
     
-    search_output = gr.JSON(label="Markdown Knowledge Base Search Results")
-    search_btn = gr.Button("Search")
+    search_output = gr.JSON(label="Hybrid Search Results", height=400)
+    search_btn = gr.Button("🔍 Search with Custom Parameters", variant="primary")
+    
+    def update_weights_visibility(search_type):
+        return gr.Group(visible=(search_type == "hybrid"))
+    
+    search_type.change(update_weights_visibility, inputs=[search_type], outputs=[weight_group])
+    
+    def normalize_weights(vector_w, bm25_w):
+        total = vector_w + bm25_w
+        if total > 0:
+            return vector_w / total, bm25_w / total
+        return 0.6, 0.4
+    
+    def advanced_search(query, search_type, top_k, vector_w, bm25_w):
+        # Normalize weights
+        vector_weight, bm25_weight = normalize_weights(vector_w, bm25_w)
+        return search_api(query, top_k, search_type, vector_weight, bm25_weight)
     
     search_btn.click(
-        search_only_api,
-        inputs=[search_input, top_k_slider],
+        advanced_search,
+        inputs=[search_input, search_type, top_k_slider, vector_weight, bm25_weight],
         outputs=search_output
     )
 
 # Create stats interface
-with gr.Blocks(title="📊 Stats API") as stats_demo:
-    gr.Markdown("# 📊 Knowledge Base Stats")
-    gr.Markdown("Detailed statistics about the loaded markdown knowledge base")
+with gr.Blocks(title="📊 System Statistics") as stats_demo:
+    gr.Markdown("# 📊 Hybrid Search System Statistics")
+    gr.Markdown("Detailed information about the knowledge base and search capabilities")
     
-    stats_output = gr.JSON(label="Markdown Knowledge Base Statistics")
-    stats_btn = gr.Button("Get Statistics")
+    stats_output = gr.JSON(label="System Statistics", height=500)
+    stats_btn = gr.Button("📊 Get System Statistics", variant="primary")
     
     stats_btn.click(
         get_stats_api,
@@ -434,13 +707,17 @@ with gr.Blocks(title="📊 Stats API") as stats_demo:
 # Combine interfaces using TabbedInterface
 demo = gr.TabbedInterface(
     [chat_demo, search_demo, stats_demo],
-    ["💬 Markdown Chat", "🔍 Search API", "📊 Stats API"],
-    title="🤖 RAGtim Bot - Complete Markdown Knowledge Base"
+    ["💬 Hybrid Chat", "🔧 Advanced Search", "📊 Statistics"],
+    title="🔥 Hybrid Search RAGtim Bot - Vector + BM25 Fusion"
 )
 
 if __name__ == "__main__":
-    print("🚀 Launching RAGtim Bot with Markdown Knowledge Base...")
+    print("🚀 Launching Hybrid Search RAGtim Bot...")
     print(f"📚 Loaded {len(bot.knowledge_base)} sections from markdown files")
+    print(f"🔍 BM25 index: {len(bot.document_frequency)} unique terms")
+    print(f"🧠 Vector embeddings: {len(bot.embeddings)} documents")
+    print("🔥 Hybrid search ready: Semantic + Keyword fusion!")
+    
     demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
