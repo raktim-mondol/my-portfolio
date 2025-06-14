@@ -67,9 +67,11 @@ class RAGtimBot:
         # Generate embeddings for knowledge base
         print("Generating embeddings for knowledge base...")
         self.embeddings = []
-        for doc in self.knowledge_base:
+        for i, doc in enumerate(self.knowledge_base):
             try:
-                embedding = self.embedder(doc["content"], return_tensors="pt")
+                # Truncate content to avoid token limit issues
+                content = doc["content"][:500]  # Limit to 500 characters
+                embedding = self.embedder(content, return_tensors="pt")
                 # Convert to numpy and flatten
                 embedding_np = embedding[0].mean(dim=0).detach().cpu().numpy()
                 self.embeddings.append(embedding_np)
@@ -148,7 +150,7 @@ class RAGtimBot:
         """Search the knowledge base using semantic similarity"""
         try:
             # Generate query embedding
-            query_embedding = self.embedder(query, return_tensors="pt")
+            query_embedding = self.embedder(query[:500], return_tensors="pt")  # Truncate query too
             query_vector = query_embedding[0].mean(dim=0).detach().cpu().numpy()
             
             # Calculate similarities
@@ -295,7 +297,7 @@ css = """
 }
 """
 
-# Create the main chat interface
+# Create the main chat interface - FIXED VERSION
 iface = gr.ChatInterface(
     fn=chat_interface,
     title="🤖 RAGtim Bot - Markdown Knowledge Base",
@@ -352,21 +354,20 @@ iface = gr.ChatInterface(
         secondary_hue="blue",
         neutral_hue="slate"
     ),
+    # FIXED: Use type='messages' and remove deprecated parameters
+    type='messages',
     chatbot=gr.Chatbot(
         height=600,
         show_label=False,
-        container=True,
-        bubble_full_width=False
+        container=True
     ),
     textbox=gr.Textbox(
         placeholder="Ask me anything about Raktim Mondol's research, skills, experience, publications...",
         container=False,
         scale=7
     ),
-    submit_btn="Search Knowledge Base",
-    retry_btn="🔄 Retry",
-    undo_btn="↩️ Undo",
-    clear_btn="🗑️ Clear"
+    submit_btn="Search Knowledge Base"
+    # REMOVED: retry_btn, undo_btn, clear_btn (deprecated in this version)
 )
 
 # Create API interface for search-only functionality
