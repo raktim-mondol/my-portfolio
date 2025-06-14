@@ -411,39 +411,49 @@ def search_api(query, top_k=5, search_type="hybrid", vector_weight=0.6, bm25_wei
 
 def get_stats_api():
     """API endpoint for knowledge base statistics"""
-    # Calculate document distribution by type
-    doc_types = {}
-    sections_by_file = {}
-    
-    for doc in bot.knowledge_base:
-        doc_type = doc["metadata"]["type"]
-        source_file = doc["metadata"]["source"]
+    try:
+        # Calculate document distribution by type
+        doc_types = {}
+        sections_by_file = {}
         
-        doc_types[doc_type] = doc_types.get(doc_type, 0) + 1
-        sections_by_file[source_file] = sections_by_file.get(source_file, 0) + 1
-    
-    return {
-        "total_documents": len(bot.knowledge_base),
-        "document_types": doc_types,
-        "sections_by_file": sections_by_file,
-        "model_name": "sentence-transformers/all-MiniLM-L6-v2",
-        "embedding_dimension": 384,
-        "search_capabilities": [
-            "Hybrid Search (Vector + BM25)",
-            "Semantic Vector Search", 
-            "BM25 Keyword Search",
-            "GPU Accelerated",
-            "Transformer Embeddings"
-        ],
-        "bm25_parameters": {
-            "k1": bot.k1,
-            "b": bot.b,
-            "unique_terms": len(bot.document_frequency),
-            "average_doc_length": bot.average_doc_length
-        },
-        "backend_type": "Hugging Face Space with Hybrid Search",
-        "knowledge_sources": list(sections_by_file.keys())
-    }
+        for doc in bot.knowledge_base:
+            doc_type = doc["metadata"]["type"]
+            source_file = doc["metadata"]["source"]
+            
+            doc_types[doc_type] = doc_types.get(doc_type, 0) + 1
+            sections_by_file[source_file] = sections_by_file.get(source_file, 0) + 1
+        
+        return {
+            "total_documents": len(bot.knowledge_base),
+            "document_types": doc_types,
+            "sections_by_file": sections_by_file,
+            "model_name": "sentence-transformers/all-MiniLM-L6-v2",
+            "embedding_dimension": 384,
+            "search_capabilities": [
+                "Hybrid Search (Vector + BM25)",
+                "Semantic Vector Search", 
+                "BM25 Keyword Search",
+                "GPU Accelerated",
+                "Transformer Embeddings"
+            ],
+            "bm25_parameters": {
+                "k1": bot.k1,
+                "b": bot.b,
+                "unique_terms": len(bot.document_frequency),
+                "average_doc_length": bot.average_doc_length
+            },
+            "backend_type": "Hugging Face Space with Hybrid Search",
+            "knowledge_sources": list(sections_by_file.keys()),
+            "status": "healthy"
+        }
+    except Exception as e:
+        print(f"Error in get_stats_api: {e}")
+        return {
+            "error": str(e),
+            "status": "error",
+            "total_documents": 0,
+            "search_capabilities": ["Error"]
+        }
 
 def chat_interface(message, history):
     """Chat interface with hybrid search"""
@@ -711,6 +721,34 @@ demo = gr.TabbedInterface(
     title="🔥 Hybrid Search RAGtim Bot - Vector + BM25 Fusion"
 )
 
+# Add API routes for external access
+def api_search(request: gr.Request):
+    """Handle API search requests"""
+    try:
+        # Get query parameters
+        query = request.query_params.get('query', '')
+        top_k = int(request.query_params.get('top_k', 5))
+        search_type = request.query_params.get('search_type', 'hybrid')
+        vector_weight = float(request.query_params.get('vector_weight', 0.6))
+        bm25_weight = float(request.query_params.get('bm25_weight', 0.4))
+        
+        if not query:
+            return {"error": "Query parameter is required"}
+        
+        return search_api(query, top_k, search_type, vector_weight, bm25_weight)
+    except Exception as e:
+        return {"error": str(e)}
+
+def api_stats(request: gr.Request):
+    """Handle API stats requests"""
+    try:
+        return get_stats_api()
+    except Exception as e:
+        return {"error": str(e)}
+
+# Mount API endpoints
+demo.mount_gradio_app = lambda: None  # Disable default mounting
+
 if __name__ == "__main__":
     print("🚀 Launching Hybrid Search RAGtim Bot...")
     print(f"📚 Loaded {len(bot.knowledge_base)} sections from markdown files")
@@ -718,6 +756,60 @@ if __name__ == "__main__":
     print(f"🧠 Vector embeddings: {len(bot.embeddings)} documents")
     print("🔥 Hybrid search ready: Semantic + Keyword fusion!")
     
+    # Create a custom app with API routes
+    import uvicorn
+    from fastapi import FastAPI, Request
+    from fastapi.responses import JSONResponse
+    
+    app = FastAPI()
+    
+    @app.get("/api/search")
+    async def search_endpoint(request: Request):
+        try:
+            query = request.query_params.get('query', '')
+            top_k = int(request.query_params.get('top_k', 5))
+            search_type = request.query_params.get('search_type', 'hybrid')
+            vector_weight = float(request.query_params.get('vector_weight', 0.6))
+            bm25_weight = float(request.query_params.get('bm25_weight', 0.4))
+            
+            if not query:
+                return JSONResponse({"error": "Query parameter is required"}, status_code=400)
+            
+            result = search_api(query, top_k, search_type, vector_weight, bm25_weight)
+            return JSONResponse(result)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+    
+    @app.post("/api/search")
+    async def search_endpoint_post(request: Request):
+        try:
+            body = await request.json()
+            query = body.get('query', '')
+            top_k = body.get('top_k', 5)
+            search_type = body.get('search_type', 'hybrid')
+            vector_weight = body.get('vector_weight', 0.6)
+            bm25_weight = body.get('bm25_weight', 0.4)
+            
+            if not query:
+                return JSONResponse({"error": "Query is required"}, status_code=400)
+            
+            result = search_api(query, top_k, search_type, vector_weight, bm25_weight)
+            return JSONResponse(result)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+    
+    @app.get("/api/stats")
+    async def stats_endpoint():
+        try:
+            result = get_stats_api()
+            return JSONResponse(result)
+        except Exception as e:
+            return JSONResponse({"error": str(e)}, status_code=500)
+    
+    # Mount Gradio app
+    app = gr.mount_gradio_app(app, demo, path="/")
+    
+    # For Hugging Face Spaces, just launch the demo
     demo.launch(
         server_name="0.0.0.0",
         server_port=7860,
