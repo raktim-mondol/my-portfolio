@@ -38,6 +38,7 @@ export default function RAGtimBot() {
         name: 'Hybrid RAG',
         description: 'Advanced AI Assistant',
         icon: '🤖',
+        floatingIcon: '⚡',
         color: 'bg-[#94c973] hover:bg-[#7fb95e]'
       };
     } else if (isUsingHuggingFace) {
@@ -45,6 +46,7 @@ export default function RAGtimBot() {
         name: 'HuggingFace',
         description: 'AI Assistant',
         icon: '🤗',
+        floatingIcon: '⚡',
         color: 'bg-[#94c973] hover:bg-[#7fb95e]'
       };
     } else if (isUsingBackend) {
@@ -52,6 +54,7 @@ export default function RAGtimBot() {
         name: 'Backend Server',
         description: 'AI Assistant',
         icon: '🖥️',
+        floatingIcon: '⚡',
         color: 'bg-[#94c973] hover:bg-[#7fb95e]'
       };
     } else {
@@ -59,6 +62,7 @@ export default function RAGtimBot() {
         name: 'Netlify Functions',
         description: 'AI Assistant',
         icon: '⚡',
+        floatingIcon: '⚡',
         color: 'bg-[#94c973] hover:bg-[#7fb95e]'
       };
     }
@@ -234,7 +238,7 @@ export default function RAGtimBot() {
               <div className="absolute -top-2 -left-3 text-xl z-10" style={{
                 animation: isAvailable ? 'bounce 1s infinite, flash 2s infinite' : 'none'
               }}>
-                <span>{systemInfo.icon}</span>
+                <span>{systemInfo.floatingIcon}</span>
               </div>
             </button>
             
@@ -265,11 +269,8 @@ export default function RAGtimBot() {
           {/* Header */}
           <div className={`flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 ${systemInfo.color} text-white rounded-t-lg`}>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center relative">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <MessageCircle className="h-4 w-4" />
-                <div className="absolute -top-1 -right-1 text-xs">
-                  <span>{systemInfo.icon}</span>
-                </div>
               </div>
               <div>
                 <h3 className="font-semibold flex items-center">
