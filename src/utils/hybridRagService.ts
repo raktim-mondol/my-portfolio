@@ -32,15 +32,8 @@ export class HybridRAGService {
   private gradioClient: any = null;
 
   constructor() {
-    console.log('🔧 HybridRAGService Constructor Starting...');
-    
     this.apiKey = this.getApiKey();
     this.huggingFaceUrl = import.meta.env.VITE_HUGGING_FACE_SPACE_URL || 'https://raktimhugging-ragtim-bot.hf.space';
-    
-    console.log('🔧 HybridRAGService Constructor:');
-    console.log('- API Key present:', !!this.apiKey);
-    console.log('- API Key length:', this.apiKey?.length || 0);
-    console.log('- Hugging Face URL:', this.huggingFaceUrl);
     
     if (this.apiKey) {
       try {
@@ -49,23 +42,14 @@ export class HybridRAGService {
           apiKey: this.apiKey,
           dangerouslyAllowBrowser: true
         });
-        console.log('✅ OpenAI client initialized for DeepSeek');
       } catch (error) {
-        console.error('❌ Failed to initialize OpenAI client:', error);
+        // Silent fallback
       }
-    } else {
-      console.log('❌ No valid API key found - OpenAI client not initialized');
     }
   }
 
   private getApiKey(): string | null {
     const envApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
-    
-    console.log('🔑 API Key Check:');
-    console.log('- Raw env value exists:', !!envApiKey);
-    console.log('- Type:', typeof envApiKey);
-    console.log('- Length:', envApiKey?.length || 0);
-    console.log('- Starts with sk-:', envApiKey?.startsWith?.('sk-') || false);
     
     if (envApiKey && 
         typeof envApiKey === 'string' && 
@@ -74,19 +58,14 @@ export class HybridRAGService {
         !envApiKey.includes('your_actual') &&
         !envApiKey.includes('your_deepseek_api_key_here') &&
         !envApiKey.includes('sk-your-actual-deepseek-api-key-here')) {
-      console.log('✅ Valid API key found');
       return envApiKey.trim();
     }
     
-    console.log('❌ Invalid or missing API key');
-    console.log('- Contains placeholder text:', envApiKey?.includes('placeholder') || envApiKey?.includes('your_actual'));
     return null;
   }
 
   public hasApiKey(): boolean {
-    const hasKey = !!this.apiKey;
-    console.log('🔑 hasApiKey() called, result:', hasKey);
-    return hasKey;
+    return !!this.apiKey;
   }
 
   private async initializeGradioClient(): Promise<any> {
@@ -95,21 +74,15 @@ export class HybridRAGService {
     }
 
     try {
-      console.log('🔌 Initializing Gradio client for:', this.huggingFaceUrl);
       this.gradioClient = await Client.connect(this.huggingFaceUrl);
-      console.log('✅ Gradio client connected successfully');
       return this.gradioClient;
     } catch (error) {
-      console.error('❌ Failed to initialize Gradio client:', error);
       throw error;
     }
   }
 
   private async checkHuggingFaceHealth(): Promise<boolean> {
     try {
-      console.log('🏥 Checking Hugging Face Space health...');
-      
-      // Try to access the main page first
       const response = await fetch(`${this.huggingFaceUrl}/`, {
         method: 'GET',
         headers: {
@@ -117,47 +90,33 @@ export class HybridRAGService {
         },
       });
       
-      console.log('🏥 Health check response:', response.status, response.statusText);
       return response.ok;
     } catch (error) {
-      console.warn('⚠️ Hugging Face health check failed:', error);
       return false;
     }
   }
 
   private extractContentFromResult(result: any, index: number): { content: string; hasValidContent: boolean } {
-    // Try multiple strategies to extract content
     let content = '';
     
-    // Strategy 1: Check for document.content
+    // Try multiple strategies to extract content
     if (result.document?.content) {
       content = result.document.content;
-    }
-    // Strategy 2: Check for document.text
-    else if (result.document?.text) {
+    } else if (result.document?.text) {
       content = result.document.text;
-    }
-    // Strategy 3: Check for direct content
-    else if (result.content) {
+    } else if (result.content) {
       content = result.content;
-    }
-    // Strategy 4: Check for direct text
-    else if (result.text) {
+    } else if (result.text) {
       content = result.text;
-    }
-    // Strategy 5: Check if result has meaningful string properties
-    else if (typeof result === 'string' && result.trim().length > 0) {
+    } else if (typeof result === 'string' && result.trim().length > 0) {
       content = result;
-    }
-    // Strategy 6: Check for nested content in data
-    else if (result.data?.content) {
+    } else if (result.data?.content) {
       content = result.data.content;
-    }
-    // Strategy 7: Check for any string property that looks like content
-    else {
+    } else {
+      // Check for any string property that looks like content
       const stringProps = Object.keys(result).filter(key => 
         typeof result[key] === 'string' && 
-        result[key].length > 20 && // Reasonable content length
+        result[key].length > 20 && 
         !key.includes('id') && 
         !key.includes('type')
       );
@@ -169,31 +128,13 @@ export class HybridRAGService {
     
     const hasValidContent = content && typeof content === 'string' && content.trim().length > 10;
     
-    if (!hasValidContent) {
-      console.log(`⚠️ Result ${index} has no extractable content:`, {
-        resultKeys: Object.keys(result),
-        hasDocument: !!result.document,
-        documentKeys: result.document ? Object.keys(result.document) : [],
-        resultType: typeof result
-      });
-    }
-    
     return { content: content.trim(), hasValidContent };
   }
 
   private async searchHuggingFaceHybrid(query: string, topK: number = 8): Promise<SearchResult[]> {
     try {
-      console.log('🔍 Starting Hugging Face hybrid search...');
-      console.log('- Query:', query);
-      console.log('- Top K:', topK);
-      console.log('- URL:', this.huggingFaceUrl);
-      
-      // Initialize Gradio client
       const client = await this.initializeGradioClient();
       
-      console.log('🔍 Calling search API via Gradio client...');
-      
-      // Use the correct API name from your Gradio space
       const result = await client.predict("/search_api", {
         query: query,
         top_k: topK,
@@ -201,10 +142,8 @@ export class HybridRAGService {
         vector_weight: 0.6,
         bm25_weight: 0.4
       });
-
-      console.log('📊 Raw Gradio result:', result);
       
-      // Extract data from Gradio response - it might be nested
+      // Extract data from Gradio response
       let searchData = null;
       if (result && result.data) {
         searchData = result.data;
@@ -212,9 +151,7 @@ export class HybridRAGService {
         searchData = result;
       }
       
-      console.log('📊 Extracted search data:', searchData);
-      
-      // Parse the results - handle different possible response formats
+      // Parse the results
       let results = [];
       
       if (searchData && searchData.results && Array.isArray(searchData.results)) {
@@ -222,32 +159,25 @@ export class HybridRAGService {
       } else if (Array.isArray(searchData)) {
         results = searchData;
       } else if (searchData && typeof searchData === 'object') {
-        // Check if the data itself contains results
         if (searchData.results) {
           results = searchData.results;
         } else {
-          // Maybe the entire object is a single result
           results = [searchData];
         }
       } else {
-        console.warn('⚠️ Unexpected search data format:', searchData);
         return [];
       }
-      
-      console.log('📊 Extracted results array:', results);
       
       // Transform results to our format with improved content extraction
       const transformedResults = results.map((result: any, index: number) => {
         const { content, hasValidContent } = this.extractContentFromResult(result, index);
         
         if (!hasValidContent) {
-          return null; // Will be filtered out
+          return null;
         }
         
-        // Extract metadata
         const metadata = result.document?.metadata || result.metadata || {};
         
-        // Extract score
         let score = 0;
         if (typeof result.score === 'number') {
           score = result.score;
@@ -255,7 +185,6 @@ export class HybridRAGService {
           score = result.similarity;
         }
         
-        // Extract search type
         let searchType = 'hybrid';
         if (result.search_type) {
           searchType = result.search_type;
@@ -263,8 +192,7 @@ export class HybridRAGService {
           searchType = result.searchType;
         }
         
-        // Create a properly formatted result
-        const transformedResult = {
+        return {
           document: {
             id: result.document?.id || result.id || `result-${index}-${Date.now()}`,
             content: content,
@@ -280,35 +208,20 @@ export class HybridRAGService {
           vector_score: result.vector_score,
           bm25_score: result.bm25_score
         };
-        
-        console.log(`✅ Successfully processed result ${index}:`, {
-          contentLength: transformedResult.document.content.length,
-          score: transformedResult.score,
-          searchType: transformedResult.searchType
-        });
-        
-        return transformedResult;
-      }).filter(result => result !== null); // Remove null results
-      
-      console.log(`✅ Successfully processed ${transformedResults.length} valid results out of ${results.length} total`);
+      }).filter(result => result !== null);
       
       return transformedResults;
     } catch (error) {
-      console.error('❌ Hugging Face hybrid search error:', error);
       throw error;
     }
   }
 
   private buildContext(searchResults: SearchResult[]): string {
-    console.log('📄 Building context from search results...');
-    
     if (searchResults.length === 0) {
-      console.log('📄 No search results to build context from');
       return "No specific information found. Please provide general information about Raktim Mondol based on your knowledge.";
     }
 
     const topResults = searchResults.slice(0, 6);
-    console.log(`📄 Using top ${topResults.length} results for context`);
     
     const contextParts = topResults.map((result, index) => {
       const doc = result.document;
@@ -321,16 +234,10 @@ export class HybridRAGService {
         searchInfo = `(${result.searchType.toUpperCase()}: ${(result.score * 100).toFixed(1)}%)`;
       }
       
-      const contextPart = `${section} ${searchInfo}\n${doc.content.trim()}`;
-      console.log(`📄 Context part ${index} length:`, contextPart.length);
-      
-      return contextPart;
+      return `${section} ${searchInfo}\n${doc.content.trim()}`;
     });
 
-    const fullContext = contextParts.join('\n\n---\n\n');
-    console.log('📄 Full context length:', fullContext.length);
-    
-    return fullContext;
+    return contextParts.join('\n\n---\n\n');
   }
 
   private stripMarkdown(text: string): string {
@@ -350,46 +257,25 @@ export class HybridRAGService {
   }
 
   public async generateResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
-    console.log('🚀 Starting hybrid response generation...');
-    console.log('- User query:', userQuery);
-    console.log('- Has API key:', !!this.apiKey);
-    console.log('- Has OpenAI client:', !!this.openai);
-    console.log('- Conversation history length:', conversationHistory.length);
-    
     if (!this.apiKey || !this.openai) {
-      const errorMsg = "The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured with your actual DeepSeek API key.";
-      console.log('❌ Missing API key or OpenAI client:', errorMsg);
-      return errorMsg;
+      return "The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured with your actual DeepSeek API key.";
     }
 
     try {
-      // Step 1: Check if Hugging Face Space is available
-      console.log('🏥 Step 1: Checking Hugging Face Space availability...');
       const isHFHealthy = await this.checkHuggingFaceHealth();
       
       if (!isHFHealthy) {
         return "The Hugging Face Space is currently starting up or unavailable. Free Hugging Face Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
       }
 
-      // Step 2: Use Hugging Face for hybrid search
-      console.log('🔥 Step 2: Performing hybrid search with Hugging Face...');
       const searchResults = await this.searchHuggingFaceHybrid(userQuery, 8);
       
       if (searchResults.length === 0) {
-        const errorMsg = "I don't have specific information about that topic in my knowledge base. Could you please ask something else about Raktim Mondol's research, experience, or expertise?";
-        console.log('⚠️ No search results:', errorMsg);
-        return errorMsg;
+        return "I don't have specific information about that topic in my knowledge base. Could you please ask something else about Raktim Mondol's research, experience, or expertise?";
       }
-      console.log(`✅ Got ${searchResults.length} search results`);
 
-      // Step 3: Build rich context from hybrid search results
-      console.log('📄 Step 3: Building context from search results...');
       const context = this.buildContext(searchResults);
-      console.log(`📄 Context built from ${searchResults.length} hybrid search results`);
 
-      // Step 4: Use DeepSeek for natural response generation
-      console.log('🧠 Step 4: Generating natural response with DeepSeek LLM...');
-      
       const systemMessage = `You are RAGtim Bot, an advanced AI assistant powered by a cutting-edge hybrid search system:
 
 🔥 HYBRID SEARCH TECHNOLOGY:
@@ -435,7 +321,6 @@ Remember to provide comprehensive answers based on this rich context from our hy
         }
       ];
 
-      // Add recent conversation history
       const recentHistory = conversationHistory.slice(-4);
       recentHistory.forEach(msg => {
         const cleanContent = msg.role === 'assistant' ? this.stripMarkdown(msg.content) : msg.content;
@@ -445,16 +330,10 @@ Remember to provide comprehensive answers based on this rich context from our hy
         });
       });
 
-      // Add current user query
       messages.push({
         role: "user",
         content: userQuery
       });
-
-      console.log('🧠 Sending request to DeepSeek...');
-      console.log('- Messages count:', messages.length);
-      console.log('- System message length:', messages[0].content.length);
-      console.log('- User query:', userQuery);
 
       const completion = await this.openai.chat.completions.create({
         messages,
@@ -463,29 +342,14 @@ Remember to provide comprehensive answers based on this rich context from our hy
         temperature: 0.7,
         top_p: 0.9
       });
-
-      console.log('✅ DeepSeek response received');
-      console.log('- Response choices:', completion.choices?.length || 0);
-      console.log('- First choice content length:', completion.choices[0]?.message?.content?.length || 0);
       
       const response = completion.choices[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
       
-      const finalResponse = this.stripMarkdown(response);
-      console.log('✅ Final response prepared, length:', finalResponse.length);
-      
-      return finalResponse;
+      return this.stripMarkdown(response);
     } catch (error) {
-      console.error('❌ Error in hybrid RAG service:', error);
-      
       if (error instanceof Error) {
-        console.error('❌ Error details:', {
-          name: error.name,
-          message: error.message,
-          stack: error.stack?.split('\n').slice(0, 5)
-        });
-        
         if (error.message.includes('connect') || error.message.includes('Client')) {
-          return "The Hugging Face Space is currently starting up or unavailable. Free Hugging Face Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
+          return "The Hugging Face Space is currently starting up or the API endpoints are not ready yet. Free Hugging Face Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
         }
         
         if (error.message.includes('API key') || error.message.includes('401') || error.message.includes('Authentication')) {
@@ -507,17 +371,8 @@ Remember to provide comprehensive answers based on this rich context from our hy
 
   public async getKnowledgeBaseStats(): Promise<any> {
     try {
-      console.log('📊 Getting knowledge base stats from Hugging Face...');
-      
-      // Initialize Gradio client
       const client = await this.initializeGradioClient();
-      
-      console.log('📊 Calling stats API via Gradio client...');
-      
-      // Use the correct API name for stats
       const result = await client.predict("/get_stats_api", {});
-      
-      console.log('📊 Stats result received:', result);
       
       let stats = null;
       if (result && result.data) {
@@ -545,9 +400,6 @@ Remember to provide comprehensive answers based on this rich context from our hy
         }
       };
     } catch (error) {
-      console.warn('⚠️ Could not fetch stats from Hugging Face:', error);
-      
-      // Fallback stats
       return {
         totalDocuments: 64,
         searchProvider: 'Hugging Face Transformers',
