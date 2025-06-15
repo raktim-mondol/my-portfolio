@@ -29,7 +29,7 @@ export class BackendRAGService {
 
   constructor() {
     this.apiKey = this.getApiKey();
-    this.backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    this.backendUrl = this.getEnvVar('VITE_BACKEND_URL') || 'http://localhost:3001';
     
     if (this.apiKey) {
       this.openai = new OpenAI({
@@ -40,8 +40,17 @@ export class BackendRAGService {
     }
   }
 
+  private getEnvVar(key: string): string | undefined {
+    try {
+      return (import.meta as any).env?.[key];
+    } catch (error) {
+      console.warn(`Failed to access environment variable ${key}:`, error);
+      return undefined;
+    }
+  }
+
   private getApiKey(): string | null {
-    const envApiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+    const envApiKey = this.getEnvVar('VITE_DEEPSEEK_API_KEY');
     
     if (envApiKey && 
         typeof envApiKey === 'string' && 

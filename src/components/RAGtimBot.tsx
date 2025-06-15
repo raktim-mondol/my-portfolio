@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Shield, AlertCircle, Database, BarChart3, Search, Zap, Target, ExternalLink, Bot, Cpu, Brain } from 'lucide-react';
+import { MessageCircle, X, Send, Shield, AlertCircle, Database, BarChart3, Search, Zap, Target, ExternalLink, Bot, Cpu, Brain, HelpCircle } from 'lucide-react';
 import { ragService } from '../utils/ragService';
 import toast from 'react-hot-toast';
 
@@ -10,6 +10,60 @@ interface ChatMessage {
   timestamp: Date;
 }
 
+// Comprehensive list of 50 suggested questions about Raktim Mondol
+const SUGGESTED_QUESTIONS = [
+  "What is Raktim Mondol's educational background?",
+  "What research areas does Raktim specialize in?",
+  "Can you tell me about Raktim's PhD research?",
+  "What programming languages does Raktim know?",
+  "What publications has Raktim authored?",
+  "What is Raktim's experience with machine learning?",
+  "Tell me about Raktim's work in artificial intelligence",
+  "What data science projects has Raktim worked on?",
+  "What is Raktim's experience with Python?",
+  "What deep learning frameworks does Raktim use?",
+  "Tell me about Raktim's research methodology",
+  "What conferences has Raktim presented at?",
+  "What is Raktim's experience with computer vision?",
+  "What natural language processing work has Raktim done?",
+  "What awards or recognitions has Raktim received?",
+  "What is Raktim's teaching experience?",
+  "Tell me about Raktim's industry experience",
+  "What collaborative research has Raktim been involved in?",
+  "What technical skills does Raktim possess?",
+  "What databases and tools does Raktim work with?",
+  "Tell me about Raktim's leadership experience",
+  "What open source contributions has Raktim made?",
+  "What is Raktim's experience with cloud computing?",
+  "Tell me about Raktim's software development experience",
+  "What web development skills does Raktim have?",
+  "What is Raktim's experience with DevOps?",
+  "Tell me about Raktim's data visualization work",
+  "What statistical analysis experience does Raktim have?",
+  "What is Raktim's experience with big data technologies?",
+  "Tell me about Raktim's research impact and citations",
+  "What mentoring experience does Raktim have?",
+  "What interdisciplinary work has Raktim done?",
+  "Tell me about Raktim's problem-solving approach",
+  "What innovation projects has Raktim led?",
+  "What is Raktim's experience with agile methodologies?",
+  "Tell me about Raktim's project management skills",
+  "What consulting or advisory work has Raktim done?",
+  "What is Raktim's experience with research grants?",
+  "Tell me about Raktim's technical writing skills",
+  "What peer review experience does Raktim have?",
+  "What is Raktim's experience with academic collaboration?",
+  "Tell me about Raktim's computational research",
+  "What algorithms has Raktim developed or implemented?",
+  "What is Raktim's experience with version control systems?",
+  "Tell me about Raktim's data engineering experience",
+  "What is Raktim's experience with model deployment?",
+  "Tell me about Raktim's research philosophy",
+  "What future research directions is Raktim interested in?",
+  "What professional development has Raktim pursued?",
+  "How can I contact Raktim Mondol?"
+];
+
 export default function RAGtimBot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -19,6 +73,8 @@ export default function RAGtimBot() {
   const [knowledgeStats, setKnowledgeStats] = useState<any>(null);
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(true);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -33,6 +89,12 @@ export default function RAGtimBot() {
   console.log('- isUsingHuggingFace:', isUsingHuggingFace);
   console.log('- isUsingBackend:', isUsingBackend);
   console.log('- ragService has API key:', ragService.hasApiKey());
+
+  // Function to get 3 random questions from the list
+  const getRandomQuestions = () => {
+    const shuffled = [...SUGGESTED_QUESTIONS].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 3);
+  };
 
   const getSystemInfo = () => {
     if (isUsingHybrid) {
@@ -73,6 +135,9 @@ export default function RAGtimBot() {
   const systemInfo = getSystemInfo();
 
   useEffect(() => {
+    // Initialize suggested questions when component mounts
+    setSuggestedQuestions(getRandomQuestions());
+    
     // Add initial welcome message
     const welcomeMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -152,6 +217,69 @@ export default function RAGtimBot() {
     setStreamingMessageId(null);
   };
 
+  // Handle clicking on suggested questions
+  const handleSuggestedQuestion = async (question: string) => {
+    setShowSuggestions(false);
+    setInputMessage(question);
+    
+    // Automatically send the question
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: question,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      console.log('🚀 Generating response for suggested question:', question);
+      const response = await ragService.generateResponse(question, messages);
+      console.log('✅ Response received:', response.substring(0, 100) + '...');
+      
+      // Create assistant message with empty content initially
+      const assistantMessageId = (Date.now() + 1).toString();
+      const assistantMessage: ChatMessage = {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: '', // Start empty for typewriter effect
+        timestamp: new Date()
+      };
+
+      // Add empty message to chat
+      setMessages(prev => [...prev, assistantMessage]);
+      setIsLoading(false); // Stop loading indicator
+      
+      // Start word-by-word typewriter effect
+      await wordTypewriterEffect(assistantMessageId, response, 80);
+
+    } catch (error) {
+      console.error('❌ Error sending suggested question:', error);
+      
+      let errorMessage = 'Failed to process question. Please try again.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('Gradio') || error.message.includes('Space')) {
+          errorMessage = 'Hugging Face Space is starting up. Please wait 30-60 seconds and try again.';
+        } else if (error.message.includes('network')) {
+          errorMessage = 'Network error. Please check your connection and try again.';
+        }
+      }
+      
+      toast.error(errorMessage);
+      
+      const errorResponseMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "I apologize, but I encountered an error while processing your question. Please try again in a moment.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorResponseMessage]);
+      setIsLoading(false);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
 
@@ -161,6 +289,9 @@ export default function RAGtimBot() {
       toast.error('The chatbot is currently unavailable. Please contact the site administrator.');
       return;
     }
+
+    // Hide suggestions when user sends their own message
+    setShowSuggestions(false);
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -243,6 +374,9 @@ export default function RAGtimBot() {
 
   const clearChat = () => {
     setMessages([]);
+    // Reset suggestions when clearing chat
+    setShowSuggestions(true);
+    setSuggestedQuestions(getRandomQuestions());
   };
 
   const toggleStats = async () => {
@@ -439,6 +573,45 @@ export default function RAGtimBot() {
                 </div>
               </div>
             ))}
+
+            {/* Suggested Questions */}
+            {showSuggestions && isAvailable && messages.length <= 1 && !isLoading && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-center">
+                  <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
+                    <HelpCircle className="h-4 w-4" />
+                    <span className="text-sm font-medium">Suggested Questions</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {suggestedQuestions.map((question, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSuggestedQuestion(question)}
+                      className="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-all duration-200 hover:shadow-md group"
+                    >
+                      <div className="flex items-start space-x-3">
+                        <div className={`flex-shrink-0 w-8 h-8 ${systemInfo.color} rounded-full flex items-center justify-center text-white text-sm font-medium group-hover:scale-110 transition-transform`}>
+                          {index + 1}
+                        </div>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                          {question}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <div className="text-center">
+                  <button
+                    onClick={() => setSuggestedQuestions(getRandomQuestions())}
+                    className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center space-x-1 mx-auto"
+                  >
+                    <Search className="h-3 w-3" />
+                    <span>Get different questions</span>
+                  </button>
+                </div>
+              </div>
+            )}
             
             {isLoading && (
               <div className="flex justify-start">
