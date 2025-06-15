@@ -398,13 +398,10 @@ export default function RAGtimBot() {
               <div className="flex justify-start">
                 <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-custom"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-custom" style={{ animationDelay: '0.15s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-custom" style={{ animationDelay: '0.3s' }}></div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {(isUsingHybrid || isUsingHuggingFace) ? 'Connecting to Hugging Face Space...' : 'Thinking...'}
-                  </p>
                 </div>
               </div>
             )}
@@ -442,6 +439,22 @@ export default function RAGtimBot() {
         @keyframes flash {
           0%, 50% { opacity: 1; }
           25%, 75% { opacity: 0.3; }
+        }
+        
+        .animate-bounce-custom {
+          animation: bounce-custom 1.2s infinite;
+        }
+        
+        @keyframes bounce-custom {
+          0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+          }
+          40% {
+            transform: translateY(-6px);
+          }
+          60% {
+            transform: translateY(-3px);
+          }
         }
       `}</style>
     </>
