@@ -132,11 +132,6 @@ export default function RAGtimBot() {
 
     // Show loading toast for Hugging Face Space
     let loadingToast: string | undefined;
-    if (isUsingHuggingFace || isUsingHybrid) {
-      loadingToast = toast.loading('Connecting to Hugging Face Space...', {
-        duration: 10000
-      });
-    }
 
     try {
       console.log('🚀 Generating response...');
@@ -157,10 +152,7 @@ export default function RAGtimBot() {
 
       setMessages(prev => [...prev, assistantMessage]);
       
-      // Show success toast for first successful interaction
-      if (messages.length <= 1) {
-        toast.success('Connected to Hugging Face Space!');
-      }
+
     } catch (error) {
       console.error('❌ Error sending message:', error);
       
@@ -202,7 +194,6 @@ export default function RAGtimBot() {
 
   const clearChat = () => {
     setMessages([]);
-    toast.success('Chat cleared!');
   };
 
   const toggleStats = async () => {
