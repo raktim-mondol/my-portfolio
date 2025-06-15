@@ -125,62 +125,6 @@ export class HybridRAGService {
     }
   }
 
-  private extractContentFromResult(result: any, index: number): { content: string; hasValidContent: boolean } {
-    // Try multiple strategies to extract content
-    let content = '';
-    
-    // Strategy 1: Check for document.content
-    if (result.document?.content) {
-      content = result.document.content;
-    }
-    // Strategy 2: Check for document.text
-    else if (result.document?.text) {
-      content = result.document.text;
-    }
-    // Strategy 3: Check for direct content
-    else if (result.content) {
-      content = result.content;
-    }
-    // Strategy 4: Check for direct text
-    else if (result.text) {
-      content = result.text;
-    }
-    // Strategy 5: Check if result has meaningful string properties
-    else if (typeof result === 'string' && result.trim().length > 0) {
-      content = result;
-    }
-    // Strategy 6: Check for nested content in data
-    else if (result.data?.content) {
-      content = result.data.content;
-    }
-    // Strategy 7: Check for any string property that looks like content
-    else {
-      const stringProps = Object.keys(result).filter(key => 
-        typeof result[key] === 'string' && 
-        result[key].length > 20 && // Reasonable content length
-        !key.includes('id') && 
-        !key.includes('type')
-      );
-      
-      if (stringProps.length > 0) {
-        content = result[stringProps[0]];
-      }
-    }
-    
-    const hasValidContent = content && typeof content === 'string' && content.trim().length > 10;
-    
-    if (!hasValidContent) {
-      console.log(`⚠️ Result ${index} has no extractable content:`, {
-        resultKeys: Object.keys(result),
-        hasDocument: !!result.document,
-        documentKeys: result.document ? Object.keys(result.document) : [],
-        resultType: typeof result
-      });
-    }
-    
-    return { content: content.trim(), hasValidContent };
-  }
-
   private async searchHuggingFaceHybrid(query: string, topK: number = 8): Promise<SearchResult[]> {
     try {
       console.log('🔍 Starting Hugging Face hybrid search...');
@@ -236,19 +180,33 @@ export class HybridRAGService {
       
       console.log('📊 Extracted results array:', results);
       
-      // Transform results to our format with improved content extraction
+      // Transform results to our format with better error handling
       const transformedResults = results.map((result: any, index: number) => {
-        const { content, hasValidContent } = this.extractContentFromResult(result, index);
+        console.log(`📊 Processing result ${index}:`, result);
         
-        if (!hasValidContent) {
-          return null; // Will be filtered out
+        // Handle different possible result structures
+        let document = null;
+        let content = '';
+        let metadata = {};
+        let score = 0;
+        let searchType = 'hybrid';
+        
+        // Try to extract document information
+        if (result.document) {
+          document = result.document;
+          content = document.content || document.text || '';
+          metadata = document.metadata || {};
+        } else if (result.content || result.text) {
+          // Direct content in result
+          content = result.content || result.text;
+          metadata = result.metadata || {};
+        } else {
+          // Fallback - use the entire result as content
+          content = JSON.stringify(result);
+          console.warn('⚠️ Could not extract proper content from result:', result);
         }
         
-        // Extract metadata
-        const metadata = result.document?.metadata || result.metadata || {};
-        
         // Extract score
-        let score = 0;
         if (typeof result.score === 'number') {
           score = result.score;
         } else if (typeof result.similarity === 'number') {
@@ -256,7 +214,6 @@ export class HybridRAGService {
         }
         
         // Extract search type
-        let searchType = 'hybrid';
         if (result.search_type) {
           searchType = result.search_type;
         } else if (result.searchType) {
@@ -266,12 +223,12 @@ export class HybridRAGService {
         // Create a properly formatted result
         const transformedResult = {
           document: {
-            id: result.document?.id || result.id || `result-${index}-${Date.now()}`,
+            id: document?.id || result.id || `result-${index}-${Date.now()}`,
             content: content,
             metadata: {
               type: metadata.type || 'general',
               priority: metadata.priority || 5,
-              section: metadata.section || 'Search Result',
+              section: metadata.section || 'Unknown Section',
               source: metadata.source || 'hugging-face-search'
             }
           },
@@ -281,18 +238,26 @@ export class HybridRAGService {
           bm25_score: result.bm25_score
         };
         
-        console.log(`✅ Successfully processed result ${index}:`, {
+        console.log(`📊 Transformed result ${index}:`, {
+          hasContent: !!transformedResult.document.content,
           contentLength: transformedResult.document.content.length,
           score: transformedResult.score,
           searchType: transformedResult.searchType
         });
         
         return transformedResult;
-      }).filter(result => result !== null); // Remove null results
+      });
       
-      console.log(`✅ Successfully processed ${transformedResults.length} valid results out of ${results.length} total`);
+      console.log(`✅ Processed ${transformedResults.length} search results`);
       
-      return transformedResults;
+      // Filter out results with no content
+      const validResults = transformedResults.filter(result => 
+        result.document.content && result.document.content.trim().length > 0
+      );
+      
+      console.log(`✅ Valid results with content: ${validResults.length}`);
+      
+      return validResults;
     } catch (error) {
       console.error('❌ Hugging Face hybrid search error:', error);
       throw error;
