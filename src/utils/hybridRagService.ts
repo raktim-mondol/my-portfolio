@@ -114,8 +114,8 @@ export class HybridRAGService {
       console.log('- Top K:', topK);
       console.log('- URL:', this.huggingFaceUrl);
       
-      // Try the direct API endpoint that your Space exposes
-      const searchUrl = `${this.huggingFaceUrl}/api/search`;
+      // Use the correct Gradio API endpoint format
+      const searchUrl = `${this.huggingFaceUrl}/call/search_api`;
       console.log('🔍 Calling search API:', searchUrl);
       
       const response = await fetch(searchUrl, {
@@ -125,11 +125,13 @@ export class HybridRAGService {
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          query: query,
-          top_k: topK,
-          search_type: 'hybrid',
-          vector_weight: 0.6,
-          bm25_weight: 0.4
+          data: [
+            query,      // query string
+            topK,       // top_k number
+            "hybrid",   // search_type string
+            0.6,        // vector_weight number
+            0.4         // bm25_weight number
+          ]
         }),
       });
 
@@ -142,8 +144,11 @@ export class HybridRAGService {
       const data = await response.json();
       console.log('📊 Search data received:', data);
       
+      // Extract results from Gradio response format
+      const searchResults = data.data && data.data[0] && data.data[0].results ? data.data[0].results : [];
+      
       // Transform results to our format
-      const results = data.results?.map((result: any, index: number) => {
+      const results = searchResults.map((result: any, index: number) => {
         console.log(`📊 Processing result ${index}:`, {
           hasDocument: !!result.document,
           hasContent: !!result.document?.content,
@@ -167,7 +172,7 @@ export class HybridRAGService {
           vector_score: result.vector_score,
           bm25_score: result.bm25_score
         };
-      }) || [];
+      });
       
       console.log(`✅ Processed ${results.length} search results`);
       return results;
@@ -387,19 +392,24 @@ Remember to provide comprehensive answers based on this rich context from our hy
     try {
       console.log('📊 Getting knowledge base stats from Hugging Face...');
       
-      // Try the direct stats API endpoint
-      const statsUrl = `${this.huggingFaceUrl}/api/stats`;
+      // Use the correct Gradio API endpoint format
+      const statsUrl = `${this.huggingFaceUrl}/call/get_stats_api`;
       console.log('📊 Calling stats API:', statsUrl);
       
       const response = await fetch(statsUrl, {
-        method: 'GET',
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        body: JSON.stringify({
+          data: []
+        }),
       });
       
       if (response.ok) {
-        const stats = await response.json();
+        const data = await response.json();
+        const stats = data.data[0]; // Stats are in data[0]
         console.log('📊 HF Stats received:', stats);
         return {
           ...stats,

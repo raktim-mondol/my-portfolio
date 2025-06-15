@@ -40,8 +40,8 @@ export class HuggingFaceRAGService {
     try {
       console.log('🤗 Querying HF chat with message:', message);
       
-      // Try to use the chat interface directly
-      const chatUrl = `${this.spaceUrl}/api/chat`;
+      // Use the chat API endpoint directly
+      const chatUrl = `${this.spaceUrl}/call/chat`;
       console.log('🤗 Calling chat API:', chatUrl);
       
       const response = await fetch(chatUrl, {
@@ -51,8 +51,7 @@ export class HuggingFaceRAGService {
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          message: message,
-          history: []
+          data: [message]
         }),
       });
 
@@ -63,10 +62,8 @@ export class HuggingFaceRAGService {
       const data = await response.json();
       console.log('🤗 Chat response received:', data);
       
-      if (data.response) {
-        return data.response;
-      } else if (data.message) {
-        return data.message;
+      if (data.data && data.data[0]) {
+        return data.data[0];
       } else {
         throw new Error('Invalid response format from Hugging Face Space');
       }
@@ -80,7 +77,7 @@ export class HuggingFaceRAGService {
     try {
       console.log('🔍 Querying HF search:', { query, topK });
       
-      const searchUrl = `${this.spaceUrl}/api/search`;
+      const searchUrl = `${this.spaceUrl}/call/search_api`;
       console.log('🔍 Calling search API:', searchUrl);
       
       const response = await fetch(searchUrl, {
@@ -90,11 +87,13 @@ export class HuggingFaceRAGService {
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          query: query,
-          top_k: topK,
-          search_type: 'hybrid',
-          vector_weight: 0.6,
-          bm25_weight: 0.4
+          data: [
+            query,      // query string
+            topK,       // top_k number
+            "hybrid",   // search_type string
+            0.6,        // vector_weight number
+            0.4         // bm25_weight number
+          ]
         }),
       });
 
@@ -104,7 +103,7 @@ export class HuggingFaceRAGService {
 
       const data = await response.json();
       console.log('🔍 Search results received:', data);
-      return data;
+      return data.data[0]; // The search results are in data[0]
     } catch (error) {
       console.error('❌ Hugging Face search query error:', error);
       throw error;
@@ -115,14 +114,18 @@ export class HuggingFaceRAGService {
     try {
       console.log('📊 Querying HF stats...');
       
-      const statsUrl = `${this.spaceUrl}/api/stats`;
+      const statsUrl = `${this.spaceUrl}/call/get_stats_api`;
       console.log('📊 Calling stats API:', statsUrl);
       
       const response = await fetch(statsUrl, {
-        method: 'GET',
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        body: JSON.stringify({
+          data: []
+        }),
       });
 
       if (!response.ok) {
@@ -131,7 +134,7 @@ export class HuggingFaceRAGService {
 
       const data = await response.json();
       console.log('📊 Stats received:', data);
-      return data;
+      return data.data[0]; // The stats are in data[0]
     } catch (error) {
       console.error('❌ Hugging Face stats query error:', error);
       throw error;
@@ -187,7 +190,7 @@ export class HuggingFaceRAGService {
         backendType: 'Hugging Face Space',
         modelName: 'sentence-transformers/all-MiniLM-L6-v2',
         embeddingDimension: 384,
-        architecture: 'Direct API Integration'
+        architecture: 'Gradio API Integration'
       };
     } catch (error) {
       console.error('❌ Error getting stats:', error);
@@ -199,7 +202,7 @@ export class HuggingFaceRAGService {
         backendType: 'Hugging Face Space',
         modelName: 'sentence-transformers/all-MiniLM-L6-v2',
         embeddingDimension: 384,
-        architecture: 'Direct API Integration',
+        architecture: 'Gradio API Integration',
         status: 'starting'
       };
     }
