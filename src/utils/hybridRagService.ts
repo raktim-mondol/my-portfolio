@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { Client } from '@gradio/client';
 
 export interface ChatMessage {
   id: string;
@@ -28,6 +29,7 @@ export class HybridRAGService {
   private openai: OpenAI | null = null;
   private apiKey: string | null = null;
   private huggingFaceUrl: string;
+  private gradioClient: any = null;
 
   constructor() {
     console.log('🔧 HybridRAGService Constructor Starting...');
@@ -87,6 +89,22 @@ export class HybridRAGService {
     return hasKey;
   }
 
+  private async initializeGradioClient(): Promise<any> {
+    if (this.gradioClient) {
+      return this.gradioClient;
+    }
+
+    try {
+      console.log('🔌 Initializing Gradio client for:', this.huggingFaceUrl);
+      this.gradioClient = await Client.connect(this.huggingFaceUrl);
+      console.log('✅ Gradio client connected successfully');
+      return this.gradioClient;
+    } catch (error) {
+      console.error('❌ Failed to initialize Gradio client:', error);
+      throw error;
+    }
+  }
+
   private async checkHuggingFaceHealth(): Promise<boolean> {
     try {
       console.log('🏥 Checking Hugging Face Space health...');
@@ -114,88 +132,45 @@ export class HybridRAGService {
       console.log('- Top K:', topK);
       console.log('- URL:', this.huggingFaceUrl);
       
-      // Use the correct Gradio API endpoint format - try different possible endpoints
-      const possibleEndpoints = [
-        `${this.huggingFaceUrl}/api/predict`,
-        `${this.huggingFaceUrl}/run/search`,
-        `${this.huggingFaceUrl}/api/search`,
-        `${this.huggingFaceUrl}/gradio_api/call/search`
-      ];
+      // Initialize Gradio client
+      const client = await this.initializeGradioClient();
       
-      let searchResults = null;
-      let lastError = null;
+      console.log('🔍 Calling search API via Gradio client...');
       
-      for (const endpoint of possibleEndpoints) {
-        try {
-          console.log('🔍 Trying endpoint:', endpoint);
-          
-          let requestBody;
-          let headers = {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          };
-          
-          // Try different request formats
-          if (endpoint.includes('/api/predict')) {
-            requestBody = JSON.stringify({
-              fn_index: 1, // Assuming search is the second function (index 1)
-              data: [query, topK, "hybrid", 0.6, 0.4]
-            });
-          } else if (endpoint.includes('/run/search')) {
-            requestBody = JSON.stringify({
-              data: [query, topK, "hybrid", 0.6, 0.4]
-            });
-          } else {
-            requestBody = JSON.stringify({
-              query: query,
-              top_k: topK,
-              search_type: 'hybrid',
-              vector_weight: 0.6,
-              bm25_weight: 0.4
-            });
-          }
-          
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers,
-            body: requestBody,
-          });
+      // Use the correct API name from your Gradio space
+      const result = await client.predict("/search_api", {
+        query: query,
+        top_k: topK,
+        search_type: "hybrid",
+        vector_weight: 0.6,
+        bm25_weight: 0.4
+      });
 
-          console.log('🔍 Response status:', response.status, response.statusText);
-
-          if (response.ok) {
-            const data = await response.json();
-            console.log('📊 Search data received:', data);
-            
-            // Try to extract results from different possible response formats
-            let results = null;
-            if (data.data && Array.isArray(data.data) && data.data[0] && data.data[0].results) {
-              results = data.data[0].results;
-            } else if (data.results) {
-              results = data.results;
-            } else if (data.data && Array.isArray(data.data)) {
-              results = data.data;
-            }
-            
-            if (results && Array.isArray(results)) {
-              searchResults = results;
-              console.log(`✅ Found results using endpoint: ${endpoint}`);
-              break;
-            }
-          }
-        } catch (error) {
-          console.log(`❌ Endpoint ${endpoint} failed:`, error);
-          lastError = error;
-          continue;
-        }
+      console.log('📊 Search result received:', result);
+      
+      // Extract data from Gradio response
+      let searchData = null;
+      if (result && result.data) {
+        searchData = result.data;
+      } else {
+        searchData = result;
       }
       
-      if (!searchResults) {
-        throw new Error(`All endpoints failed. Last error: ${lastError}`);
+      console.log('📊 Extracted search data:', searchData);
+      
+      // Parse the results - the response should contain a 'results' field
+      let results = [];
+      if (searchData && searchData.results && Array.isArray(searchData.results)) {
+        results = searchData.results;
+      } else if (Array.isArray(searchData)) {
+        results = searchData;
+      } else {
+        console.warn('⚠️ Unexpected search data format:', searchData);
+        return [];
       }
       
       // Transform results to our format
-      const transformedResults = searchResults.map((result: any, index: number) => {
+      const transformedResults = results.map((result: any, index: number) => {
         console.log(`📊 Processing result ${index}:`, {
           hasDocument: !!result.document,
           hasContent: !!result.document?.content,
@@ -414,8 +389,8 @@ Remember to provide comprehensive answers based on this rich context from our hy
           stack: error.stack?.split('\n').slice(0, 5)
         });
         
-        if (error.message.includes('search API') || error.message.includes('404')) {
-          return "The Hugging Face Space is currently starting up or the API endpoints are not ready yet. Free Hugging Face Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
+        if (error.message.includes('connect') || error.message.includes('Client')) {
+          return "The Hugging Face Space is currently starting up or unavailable. Free Hugging Face Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
         }
         
         if (error.message.includes('API key') || error.message.includes('401') || error.message.includes('Authentication')) {
@@ -439,104 +414,65 @@ Remember to provide comprehensive answers based on this rich context from our hy
     try {
       console.log('📊 Getting knowledge base stats from Hugging Face...');
       
-      // Try different possible stats endpoints
-      const possibleEndpoints = [
-        `${this.huggingFaceUrl}/api/predict`,
-        `${this.huggingFaceUrl}/run/stats`,
-        `${this.huggingFaceUrl}/api/stats`,
-        `${this.huggingFaceUrl}/gradio_api/call/stats`
-      ];
+      // Initialize Gradio client
+      const client = await this.initializeGradioClient();
       
-      for (const endpoint of possibleEndpoints) {
-        try {
-          console.log('📊 Trying stats endpoint:', endpoint);
-          
-          let requestBody;
-          if (endpoint.includes('/api/predict')) {
-            requestBody = JSON.stringify({
-              fn_index: 2, // Assuming stats is the third function (index 2)
-              data: []
-            });
-          } else if (endpoint.includes('/run/stats')) {
-            requestBody = JSON.stringify({
-              data: []
-            });
-          } else {
-            requestBody = JSON.stringify({});
-          }
-          
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: requestBody,
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            console.log('📊 HF Stats received:', data);
-            
-            let stats = null;
-            if (data.data && Array.isArray(data.data) && data.data[0]) {
-              stats = data.data[0];
-            } else if (data.stats) {
-              stats = data.stats;
-            } else {
-              stats = data;
-            }
-            
-            return {
-              ...stats,
-              searchProvider: 'Hugging Face Transformers',
-              responseProvider: 'DeepSeek LLM',
-              architecture: 'Hybrid RAG System',
-              searchCapabilities: [
-                'GPU-Accelerated Vector Search', 
-                'BM25 Keyword Search', 
-                'Hybrid Fusion (Vector + BM25)',
-                'Transformer Embeddings',
-                'DeepSeek Response Generation'
-              ],
-              isHybridSystem: true,
-              hybridWeights: {
-                vector: 0.6,
-                bm25: 0.4
-              }
-            };
-          }
-        } catch (error) {
-          console.log(`❌ Stats endpoint ${endpoint} failed:`, error);
-          continue;
-        }
+      console.log('📊 Calling stats API via Gradio client...');
+      
+      // Use the correct API name for stats
+      const result = await client.predict("/get_stats_api", {});
+      
+      console.log('📊 Stats result received:', result);
+      
+      let stats = null;
+      if (result && result.data) {
+        stats = result.data;
+      } else {
+        stats = result;
       }
       
-      console.warn('⚠️ All stats endpoints failed');
+      return {
+        ...stats,
+        searchProvider: 'Hugging Face Transformers',
+        responseProvider: 'DeepSeek LLM',
+        architecture: 'Hybrid RAG System',
+        searchCapabilities: [
+          'GPU-Accelerated Vector Search', 
+          'BM25 Keyword Search', 
+          'Hybrid Fusion (Vector + BM25)',
+          'Transformer Embeddings',
+          'DeepSeek Response Generation'
+        ],
+        isHybridSystem: true,
+        hybridWeights: {
+          vector: 0.6,
+          bm25: 0.4
+        }
+      };
     } catch (error) {
       console.warn('⚠️ Could not fetch stats from Hugging Face:', error);
+      
+      // Fallback stats
+      return {
+        totalDocuments: 64,
+        searchProvider: 'Hugging Face Transformers',
+        responseProvider: 'DeepSeek LLM',
+        architecture: 'Hybrid RAG System',
+        searchCapabilities: [
+          'GPU-Accelerated Vector Search', 
+          'BM25 Keyword Search', 
+          'Hybrid Fusion (Vector + BM25)',
+          'Transformer Embeddings',
+          'DeepSeek Response Generation'
+        ],
+        isHybridSystem: true,
+        modelName: 'sentence-transformers/all-MiniLM-L6-v2',
+        embeddingDimension: 384,
+        hybridWeights: {
+          vector: 0.6,
+          bm25: 0.4
+        }
+      };
     }
-
-    // Fallback stats
-    return {
-      totalDocuments: 64,
-      searchProvider: 'Hugging Face Transformers',
-      responseProvider: 'DeepSeek LLM',
-      architecture: 'Hybrid RAG System',
-      searchCapabilities: [
-        'GPU-Accelerated Vector Search', 
-        'BM25 Keyword Search', 
-        'Hybrid Fusion (Vector + BM25)',
-        'Transformer Embeddings',
-        'DeepSeek Response Generation'
-      ],
-      isHybridSystem: true,
-      modelName: 'sentence-transformers/all-MiniLM-L6-v2',
-      embeddingDimension: 384,
-      hybridWeights: {
-        vector: 0.6,
-        bm25: 0.4
-      }
-    };
   }
 }
