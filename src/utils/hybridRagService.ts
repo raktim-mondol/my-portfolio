@@ -163,15 +163,24 @@ export class HybridRAGService {
       
       if (searchData && searchData.results && Array.isArray(searchData.results)) {
         results = searchData.results;
+        console.log('📊 Found results array with length:', results.length);
       } else if (Array.isArray(searchData)) {
         results = searchData;
+        console.log('📊 Search data is directly an array with length:', results.length);
       } else if (searchData && typeof searchData === 'object') {
         // Check if the data itself contains results
-        if (searchData.results) {
+        if (searchData.results && Array.isArray(searchData.results)) {
           results = searchData.results;
+          console.log('📊 Found nested results array with length:', results.length);
         } else {
-          // Maybe the entire object is a single result
-          results = [searchData];
+          // This is likely the wrong path - the entire response object is being treated as a single result
+          console.warn('⚠️ Search data is an object but does not contain a results array');
+          console.warn('⚠️ Search data keys:', Object.keys(searchData));
+          console.warn('⚠️ This might be the API response wrapper, not individual results');
+          
+          // Don't treat the entire API response as a single result
+          console.log('📊 Skipping API response wrapper, no valid results found');
+          return [];
         }
       } else {
         console.warn('⚠️ Unexpected search data format:', searchData);
@@ -179,6 +188,20 @@ export class HybridRAGService {
       }
       
       console.log('📊 Extracted results array:', results);
+      
+      // Validate that we have actual search results, not API response objects
+      if (results.length > 0) {
+        const firstResult = results[0];
+        console.log('📊 First result structure:', firstResult);
+        console.log('📊 First result keys:', Object.keys(firstResult));
+        
+        // Check if this looks like a search result (should have document property) or API response
+        if (!firstResult.document && !firstResult.content && !firstResult.text) {
+          console.warn('⚠️ Results array contains objects that don\'t look like search results');
+          console.warn('⚠️ First result:', firstResult);
+          return [];
+        }
+      }
       
       // Transform results to our format with better error handling
       const transformedResults = results.map((result: any, index: number) => {
@@ -333,6 +356,7 @@ export class HybridRAGService {
 
   private buildContext(searchResults: SearchResult[]): string {
     console.log('📄 Building context from search results...');
+    console.log('📄 Number of search results:', searchResults.length);
     
     if (searchResults.length === 0) {
       console.log('📄 No search results to build context from');
@@ -344,6 +368,24 @@ export class HybridRAGService {
     
     const contextParts = topResults.map((result, index) => {
       const doc = result.document;
+      console.log(`📄 Processing context part ${index}:`, {
+        hasContent: !!doc.content,
+        contentLength: doc.content?.length || 0,
+        section: doc.metadata.section,
+        type: doc.metadata.type
+      });
+      
+      // Validate content exists and is meaningful
+      if (!doc.content || doc.content.trim().length === 0) {
+        console.warn(`⚠️ Context part ${index} has no content, skipping`);
+        return null;
+      }
+      
+      if (doc.content.startsWith('[Raw data:')) {
+        console.warn(`⚠️ Context part ${index} contains raw data, skipping`);
+        return null;
+      }
+      
       const section = doc.metadata.section ? `[${doc.metadata.section}]` : `[${doc.metadata.type}]`;
       
       let searchInfo = '';
@@ -357,10 +399,18 @@ export class HybridRAGService {
       console.log(`📄 Context part ${index} length:`, contextPart.length);
       
       return contextPart;
-    });
+    }).filter(part => part !== null); // Remove null entries
+
+    if (contextParts.length === 0) {
+      console.warn('⚠️ No valid context parts found after filtering');
+      return "No specific information found. Please provide general information about Raktim Mondol based on your knowledge.";
+    }
 
     const fullContext = contextParts.join('\n\n---\n\n');
-    console.log('📄 Full context length:', fullContext.length);
+    console.log('📄 Full context built successfully:');
+    console.log('📄 - Valid context parts:', contextParts.length);
+    console.log('📄 - Full context length:', fullContext.length);
+    console.log('📄 - Context preview:', fullContext.substring(0, 200) + '...');
     
     return fullContext;
   }
