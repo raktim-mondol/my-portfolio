@@ -99,6 +99,15 @@ export class HybridRAGService {
   private extractContentFromResult(result: any, index: number): { content: string; hasValidContent: boolean } {
     let content = '';
     
+    // Debug the result structure
+    console.log(`🔍 Processing result ${index}:`, {
+      hasDocument: !!result.document,
+      hasContent: !!result.document?.content,
+      score: result.score,
+      searchType: result.search_type || result.searchType,
+      resultKeys: Object.keys(result)
+    });
+    
     // Try multiple strategies to extract content
     if (result.document?.content) {
       content = result.document.content;
@@ -123,16 +132,27 @@ export class HybridRAGService {
       
       if (stringProps.length > 0) {
         content = result[stringProps[0]];
+        console.log(`📄 Found content in property '${stringProps[0]}':`, content.substring(0, 100) + '...');
+      } else {
+        console.warn(`⚠️ Could not extract proper content from result:`, result);
       }
     }
     
     const hasValidContent = content && typeof content === 'string' && content.trim().length > 10;
+    
+    if (!hasValidContent) {
+      console.warn(`❌ Invalid content extracted for result ${index}:`, { content, type: typeof content, length: content?.length });
+    }
     
     return { content: content.trim(), hasValidContent };
   }
 
   private async searchHuggingFaceHybrid(query: string, topK: number = 8): Promise<SearchResult[]> {
     try {
+      console.log('🔍 Starting Hugging Face hybrid search...');
+      console.log('- Query:', query);
+      console.log('- Top K:', topK);
+      
       const client = await this.initializeGradioClient();
       
       const result = await client.predict("/search_api", {
@@ -143,12 +163,16 @@ export class HybridRAGService {
         bm25_weight: 0.4
       });
       
+      console.log('📊 Raw Gradio result:', result);
+      
       // Extract data from Gradio response
       let searchData = null;
       if (result && result.data) {
         searchData = result.data;
+        console.log('📊 Extracted search data:', searchData);
       } else {
         searchData = result;
+        console.log('📊 Using result directly as search data:', searchData);
       }
       
       // Parse the results
@@ -156,23 +180,31 @@ export class HybridRAGService {
       
       if (searchData && searchData.results && Array.isArray(searchData.results)) {
         results = searchData.results;
+        console.log(`📊 Extracted results array: ${results.length} items`);
       } else if (Array.isArray(searchData)) {
         results = searchData;
+        console.log(`📊 Using searchData as results array: ${results.length} items`);
       } else if (searchData && typeof searchData === 'object') {
         if (searchData.results) {
           results = searchData.results;
+          console.log(`📊 Found results in searchData: ${results.length} items`);
         } else {
           results = [searchData];
+          console.log('📊 Wrapping searchData as single result');
         }
       } else {
+        console.warn('⚠️ No valid results found in search response');
         return [];
       }
+      
+      console.log(`📊 Processing ${results.length} results...`);
       
       // Transform results to our format with improved content extraction
       const transformedResults = results.map((result: any, index: number) => {
         const { content, hasValidContent } = this.extractContentFromResult(result, index);
         
         if (!hasValidContent) {
+          console.warn(`⚠️ Skipping result ${index} due to invalid content`);
           return null;
         }
         
@@ -192,7 +224,7 @@ export class HybridRAGService {
           searchType = result.searchType;
         }
         
-        return {
+        const transformedResult = {
           document: {
             id: result.document?.id || result.id || `result-${index}-${Date.now()}`,
             content: content,
@@ -208,20 +240,36 @@ export class HybridRAGService {
           vector_score: result.vector_score,
           bm25_score: result.bm25_score
         };
+        
+        console.log(`✅ Transformed result ${index}:`, {
+          hasContent: !!transformedResult.document.content,
+          contentLength: transformedResult.document.content.length,
+          score: transformedResult.score,
+          searchType: transformedResult.searchType
+        });
+        
+        return transformedResult;
       }).filter(result => result !== null);
       
+      console.log(`✅ Successfully processed ${transformedResults.length} valid results`);
       return transformedResults;
     } catch (error) {
+      console.error('❌ Hugging Face hybrid search error:', error);
       throw error;
     }
   }
 
   private buildContext(searchResults: SearchResult[]): string {
+    console.log('📄 Building context from search results...');
+    console.log(`📄 Input: ${searchResults.length} search results`);
+    
     if (searchResults.length === 0) {
+      console.log('📄 No search results to build context from');
       return "No specific information found. Please provide general information about Raktim Mondol based on your knowledge.";
     }
 
     const topResults = searchResults.slice(0, 6);
+    console.log(`📄 Using top ${topResults.length} results for context`);
     
     const contextParts = topResults.map((result, index) => {
       const doc = result.document;
@@ -234,10 +282,16 @@ export class HybridRAGService {
         searchInfo = `(${result.searchType.toUpperCase()}: ${(result.score * 100).toFixed(1)}%)`;
       }
       
-      return `${section} ${searchInfo}\n${doc.content.trim()}`;
+      const contextPart = `${section} ${searchInfo}\n${doc.content.trim()}`;
+      console.log(`📄 Context part ${index} length: ${contextPart.length} chars`);
+      
+      return contextPart;
     });
 
-    return contextParts.join('\n\n---\n\n');
+    const fullContext = contextParts.join('\n\n---\n\n');
+    console.log(`📄 Full context built: ${fullContext.length} chars total`);
+    
+    return fullContext;
   }
 
   private stripMarkdown(text: string): string {
@@ -257,25 +311,43 @@ export class HybridRAGService {
   }
 
   public async generateResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
+    console.log('🚀 Starting hybrid response generation...');
+    console.log('- User query:', userQuery);
+    console.log('- Has API key:', !!this.apiKey);
+    console.log('- Has OpenAI client:', !!this.openai);
+    
     if (!this.apiKey || !this.openai) {
       return "The chatbot is currently unavailable. Please ensure the API key is properly configured.";
     }
 
     try {
+      // Step 1: Check if Hugging Face Space is available
+      console.log('🏥 Step 1: Checking Hugging Face Space availability...');
       const isHFHealthy = await this.checkHuggingFaceHealth();
       
       if (!isHFHealthy) {
         return "The AI Space is currently starting up or unavailable. Free AI Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
       }
+      console.log('✅ Hugging Face Space is healthy');
 
+      // Step 2: Use Hugging Face for hybrid search
+      console.log('🔥 Step 2: Performing hybrid search with Hugging Face...');
       const searchResults = await this.searchHuggingFaceHybrid(userQuery, 8);
       
       if (searchResults.length === 0) {
+        console.log('⚠️ No search results returned');
         return "I don't have specific information about that topic in my knowledge base. Could you please ask something else about Raktim Mondol's research, experience, or expertise?";
       }
+      console.log(`✅ Got ${searchResults.length} search results`);
 
+      // Step 3: Build rich context from hybrid search results
+      console.log('📄 Step 3: Building context from search results...');
       const context = this.buildContext(searchResults);
+      console.log(`📄 Context built: ${context.length} characters`);
 
+      // Step 4: Use DeepSeek for natural response generation
+      console.log('🧠 Step 4: Generating natural response with DeepSeek LLM...');
+      
       const systemMessage = `You are RAGtim Bot, an advanced AI assistant powered by a cutting-edge hybrid search system:
 
 🔥 HYBRID SEARCH TECHNOLOGY:
@@ -335,6 +407,10 @@ Remember to provide comprehensive answers based on this rich context from our hy
         content: userQuery
       });
 
+      console.log('🧠 Sending request to DeepSeek...');
+      console.log('- Messages count:', messages.length);
+      console.log('- System message length:', messages[0].content.length);
+
       const completion = await this.openai.chat.completions.create({
         messages,
         model: "deepseek-chat",
@@ -342,11 +418,18 @@ Remember to provide comprehensive answers based on this rich context from our hy
         temperature: 0.7,
         top_p: 0.9
       });
+
+      console.log('✅ DeepSeek response received');
       
       const response = completion.choices[0]?.message?.content || "I apologize, but I couldn't generate a response. Please try again.";
       
-      return this.stripMarkdown(response);
+      const finalResponse = this.stripMarkdown(response);
+      console.log('✅ Final response prepared, length:', finalResponse.length);
+      
+      return finalResponse;
     } catch (error) {
+      console.error('❌ Error in hybrid RAG service:', error);
+      
       if (error instanceof Error) {
         if (error.message.includes('connect') || error.message.includes('Client')) {
           return "The AI Space is currently starting up or the API endpoints are not ready yet. Free AI Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";

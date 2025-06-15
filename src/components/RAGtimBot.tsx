@@ -119,21 +119,8 @@ export default function RAGtimBot() {
     setInputMessage('');
     setIsLoading(true);
 
-    // Show loading toast for AI Space
-    let loadingToast: string | undefined;
-    if (isUsingHuggingFace || isUsingHybrid) {
-      loadingToast = toast.loading('Connecting to AI Space...', {
-        duration: 10000
-      });
-    }
-
     try {
       const response = await ragService.generateResponse(userMessage.content, messages);
-      
-      // Dismiss loading toast
-      if (loadingToast) {
-        toast.dismiss(loadingToast);
-      }
       
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -146,14 +133,9 @@ export default function RAGtimBot() {
       
       // Show success toast for first successful interaction
       if (messages.length <= 1) {
-        toast.success('Connected to AI Space!');
+        toast.success('Connected successfully!');
       }
     } catch (error) {
-      // Dismiss loading toast
-      if (loadingToast) {
-        toast.dismiss(loadingToast);
-      }
-      
       let errorMessage = 'Failed to send message. Please try again.';
       
       if (error instanceof Error) {
@@ -412,7 +394,7 @@ export default function RAGtimBot() {
                     <div className="w-2 h-2 bg-[#94c973] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    {(isUsingHybrid || isUsingHuggingFace) ? 'Connecting to AI Space...' : 'Thinking...'}
+                    Thinking...
                   </p>
                 </div>
               </div>
