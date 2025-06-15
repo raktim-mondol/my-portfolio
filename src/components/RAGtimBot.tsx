@@ -220,9 +220,13 @@ export default function RAGtimBot() {
   // Handle clicking on suggested questions
   const handleSuggestedQuestion = async (question: string) => {
     setShowSuggestions(false);
-    setInputMessage(question);
     
-    // Automatically send the question
+    if (!isUsingHuggingFace && !ragService.hasApiKey()) {
+      toast.error('The chatbot is currently unavailable. Please contact the site administrator.');
+      return;
+    }
+
+    // Automatically send the question without showing in input
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
@@ -588,23 +592,20 @@ export default function RAGtimBot() {
                     <button
                       key={index}
                       onClick={() => handleSuggestedQuestion(question)}
-                      className="w-full text-left p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-all duration-200 hover:shadow-md group"
+                      disabled={isLoading}
+                      className="w-full text-left p-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-all duration-200 hover:shadow-md group disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <div className="flex items-start space-x-3">
-                        <div className={`flex-shrink-0 w-8 h-8 ${systemInfo.color} rounded-full flex items-center justify-center text-white text-sm font-medium group-hover:scale-110 transition-transform`}>
-                          {index + 1}
-                        </div>
-                        <p className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
-                          {question}
-                        </p>
-                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors leading-relaxed">
+                        {question}
+                      </p>
                     </button>
                   ))}
                 </div>
                 <div className="text-center">
                   <button
                     onClick={() => setSuggestedQuestions(getRandomQuestions())}
-                    className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center space-x-1 mx-auto"
+                    disabled={isLoading}
+                    className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center space-x-1 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <Search className="h-3 w-3" />
                     <span>Get different questions</span>
