@@ -96,11 +96,58 @@ export class HybridRAGService {
 
     try {
       console.log('🔌 Initializing Gradio client for:', this.huggingFaceUrl);
-      this.gradioClient = await Client.connect(this.huggingFaceUrl);
+      
+      // Add timeout and connection options to prevent hanging connections
+      const connectPromise = Client.connect(this.huggingFaceUrl);
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Connection timeout')), 30000); // 30 second timeout
+      });
+      
+      this.gradioClient = await Promise.race([connectPromise, timeoutPromise]);
       console.log('✅ Gradio client connected successfully');
       return this.gradioClient;
     } catch (error) {
       console.error('❌ Failed to initialize Gradio client:', error);
+      // Reset client on error to force reconnection next time
+      this.resetGradioClient();
+      throw error;
+    }
+  }
+
+  private resetGradioClient(): void {
+    console.log('🔄 Resetting Gradio client connection...');
+    if (this.gradioClient) {
+      try {
+        // Try to close the connection gracefully if possible
+        if (typeof this.gradioClient.close === 'function') {
+          this.gradioClient.close();
+        }
+      } catch (error) {
+        console.warn('⚠️ Error closing Gradio client:', error);
+      }
+    }
+    this.gradioClient = null;
+  }
+
+  private async makeGradioRequest(endpoint: string, params: any, timeoutMs: number = 45000): Promise<any> {
+    const client = await this.initializeGradioClient();
+    
+    const predictPromise = client.predict(endpoint, params);
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error(`Request timeout for ${endpoint}`)), timeoutMs);
+    });
+    
+    try {
+      return await Promise.race([predictPromise, timeoutPromise]);
+    } catch (error) {
+      if (error instanceof Error) {
+        if (error.message.includes('message channel closed') || 
+            error.message.includes('asynchronous response') ||
+            error.message.includes('timeout')) {
+          console.log(`🔄 Connection issue with ${endpoint}, resetting client...`);
+          this.resetGradioClient();
+        }
+      }
       throw error;
     }
   }
@@ -132,19 +179,16 @@ export class HybridRAGService {
       console.log('- Top K:', topK);
       console.log('- URL:', this.huggingFaceUrl);
       
-      // Initialize Gradio client
-      const client = await this.initializeGradioClient();
-      
       console.log('🔍 Calling search API via Gradio client...');
       
-      // Use the correct API name from your Gradio space
-      const result = await client.predict("/search_api", {
+      // Use the new wrapper method for better error handling
+      const result = await this.makeGradioRequest("/search_api", {
         query: query,
         top_k: topK,
         search_type: "hybrid",
         vector_weight: 0.6,
         bm25_weight: 0.4
-      });
+      }, 45000);
 
       console.log('📊 Raw Gradio result:', result);
       
@@ -620,16 +664,24 @@ Remember to provide comprehensive answers based on this rich context from our hy
           return "The Hugging Face Space is currently starting up or unavailable. Free Hugging Face Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
         }
         
+        if (error.message.includes('message channel closed') || error.message.includes('asynchronous response')) {
+          // Reset the Gradio client to force reconnection
+          this.resetGradioClient();
+          return "Connection to the Hugging Face Space was interrupted. The system will reconnect automatically. Please try your request again.";
+        }
+        
+        if (error.message.includes('timeout') || error.message.includes('AbortError')) {
+          // Reset the Gradio client on timeout
+          this.resetGradioClient();
+          return "Request timed out. The Hugging Face Space may be slow to respond or starting up. Please try again in a moment.";
+        }
+        
         if (error.message.includes('API key') || error.message.includes('401') || error.message.includes('Authentication')) {
           return "The DeepSeek API key appears to be invalid or missing. Please contact the site administrator to configure the VITE_DEEPSEEK_API_KEY environment variable with a valid DeepSeek API key.";
         }
         
         if (error.message.includes('network') || error.message.includes('fetch')) {
           return "Network error occurred. Please check your internet connection and try again.";
-        }
-        
-        if (error.message.includes('AbortError')) {
-          return "Request timed out. The Hugging Face Space may be slow to respond. Please try again in a moment.";
         }
       }
       
@@ -641,13 +693,10 @@ Remember to provide comprehensive answers based on this rich context from our hy
     try {
       console.log('📊 Getting knowledge base stats from Hugging Face...');
       
-      // Initialize Gradio client
-      const client = await this.initializeGradioClient();
-      
       console.log('📊 Calling stats API via Gradio client...');
       
-      // Use the correct API name for stats
-      const result = await client.predict("/get_stats_api", {});
+      // Use the new wrapper method for better error handling
+      const result = await this.makeGradioRequest("/get_stats_api", {}, 30000);
       
       console.log('📊 Stats result received:', result);
       
