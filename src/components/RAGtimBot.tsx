@@ -430,13 +430,7 @@ export default function RAGtimBot() {
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">
-                    {message.content}
-                    {/* Typing cursor for streaming message */}
-                    {streamingMessageId === message.id && isTyping && (
-                      <span className="inline-block w-0.5 h-4 bg-gray-600 dark:bg-gray-300 animate-pulse ml-1">|</span>
-                    )}
-                  </p>
+                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                   <p className={`text-xs mt-1 opacity-70 ${
                     message.role === 'user' ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'
                   }`}>
