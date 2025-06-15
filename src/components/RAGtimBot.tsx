@@ -17,6 +17,8 @@ export default function RAGtimBot() {
   const [isLoading, setIsLoading] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [knowledgeStats, setKnowledgeStats] = useState<any>(null);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -92,6 +94,13 @@ export default function RAGtimBot() {
   }, [messages]);
 
   useEffect(() => {
+    if (isTyping) {
+      const interval = setInterval(scrollToBottom, 100);
+      return () => clearInterval(interval);
+    }
+  }, [isTyping]);
+
+  useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
@@ -111,6 +120,36 @@ export default function RAGtimBot() {
       console.error('❌ Failed to load knowledge base stats:', error);
       toast.error('Failed to load system statistics');
     }
+  };
+
+  const wordTypewriterEffect = async (
+    messageId: string,
+    fullText: string,
+    speed: number = 80 // milliseconds per word
+  ) => {
+    setIsTyping(true);
+    setStreamingMessageId(messageId);
+    
+    const words = fullText.split(' ');
+    
+    for (let i = 0; i <= words.length; i++) {
+      const partialText = words.slice(0, i).join(' ');
+      
+      setMessages(prev => 
+        prev.map(msg => 
+          msg.id === messageId 
+            ? { ...msg, content: partialText }
+            : msg
+        )
+      );
+      
+      if (i < words.length) {
+        await new Promise(resolve => setTimeout(resolve, speed));
+      }
+    }
+    
+    setIsTyping(false);
+    setStreamingMessageId(null);
   };
 
   const handleSendMessage = async () => {
@@ -147,14 +186,21 @@ export default function RAGtimBot() {
         toast.dismiss(loadingToast);
       }
       
+      // Create assistant message with empty content initially
+      const assistantMessageId = (Date.now() + 1).toString();
       const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: assistantMessageId,
         role: 'assistant',
-        content: response,
+        content: '', // Start empty for typewriter effect
         timestamp: new Date()
       };
 
+      // Add empty message to chat
       setMessages(prev => [...prev, assistantMessage]);
+      setIsLoading(false); // Stop loading indicator
+      
+      // Start word-by-word typewriter effect
+      await wordTypewriterEffect(assistantMessageId, response, 80);
       
 
     } catch (error) {
@@ -184,7 +230,6 @@ export default function RAGtimBot() {
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorResponseMessage]);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -385,7 +430,13 @@ export default function RAGtimBot() {
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-sm whitespace-pre-wrap">
+                    {message.content}
+                    {/* Typing cursor for streaming message */}
+                    {streamingMessageId === message.id && isTyping && (
+                      <span className="inline-block w-0.5 h-4 bg-gray-600 dark:bg-gray-300 animate-pulse ml-1">|</span>
+                    )}
+                  </p>
                   <p className={`text-xs mt-1 opacity-70 ${
                     message.role === 'user' ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'
                   }`}>
