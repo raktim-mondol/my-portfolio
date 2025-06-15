@@ -32,28 +32,28 @@ export default function RAGtimBot() {
         name: 'Hybrid RAG',
         description: 'Advanced Search + LLM',
         icon: '🔥',
-        color: 'from-purple-500 to-pink-500'
+        color: 'from-[#94c973] to-[#7fb95e]'
       };
     } else if (isUsingHuggingFace) {
       return {
         name: 'AI Search',
         description: 'Powered by Transformers',
         icon: '🤗',
-        color: 'from-yellow-500 to-orange-500'
+        color: 'from-[#94c973] to-[#7fb95e]'
       };
     } else if (isUsingBackend) {
       return {
         name: 'Backend Server',
         description: 'Local Transformers + LLM',
         icon: '🖥️',
-        color: 'from-blue-500 to-cyan-500'
+        color: 'from-[#94c973] to-[#7fb95e]'
       };
     } else {
       return {
         name: 'Serverless AI',
         description: 'Cloud Functions + LLM',
         icon: '⚡',
-        color: 'from-green-500 to-teal-500'
+        color: 'from-[#94c973] to-[#7fb95e]'
       };
     }
   };
@@ -236,7 +236,7 @@ export default function RAGtimBot() {
             {!isUsingHuggingFace && !isUsingHybrid && (
               <button
                 onClick={openHuggingFaceSpace}
-                className="absolute -top-16 right-0 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white rounded-xl px-3 py-2 shadow-lg transition-all duration-300 hover:scale-105 text-sm font-medium flex items-center gap-2"
+                className="absolute -top-16 right-0 bg-gradient-to-r from-[#94c973] to-[#7fb95e] hover:from-[#7fb95e] hover:to-[#6ba84d] text-white rounded-xl px-3 py-2 shadow-lg transition-all duration-300 hover:scale-105 text-sm font-medium flex items-center gap-2"
                 title="Try Hybrid System"
               >
                 <span>🔥</span>
@@ -326,13 +326,19 @@ export default function RAGtimBot() {
                 {knowledgeStats.searchProvider && <div>Search: {knowledgeStats.searchProvider}</div>}
                 {knowledgeStats.responseProvider && <div>LLM: {knowledgeStats.responseProvider}</div>}
                 {knowledgeStats.modelName && (
-                  <div className="text-xs text-blue-600 dark:text-blue-400">
+                  <div className="text-xs text-[#94c973]">
                     Model: {knowledgeStats.modelName}
                   </div>
                 )}
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {knowledgeStats.searchCapabilities?.map((capability: string) => (
-                    <span key={capability} className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 px-2 py-1 rounded text-xs">
+                  {knowledgeStats.searchCapabilities?.filter((capability: string) => 
+                    !capability.includes('Advanced Transformers') && 
+                    !capability.includes('BM25 Keyword Search') &&
+                    !capability.includes('Hybrid Fusion') &&
+                    !capability.includes('Transformer Embeddings') &&
+                    !capability.includes('LLM Response Generation')
+                  ).map((capability: string) => (
+                    <span key={capability} className="bg-[#94c973]/20 text-[#94c973] px-2 py-1 rounded text-xs">
                       {capability}
                     </span>
                   ))}
@@ -401,9 +407,9 @@ export default function RAGtimBot() {
               <div className="flex justify-start">
                 <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-[#94c973] rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-[#94c973] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-[#94c973] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
                     {(isUsingHybrid || isUsingHuggingFace) ? 'Connecting to AI Space...' : 'Thinking...'}
@@ -424,7 +430,7 @@ export default function RAGtimBot() {
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder={isAvailable ? "Ask about Raktim's research, skills, experience..." : "Chatbot unavailable"}
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
                 disabled={isLoading || !isAvailable}
               />
               <button
