@@ -165,8 +165,18 @@ export class HybridRAGService {
         results = searchData.results;
         console.log('📊 Found results array with length:', results.length);
       } else if (Array.isArray(searchData)) {
-        results = searchData;
-        console.log('📊 Search data is directly an array with length:', results.length);
+        console.log('📊 Search data is directly an array with length:', searchData.length);
+        
+        // Check if this is a wrapped API response (array containing the API response object)
+        if (searchData.length === 1 && searchData[0] && typeof searchData[0] === 'object' && searchData[0].results) {
+          console.log('📊 Found wrapped API response, extracting results array');
+          results = searchData[0].results;
+          console.log('📊 Extracted results array from wrapped response, length:', results.length);
+        } else {
+          // This is directly an array of search results
+          results = searchData;
+          console.log('📊 Using search data directly as results array');
+        }
       } else if (searchData && typeof searchData === 'object') {
         // Check if the data itself contains results
         if (searchData.results && Array.isArray(searchData.results)) {
