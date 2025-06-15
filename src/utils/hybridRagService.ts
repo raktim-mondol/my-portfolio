@@ -146,9 +146,9 @@ export class HybridRAGService {
         bm25_weight: 0.4
       });
 
-      console.log('📊 Search result received:', result);
+      console.log('📊 Raw Gradio result:', result);
       
-      // Extract data from Gradio response
+      // Extract data from Gradio response - it might be nested
       let searchData = null;
       if (result && result.data) {
         searchData = result.data;
@@ -158,46 +158,106 @@ export class HybridRAGService {
       
       console.log('📊 Extracted search data:', searchData);
       
-      // Parse the results - the response should contain a 'results' field
+      // Parse the results - handle different possible response formats
       let results = [];
+      
       if (searchData && searchData.results && Array.isArray(searchData.results)) {
         results = searchData.results;
       } else if (Array.isArray(searchData)) {
         results = searchData;
+      } else if (searchData && typeof searchData === 'object') {
+        // Check if the data itself contains results
+        if (searchData.results) {
+          results = searchData.results;
+        } else {
+          // Maybe the entire object is a single result
+          results = [searchData];
+        }
       } else {
         console.warn('⚠️ Unexpected search data format:', searchData);
         return [];
       }
       
-      // Transform results to our format
+      console.log('📊 Extracted results array:', results);
+      
+      // Transform results to our format with better error handling
       const transformedResults = results.map((result: any, index: number) => {
-        console.log(`📊 Processing result ${index}:`, {
-          hasDocument: !!result.document,
-          hasContent: !!result.document?.content,
-          score: result.score,
-          searchType: result.search_type
-        });
+        console.log(`📊 Processing result ${index}:`, result);
         
-        return {
+        // Handle different possible result structures
+        let document = null;
+        let content = '';
+        let metadata = {};
+        let score = 0;
+        let searchType = 'hybrid';
+        
+        // Try to extract document information
+        if (result.document) {
+          document = result.document;
+          content = document.content || document.text || '';
+          metadata = document.metadata || {};
+        } else if (result.content || result.text) {
+          // Direct content in result
+          content = result.content || result.text;
+          metadata = result.metadata || {};
+        } else {
+          // Fallback - use the entire result as content
+          content = JSON.stringify(result);
+          console.warn('⚠️ Could not extract proper content from result:', result);
+        }
+        
+        // Extract score
+        if (typeof result.score === 'number') {
+          score = result.score;
+        } else if (typeof result.similarity === 'number') {
+          score = result.similarity;
+        }
+        
+        // Extract search type
+        if (result.search_type) {
+          searchType = result.search_type;
+        } else if (result.searchType) {
+          searchType = result.searchType;
+        }
+        
+        // Create a properly formatted result
+        const transformedResult = {
           document: {
-            id: result.document?.id || Math.random().toString(),
-            content: result.document?.content || result.content || '',
+            id: document?.id || result.id || `result-${index}-${Date.now()}`,
+            content: content,
             metadata: {
-              type: result.document?.metadata?.type || 'general',
-              priority: result.document?.metadata?.priority || 5,
-              section: result.document?.metadata?.section,
-              source: result.document?.metadata?.source
+              type: metadata.type || 'general',
+              priority: metadata.priority || 5,
+              section: metadata.section || 'Unknown Section',
+              source: metadata.source || 'hugging-face-search'
             }
           },
-          score: result.score || 0,
-          searchType: result.search_type || 'hybrid',
+          score: score,
+          searchType: searchType as 'hybrid' | 'vector' | 'bm25',
           vector_score: result.vector_score,
           bm25_score: result.bm25_score
         };
+        
+        console.log(`📊 Transformed result ${index}:`, {
+          hasContent: !!transformedResult.document.content,
+          contentLength: transformedResult.document.content.length,
+          score: transformedResult.score,
+          searchType: transformedResult.searchType
+        });
+        
+        return transformedResult;
       });
       
       console.log(`✅ Processed ${transformedResults.length} search results`);
-      return transformedResults;
+      
+      // Filter out results with no content
+      const validResults = transformedResults.filter(result => 
+        result.document.content && result.document.content.trim().length > 0
+      );
+      
+      console.log(`✅ Valid results with content: ${validResults.length}`);
+      
+      return validResults;
     } catch (error) {
       console.error('❌ Hugging Face hybrid search error:', error);
       throw error;
