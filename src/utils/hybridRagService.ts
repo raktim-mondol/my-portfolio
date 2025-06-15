@@ -183,6 +183,9 @@ export class HybridRAGService {
       // Transform results to our format with better error handling
       const transformedResults = results.map((result: any, index: number) => {
         console.log(`📊 Processing result ${index}:`, result);
+        console.log(`📊 Result keys:`, Object.keys(result));
+        console.log(`📊 Result.document:`, result.document);
+        console.log(`📊 Result.document keys:`, result.document ? Object.keys(result.document) : 'No document property');
         
         // Handle different possible result structures
         let document = null;
@@ -192,15 +195,25 @@ export class HybridRAGService {
         let searchType = 'hybrid';
         
         // Try to extract document information - improved logic
-        if (result.document) {
+        if (result.document && typeof result.document === 'object') {
           // Standard format: result has a document property
           document = result.document;
-          content = document.content || document.text || '';
+          console.log(`📊 Document found:`, document);
+          console.log(`📊 Document keys:`, Object.keys(document));
+          
+          // Try multiple ways to get content
+          content = document.content || document.text || document.body || '';
           metadata = document.metadata || {};
+          
+          console.log(`📊 Extracted content length:`, content.length);
+          console.log(`📊 Content preview:`, content.substring(0, 100));
+          
         } else if (result.content || result.text) {
           // Direct content in result
           content = result.content || result.text;
           metadata = result.metadata || {};
+          console.log(`📊 Direct content found, length:`, content.length);
+          
           // Create a document structure
           document = {
             id: result.id || `result-${index}-${Date.now()}`,
@@ -210,6 +223,7 @@ export class HybridRAGService {
         } else {
           // Check if result has nested structure we haven't handled
           console.log(`📊 Checking alternative structures for result ${index}:`, Object.keys(result));
+          console.log(`📊 Full result structure:`, JSON.stringify(result, null, 2));
           
           // Try to find content in various possible locations
           const possibleContent = result.doc?.content || 
@@ -217,19 +231,25 @@ export class HybridRAGService {
                                  result.data?.content || 
                                  result.data?.text ||
                                  result.text ||
-                                 result.content;
+                                 result.content ||
+                                 result.document?.content ||
+                                 result.document?.text;
           
           if (possibleContent && typeof possibleContent === 'string' && possibleContent.trim().length > 0) {
             content = possibleContent;
-            metadata = result.metadata || result.doc?.metadata || result.data?.metadata || {};
+            metadata = result.metadata || result.doc?.metadata || result.data?.metadata || result.document?.metadata || {};
             document = {
-              id: result.id || result.doc?.id || `result-${index}-${Date.now()}`,
+              id: result.id || result.doc?.id || result.document?.id || `result-${index}-${Date.now()}`,
               content: content,
               metadata: metadata
             };
+            console.log(`📊 Alternative content found, length:`, content.length);
           } else {
             // Last resort - only warn if we truly can't extract meaningful content
             console.warn('⚠️ Could not extract proper content from result:', result);
+            console.warn('⚠️ Available properties:', Object.keys(result));
+            console.warn('⚠️ Document property:', result.document);
+            
             // Use JSON string as fallback, but mark it clearly
             content = `[Raw data: ${JSON.stringify(result).substring(0, 200)}...]`;
             document = {
