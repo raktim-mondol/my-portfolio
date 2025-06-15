@@ -187,12 +187,13 @@ export class HybridRAGService {
         // Handle different possible result structures
         let document = null;
         let content = '';
-        let metadata = {};
+        let metadata: any = {};
         let score = 0;
         let searchType = 'hybrid';
         
-        // Try to extract document information
+        // Try to extract document information - improved logic
         if (result.document) {
+          // Standard format: result has a document property
           document = result.document;
           content = document.content || document.text || '';
           metadata = document.metadata || {};
@@ -200,10 +201,43 @@ export class HybridRAGService {
           // Direct content in result
           content = result.content || result.text;
           metadata = result.metadata || {};
+          // Create a document structure
+          document = {
+            id: result.id || `result-${index}-${Date.now()}`,
+            content: content,
+            metadata: metadata
+          };
         } else {
-          // Fallback - use the entire result as content
-          content = JSON.stringify(result);
-          console.warn('⚠️ Could not extract proper content from result:', result);
+          // Check if result has nested structure we haven't handled
+          console.log(`📊 Checking alternative structures for result ${index}:`, Object.keys(result));
+          
+          // Try to find content in various possible locations
+          const possibleContent = result.doc?.content || 
+                                 result.doc?.text || 
+                                 result.data?.content || 
+                                 result.data?.text ||
+                                 result.text ||
+                                 result.content;
+          
+          if (possibleContent && typeof possibleContent === 'string' && possibleContent.trim().length > 0) {
+            content = possibleContent;
+            metadata = result.metadata || result.doc?.metadata || result.data?.metadata || {};
+            document = {
+              id: result.id || result.doc?.id || `result-${index}-${Date.now()}`,
+              content: content,
+              metadata: metadata
+            };
+          } else {
+            // Last resort - only warn if we truly can't extract meaningful content
+            console.warn('⚠️ Could not extract proper content from result:', result);
+            // Use JSON string as fallback, but mark it clearly
+            content = `[Raw data: ${JSON.stringify(result).substring(0, 200)}...]`;
+            document = {
+              id: `fallback-${index}-${Date.now()}`,
+              content: content,
+              metadata: { type: 'raw', priority: 1, section: 'Raw Data' }
+            };
+          }
         }
         
         // Extract score
@@ -211,6 +245,8 @@ export class HybridRAGService {
           score = result.score;
         } else if (typeof result.similarity === 'number') {
           score = result.similarity;
+        } else if (typeof result.relevance === 'number') {
+          score = result.relevance;
         }
         
         // Extract search type
@@ -218,12 +254,14 @@ export class HybridRAGService {
           searchType = result.search_type;
         } else if (result.searchType) {
           searchType = result.searchType;
+        } else if (result.type) {
+          searchType = result.type;
         }
         
         // Create a properly formatted result
         const transformedResult = {
           document: {
-            id: document?.id || result.id || `result-${index}-${Date.now()}`,
+            id: document?.id || `result-${index}-${Date.now()}`,
             content: content,
             metadata: {
               type: metadata.type || 'general',
@@ -242,7 +280,8 @@ export class HybridRAGService {
           hasContent: !!transformedResult.document.content,
           contentLength: transformedResult.document.content.length,
           score: transformedResult.score,
-          searchType: transformedResult.searchType
+          searchType: transformedResult.searchType,
+          isRawData: transformedResult.document.content.startsWith('[Raw data:')
         });
         
         return transformedResult;
@@ -250,12 +289,20 @@ export class HybridRAGService {
       
       console.log(`✅ Processed ${transformedResults.length} search results`);
       
-      // Filter out results with no content
-      const validResults = transformedResults.filter(result => 
-        result.document.content && result.document.content.trim().length > 0
-      );
+      // Filter out results with no meaningful content (but keep raw data as last resort)
+      const validResults = transformedResults.filter((result: SearchResult) => {
+        const hasContent = result.document.content && result.document.content.trim().length > 0;
+        const isNotJustRawData = !result.document.content.startsWith('[Raw data:');
+        return hasContent && (isNotJustRawData || transformedResults.length === 1); // Keep raw data only if it's the only result
+      });
       
-      console.log(`✅ Valid results with content: ${validResults.length}`);
+      console.log(`✅ Valid results with meaningful content: ${validResults.length}`);
+      
+      // If we have no valid results but had some transformed results, return the raw data ones
+      if (validResults.length === 0 && transformedResults.length > 0) {
+        console.log('⚠️ No meaningful content found, returning raw data results as fallback');
+        return transformedResults.slice(0, 3); // Limit to 3 raw results
+      }
       
       return validResults;
     } catch (error) {
