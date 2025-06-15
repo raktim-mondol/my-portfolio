@@ -125,7 +125,7 @@ export class HybridRAGService {
     }
   }
 
-  private async searchHuggingFaceHybrid(query: string, topK: number = 8): Promise<SearchResult[]> {
+  private async searchHuggingFaceHybrid(query: string, topK: number = 10): Promise<SearchResult[]> {
     try {
       console.log('🔍 Starting Hugging Face hybrid search...');
       console.log('- Query:', query);
@@ -373,11 +373,23 @@ export class HybridRAGService {
       return "No specific information found. Please provide general information about Raktim Mondol based on your knowledge.";
     }
 
-    const topResults = searchResults.slice(0, 6);
+    // Use all available results (up to 10) instead of limiting to 6
+    const topResults = searchResults.slice(0, 10);
     console.log(`📄 Using top ${topResults.length} results for context`);
     
-    const contextParts = topResults.map((result, index) => {
+    // Rough token estimation: 1 token ≈ 4 characters for English text
+    const estimateTokens = (text: string): number => Math.ceil(text.length / 4);
+    
+    // Reserve tokens for system prompt structure (approximately 2000 tokens)
+    const maxContextTokens = 58000; // Leave 2000 tokens for system prompt structure
+    let currentTokens = 0;
+    
+    const contextParts: string[] = [];
+    
+    for (let index = 0; index < topResults.length; index++) {
+      const result = topResults[index];
       const doc = result.document;
+      
       console.log(`📄 Processing context part ${index}:`, {
         hasContent: !!doc.content,
         contentLength: doc.content?.length || 0,
@@ -388,12 +400,12 @@ export class HybridRAGService {
       // Validate content exists and is meaningful
       if (!doc.content || doc.content.trim().length === 0) {
         console.warn(`⚠️ Context part ${index} has no content, skipping`);
-        return null;
+        continue;
       }
       
       if (doc.content.startsWith('[Raw data:')) {
         console.warn(`⚠️ Context part ${index} contains raw data, skipping`);
-        return null;
+        continue;
       }
       
       const section = doc.metadata.section ? `[${doc.metadata.section}]` : `[${doc.metadata.type}]`;
@@ -405,11 +417,36 @@ export class HybridRAGService {
         searchInfo = `(${result.searchType.toUpperCase()}: ${(result.score * 100).toFixed(1)}%)`;
       }
       
-      const contextPart = `${section} ${searchInfo}\n${doc.content.trim()}`;
-      console.log(`📄 Context part ${index} length:`, contextPart.length);
+      let contextPart = `${section} ${searchInfo}\n${doc.content.trim()}`;
+      const partTokens = estimateTokens(contextPart);
       
-      return contextPart;
-    }).filter(part => part !== null); // Remove null entries
+      // Check if adding this part would exceed token limit
+      if (currentTokens + partTokens > maxContextTokens) {
+        console.log(`📄 Token limit would be exceeded with part ${index} (${partTokens} tokens). Current: ${currentTokens}, Max: ${maxContextTokens}`);
+        
+        // Try to truncate the content to fit
+        const availableTokens = maxContextTokens - currentTokens;
+        const availableChars = availableTokens * 4; // Convert back to characters
+        const headerLength = `${section} ${searchInfo}\n`.length;
+        
+        if (availableChars > headerLength + 100) { // Ensure at least 100 chars for content
+          const truncatedContent = doc.content.trim().substring(0, availableChars - headerLength - 20) + '...';
+          contextPart = `${section} ${searchInfo}\n${truncatedContent}`;
+          const truncatedTokens = estimateTokens(contextPart);
+          
+          console.log(`📄 Truncated part ${index} to ${truncatedTokens} tokens`);
+          contextParts.push(contextPart);
+          currentTokens += truncatedTokens;
+        } else {
+          console.log(`📄 Not enough space for part ${index}, stopping here`);
+        }
+        break;
+      }
+      
+      console.log(`📄 Context part ${index} length: ${contextPart.length} chars, ~${partTokens} tokens`);
+      contextParts.push(contextPart);
+      currentTokens += partTokens;
+    }
 
     if (contextParts.length === 0) {
       console.warn('⚠️ No valid context parts found after filtering');
@@ -417,9 +454,12 @@ export class HybridRAGService {
     }
 
     const fullContext = contextParts.join('\n\n---\n\n');
+    const finalTokens = estimateTokens(fullContext);
+    
     console.log('📄 Full context built successfully:');
     console.log('📄 - Valid context parts:', contextParts.length);
-    console.log('📄 - Full context length:', fullContext.length);
+    console.log('📄 - Full context length:', fullContext.length, 'characters');
+    console.log('📄 - Estimated tokens:', finalTokens);
     console.log('📄 - Context preview:', fullContext.substring(0, 200) + '...');
     
     return fullContext;
@@ -465,7 +505,7 @@ export class HybridRAGService {
 
       // Step 2: Use Hugging Face for hybrid search
       console.log('🔥 Step 2: Performing hybrid search with Hugging Face...');
-      const searchResults = await this.searchHuggingFaceHybrid(userQuery, 8);
+      const searchResults = await this.searchHuggingFaceHybrid(userQuery, 10);
       
       if (searchResults.length === 0) {
         const errorMsg = "I don't have specific information about that topic in my knowledge base. Could you please ask something else about Raktim Mondol's research, experience, or expertise?";
