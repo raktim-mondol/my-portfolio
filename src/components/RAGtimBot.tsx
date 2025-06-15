@@ -26,6 +26,12 @@ export default function RAGtimBot() {
   const isUsingHuggingFace = import.meta.env.VITE_USE_HUGGING_FACE === 'true';
   const isUsingBackend = import.meta.env.VITE_USE_BACKEND === 'true';
 
+  console.log('🤖 RAGtimBot Component:');
+  console.log('- isUsingHybrid:', isUsingHybrid);
+  console.log('- isUsingHuggingFace:', isUsingHuggingFace);
+  console.log('- isUsingBackend:', isUsingBackend);
+  console.log('- ragService has API key:', ragService.hasApiKey());
+
   const getSystemInfo = () => {
     if (isUsingHybrid) {
       return {
@@ -93,15 +99,20 @@ export default function RAGtimBot() {
 
   const loadKnowledgeStats = async () => {
     try {
+      console.log('📊 Loading knowledge stats...');
       const stats = await ragService.getKnowledgeBaseStats();
+      console.log('📊 Stats loaded:', stats);
       setKnowledgeStats(stats);
     } catch (error) {
+      console.error('❌ Failed to load knowledge base stats:', error);
       toast.error('Failed to load system statistics');
     }
   };
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
+
+    console.log('💬 Sending message:', inputMessage);
 
     if (!isUsingHuggingFace && !ragService.hasApiKey()) {
       toast.error('The chatbot is currently unavailable. Please contact the site administrator.');
@@ -128,7 +139,9 @@ export default function RAGtimBot() {
     }
 
     try {
+      console.log('🚀 Generating response...');
       const response = await ragService.generateResponse(userMessage.content, messages);
+      console.log('✅ Response received:', response.substring(0, 100) + '...');
       
       // Dismiss loading toast
       if (loadingToast) {
@@ -149,6 +162,8 @@ export default function RAGtimBot() {
         toast.success('Connected to Hugging Face Space!');
       }
     } catch (error) {
+      console.error('❌ Error sending message:', error);
+      
       // Dismiss loading toast
       if (loadingToast) {
         toast.dismiss(loadingToast);
@@ -207,6 +222,11 @@ export default function RAGtimBot() {
 
   const hasApiKey = ragService.hasApiKey();
   const isAvailable = isUsingHuggingFace || hasApiKey;
+
+  console.log('🔍 Component state:');
+  console.log('- hasApiKey:', hasApiKey);
+  console.log('- isAvailable:', isAvailable);
+  console.log('- messages count:', messages.length);
 
   return (
     <>
