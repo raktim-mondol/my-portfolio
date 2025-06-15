@@ -536,7 +536,7 @@ export default function RAGtimBot() {
                     </div>
                     <p className="text-sm">
                       {isUsingHybrid 
-                        ? 'Hybrid RAG system ready! Advanced search with intelligent AI responses.'
+                        ? 'AI Assistant ready! Ask me anything about Raktim Mondol.'
                         : isUsingHuggingFace 
                           ? 'AI Assistant ready! Ask me anything about Raktim Mondol.'
                           : 'Advanced RAG system ready! Ask me anything about Raktim Mondol.'
