@@ -765,7 +765,7 @@ Remember to provide comprehensive answers based on this rich context from our hy
           'BM25 Keyword Search', 
           'Hybrid Fusion (Vector + BM25)',
           'Transformer Embeddings',
-          'DeepSeek Response Generation'
+          'LLM Response Generation'
         ],
         isHybridSystem: true,
         hybridWeights: {
@@ -787,7 +787,7 @@ Remember to provide comprehensive answers based on this rich context from our hy
           'BM25 Keyword Search', 
           'Hybrid Fusion (Vector + BM25)',
           'Transformer Embeddings',
-          'DeepSeek Response Generation'
+          'LLM Response Generation'
         ],
         isHybridSystem: true,
         modelName: 'sentence-transformers/all-MiniLM-L6-v2',
