@@ -30,6 +30,7 @@ export class HybridRAGService {
   private apiKey: string | null = null;
   private huggingFaceUrl: string;
   private gradioClient: any = null;
+  private errorHandlerInstalled: boolean = false;
 
   constructor() {
     console.log('🔧 HybridRAGService Constructor Starting...');
@@ -41,6 +42,9 @@ export class HybridRAGService {
     console.log('- API Key present:', !!this.apiKey);
     console.log('- API Key length:', this.apiKey?.length || 0);
     console.log('- Hugging Face URL:', this.huggingFaceUrl);
+    
+    // Install global error handler for Gradio client errors
+    this.installGlobalErrorHandler();
     
     if (this.apiKey) {
       try {
@@ -89,6 +93,49 @@ export class HybridRAGService {
     return hasKey;
   }
 
+  private installGlobalErrorHandler(): void {
+    if (this.errorHandlerInstalled || typeof window === 'undefined') {
+      return;
+    }
+
+    // Handle unhandled promise rejections
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      if (event.reason?.message?.includes('message channel closed') || 
+          event.reason?.message?.includes('asynchronous response')) {
+        console.log('🔇 Suppressed known browser/extension error:', event.reason.message);
+        event.preventDefault();
+        return;
+      }
+    };
+
+    // Handle general errors
+    const handleError = (event: ErrorEvent) => {
+      if (event.message?.includes('message channel closed') || 
+          event.message?.includes('asynchronous response')) {
+        console.log('🔇 Suppressed known browser/extension error:', event.message);
+        event.preventDefault();
+        return;
+      }
+    };
+
+    // Override console.error temporarily to catch and filter Gradio errors
+    const originalConsoleError = console.error;
+    console.error = (...args: any[]) => {
+      const message = args.join(' ');
+      if (message.includes('message channel closed') || 
+          message.includes('asynchronous response')) {
+        console.log('🔇 Suppressed console error:', message);
+        return;
+      }
+      originalConsoleError.apply(console, args);
+    };
+
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    window.addEventListener('error', handleError);
+    this.errorHandlerInstalled = true;
+    console.log('🛡️ Global error handler installed for Gradio client errors');
+  }
+
   private async initializeGradioClient(): Promise<any> {
     if (this.gradioClient) {
       return this.gradioClient;
@@ -105,6 +152,7 @@ export class HybridRAGService {
       
       this.gradioClient = await Promise.race([connectPromise, timeoutPromise]);
       console.log('✅ Gradio client connected successfully');
+      
       return this.gradioClient;
     } catch (error) {
       console.error('❌ Failed to initialize Gradio client:', error);
