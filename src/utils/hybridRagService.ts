@@ -200,7 +200,7 @@ export class HybridRAGService {
               type: metadata.type || 'general',
               priority: metadata.priority || 5,
               section: metadata.section || 'Search Result',
-              source: metadata.source || 'hugging-face-search'
+              source: metadata.source || 'ai-search'
             }
           },
           score: score,
@@ -258,14 +258,14 @@ export class HybridRAGService {
 
   public async generateResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
     if (!this.apiKey || !this.openai) {
-      return "The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured with your actual DeepSeek API key.";
+      return "The chatbot is currently unavailable. Please ensure the API key is properly configured.";
     }
 
     try {
       const isHFHealthy = await this.checkHuggingFaceHealth();
       
       if (!isHFHealthy) {
-        return "The Hugging Face Space is currently starting up or unavailable. Free Hugging Face Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
+        return "The AI Space is currently starting up or unavailable. Free AI Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
       }
 
       const searchResults = await this.searchHuggingFaceHybrid(userQuery, 8);
@@ -279,10 +279,10 @@ export class HybridRAGService {
       const systemMessage = `You are RAGtim Bot, an advanced AI assistant powered by a cutting-edge hybrid search system:
 
 🔥 HYBRID SEARCH TECHNOLOGY:
-- Hugging Face Transformers: GPU-accelerated semantic vector search using sentence-transformers/all-MiniLM-L6-v2
+- Advanced Transformers: GPU-accelerated semantic vector search using sentence-transformers/all-MiniLM-L6-v2
 - BM25 Keyword Search: Advanced TF-IDF ranking with term frequency and document length normalization  
 - Intelligent Fusion: Weighted combination (60% vector + 40% BM25) for optimal relevance
-- DeepSeek LLM: Natural language generation for conversational responses
+- LLM Generation: Natural language generation for conversational responses
 
 This hybrid approach combines the best of both worlds - semantic understanding AND exact keyword matching.
 
@@ -349,11 +349,11 @@ Remember to provide comprehensive answers based on this rich context from our hy
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes('connect') || error.message.includes('Client')) {
-          return "The Hugging Face Space is currently starting up or the API endpoints are not ready yet. Free Hugging Face Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
+          return "The AI Space is currently starting up or the API endpoints are not ready yet. Free AI Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
         }
         
         if (error.message.includes('API key') || error.message.includes('401') || error.message.includes('Authentication')) {
-          return "The DeepSeek API key appears to be invalid or missing. Please contact the site administrator to configure the VITE_DEEPSEEK_API_KEY environment variable with a valid DeepSeek API key.";
+          return "The LLM API key appears to be invalid or missing. Please contact the site administrator to configure the API key.";
         }
         
         if (error.message.includes('network') || error.message.includes('fetch')) {
@@ -361,7 +361,7 @@ Remember to provide comprehensive answers based on this rich context from our hy
         }
         
         if (error.message.includes('AbortError')) {
-          return "Request timed out. The Hugging Face Space may be slow to respond. Please try again in a moment.";
+          return "Request timed out. The AI Space may be slow to respond. Please try again in a moment.";
         }
       }
       
@@ -383,15 +383,15 @@ Remember to provide comprehensive answers based on this rich context from our hy
       
       return {
         ...stats,
-        searchProvider: 'Hugging Face Transformers',
-        responseProvider: 'DeepSeek LLM',
+        searchProvider: 'Advanced Transformers',
+        responseProvider: 'LLM',
         architecture: 'Hybrid RAG System',
         searchCapabilities: [
           'GPU-Accelerated Vector Search', 
           'BM25 Keyword Search', 
           'Hybrid Fusion (Vector + BM25)',
           'Transformer Embeddings',
-          'DeepSeek Response Generation'
+          'LLM Response Generation'
         ],
         isHybridSystem: true,
         hybridWeights: {
@@ -402,15 +402,15 @@ Remember to provide comprehensive answers based on this rich context from our hy
     } catch (error) {
       return {
         totalDocuments: 64,
-        searchProvider: 'Hugging Face Transformers',
-        responseProvider: 'DeepSeek LLM',
+        searchProvider: 'Advanced Transformers',
+        responseProvider: 'LLM',
         architecture: 'Hybrid RAG System',
         searchCapabilities: [
           'GPU-Accelerated Vector Search', 
           'BM25 Keyword Search', 
           'Hybrid Fusion (Vector + BM25)',
           'Transformer Embeddings',
-          'DeepSeek Response Generation'
+          'LLM Response Generation'
         ],
         isHybridSystem: true,
         modelName: 'sentence-transformers/all-MiniLM-L6-v2',
