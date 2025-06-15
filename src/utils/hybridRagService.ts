@@ -114,41 +114,88 @@ export class HybridRAGService {
       console.log('- Top K:', topK);
       console.log('- URL:', this.huggingFaceUrl);
       
-      // Use the correct Gradio API endpoint format
-      const searchUrl = `${this.huggingFaceUrl}/call/search_api`;
-      console.log('🔍 Calling search API:', searchUrl);
+      // Use the correct Gradio API endpoint format - try different possible endpoints
+      const possibleEndpoints = [
+        `${this.huggingFaceUrl}/api/predict`,
+        `${this.huggingFaceUrl}/run/search`,
+        `${this.huggingFaceUrl}/api/search`,
+        `${this.huggingFaceUrl}/gradio_api/call/search`
+      ];
       
-      const response = await fetch(searchUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          data: [
-            query,      // query string
-            topK,       // top_k number
-            "hybrid",   // search_type string
-            0.6,        // vector_weight number
-            0.4         // bm25_weight number
-          ]
-        }),
-      });
+      let searchResults = null;
+      let lastError = null;
+      
+      for (const endpoint of possibleEndpoints) {
+        try {
+          console.log('🔍 Trying endpoint:', endpoint);
+          
+          let requestBody;
+          let headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          };
+          
+          // Try different request formats
+          if (endpoint.includes('/api/predict')) {
+            requestBody = JSON.stringify({
+              fn_index: 1, // Assuming search is the second function (index 1)
+              data: [query, topK, "hybrid", 0.6, 0.4]
+            });
+          } else if (endpoint.includes('/run/search')) {
+            requestBody = JSON.stringify({
+              data: [query, topK, "hybrid", 0.6, 0.4]
+            });
+          } else {
+            requestBody = JSON.stringify({
+              query: query,
+              top_k: topK,
+              search_type: 'hybrid',
+              vector_weight: 0.6,
+              bm25_weight: 0.4
+            });
+          }
+          
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers,
+            body: requestBody,
+          });
 
-      console.log('🔍 Search response status:', response.status, response.statusText);
+          console.log('🔍 Response status:', response.status, response.statusText);
 
-      if (!response.ok) {
-        throw new Error(`Hugging Face search API error: ${response.status} ${response.statusText}`);
+          if (response.ok) {
+            const data = await response.json();
+            console.log('📊 Search data received:', data);
+            
+            // Try to extract results from different possible response formats
+            let results = null;
+            if (data.data && Array.isArray(data.data) && data.data[0] && data.data[0].results) {
+              results = data.data[0].results;
+            } else if (data.results) {
+              results = data.results;
+            } else if (data.data && Array.isArray(data.data)) {
+              results = data.data;
+            }
+            
+            if (results && Array.isArray(results)) {
+              searchResults = results;
+              console.log(`✅ Found results using endpoint: ${endpoint}`);
+              break;
+            }
+          }
+        } catch (error) {
+          console.log(`❌ Endpoint ${endpoint} failed:`, error);
+          lastError = error;
+          continue;
+        }
       }
-
-      const data = await response.json();
-      console.log('📊 Search data received:', data);
       
-      // Extract results from Gradio response format
-      const searchResults = data.data && data.data[0] && data.data[0].results ? data.data[0].results : [];
+      if (!searchResults) {
+        throw new Error(`All endpoints failed. Last error: ${lastError}`);
+      }
       
       // Transform results to our format
-      const results = searchResults.map((result: any, index: number) => {
+      const transformedResults = searchResults.map((result: any, index: number) => {
         console.log(`📊 Processing result ${index}:`, {
           hasDocument: !!result.document,
           hasContent: !!result.document?.content,
@@ -174,8 +221,8 @@ export class HybridRAGService {
         };
       });
       
-      console.log(`✅ Processed ${results.length} search results`);
-      return results;
+      console.log(`✅ Processed ${transformedResults.length} search results`);
+      return transformedResults;
     } catch (error) {
       console.error('❌ Hugging Face hybrid search error:', error);
       throw error;
@@ -392,46 +439,80 @@ Remember to provide comprehensive answers based on this rich context from our hy
     try {
       console.log('📊 Getting knowledge base stats from Hugging Face...');
       
-      // Use the correct Gradio API endpoint format
-      const statsUrl = `${this.huggingFaceUrl}/call/get_stats_api`;
-      console.log('📊 Calling stats API:', statsUrl);
+      // Try different possible stats endpoints
+      const possibleEndpoints = [
+        `${this.huggingFaceUrl}/api/predict`,
+        `${this.huggingFaceUrl}/run/stats`,
+        `${this.huggingFaceUrl}/api/stats`,
+        `${this.huggingFaceUrl}/gradio_api/call/stats`
+      ];
       
-      const response = await fetch(statsUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          data: []
-        }),
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const stats = data.data[0]; // Stats are in data[0]
-        console.log('📊 HF Stats received:', stats);
-        return {
-          ...stats,
-          searchProvider: 'Hugging Face Transformers',
-          responseProvider: 'DeepSeek LLM',
-          architecture: 'Hybrid RAG System',
-          searchCapabilities: [
-            'GPU-Accelerated Vector Search', 
-            'BM25 Keyword Search', 
-            'Hybrid Fusion (Vector + BM25)',
-            'Transformer Embeddings',
-            'DeepSeek Response Generation'
-          ],
-          isHybridSystem: true,
-          hybridWeights: {
-            vector: 0.6,
-            bm25: 0.4
+      for (const endpoint of possibleEndpoints) {
+        try {
+          console.log('📊 Trying stats endpoint:', endpoint);
+          
+          let requestBody;
+          if (endpoint.includes('/api/predict')) {
+            requestBody = JSON.stringify({
+              fn_index: 2, // Assuming stats is the third function (index 2)
+              data: []
+            });
+          } else if (endpoint.includes('/run/stats')) {
+            requestBody = JSON.stringify({
+              data: []
+            });
+          } else {
+            requestBody = JSON.stringify({});
           }
-        };
-      } else {
-        console.warn('⚠️ Stats API returned:', response.status, response.statusText);
+          
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: requestBody,
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log('📊 HF Stats received:', data);
+            
+            let stats = null;
+            if (data.data && Array.isArray(data.data) && data.data[0]) {
+              stats = data.data[0];
+            } else if (data.stats) {
+              stats = data.stats;
+            } else {
+              stats = data;
+            }
+            
+            return {
+              ...stats,
+              searchProvider: 'Hugging Face Transformers',
+              responseProvider: 'DeepSeek LLM',
+              architecture: 'Hybrid RAG System',
+              searchCapabilities: [
+                'GPU-Accelerated Vector Search', 
+                'BM25 Keyword Search', 
+                'Hybrid Fusion (Vector + BM25)',
+                'Transformer Embeddings',
+                'DeepSeek Response Generation'
+              ],
+              isHybridSystem: true,
+              hybridWeights: {
+                vector: 0.6,
+                bm25: 0.4
+              }
+            };
+          }
+        } catch (error) {
+          console.log(`❌ Stats endpoint ${endpoint} failed:`, error);
+          continue;
+        }
       }
+      
+      console.warn('⚠️ All stats endpoints failed');
     } catch (error) {
       console.warn('⚠️ Could not fetch stats from Hugging Face:', error);
     }

@@ -40,33 +40,65 @@ export class HuggingFaceRAGService {
     try {
       console.log('🤗 Querying HF chat with message:', message);
       
-      // Use the chat API endpoint directly
-      const chatUrl = `${this.spaceUrl}/call/chat`;
-      console.log('🤗 Calling chat API:', chatUrl);
+      // Try different possible chat endpoints
+      const possibleEndpoints = [
+        `${this.spaceUrl}/api/predict`,
+        `${this.spaceUrl}/run/chat`,
+        `${this.spaceUrl}/api/chat`,
+        `${this.spaceUrl}/gradio_api/call/chat`
+      ];
       
-      const response = await fetch(chatUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          data: [message]
-        }),
-      });
+      for (const endpoint of possibleEndpoints) {
+        try {
+          console.log('🤗 Trying chat endpoint:', endpoint);
+          
+          let requestBody;
+          if (endpoint.includes('/api/predict')) {
+            requestBody = JSON.stringify({
+              fn_index: 0, // Assuming chat is the first function (index 0)
+              data: [message]
+            });
+          } else if (endpoint.includes('/run/chat')) {
+            requestBody = JSON.stringify({
+              data: [message]
+            });
+          } else {
+            requestBody = JSON.stringify({
+              message: message
+            });
+          }
+          
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: requestBody,
+          });
 
-      if (!response.ok) {
-        throw new Error(`Hugging Face chat API error: ${response.status} ${response.statusText}`);
+          if (response.ok) {
+            const data = await response.json();
+            console.log('🤗 Chat response received:', data);
+            
+            // Try to extract response from different possible formats
+            if (data.data && Array.isArray(data.data) && data.data[0]) {
+              return data.data[0];
+            } else if (data.response) {
+              return data.response;
+            } else if (data.message) {
+              return data.message;
+            } else if (typeof data === 'string') {
+              return data;
+            }
+          }
+        } catch (error) {
+          console.log(`❌ Chat endpoint ${endpoint} failed:`, error);
+          continue;
+        }
       }
-
-      const data = await response.json();
-      console.log('🤗 Chat response received:', data);
       
-      if (data.data && data.data[0]) {
-        return data.data[0];
-      } else {
-        throw new Error('Invalid response format from Hugging Face Space');
-      }
+      throw new Error('All chat endpoints failed');
     } catch (error) {
       console.error('❌ Hugging Face chat query error:', error);
       throw error;
@@ -77,33 +109,67 @@ export class HuggingFaceRAGService {
     try {
       console.log('🔍 Querying HF search:', { query, topK });
       
-      const searchUrl = `${this.spaceUrl}/call/search_api`;
-      console.log('🔍 Calling search API:', searchUrl);
+      // Try different possible search endpoints
+      const possibleEndpoints = [
+        `${this.spaceUrl}/api/predict`,
+        `${this.spaceUrl}/run/search`,
+        `${this.spaceUrl}/api/search`,
+        `${this.spaceUrl}/gradio_api/call/search`
+      ];
       
-      const response = await fetch(searchUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          data: [
-            query,      // query string
-            topK,       // top_k number
-            "hybrid",   // search_type string
-            0.6,        // vector_weight number
-            0.4         // bm25_weight number
-          ]
-        }),
-      });
+      for (const endpoint of possibleEndpoints) {
+        try {
+          console.log('🔍 Trying search endpoint:', endpoint);
+          
+          let requestBody;
+          if (endpoint.includes('/api/predict')) {
+            requestBody = JSON.stringify({
+              fn_index: 1, // Assuming search is the second function (index 1)
+              data: [query, topK, "hybrid", 0.6, 0.4]
+            });
+          } else if (endpoint.includes('/run/search')) {
+            requestBody = JSON.stringify({
+              data: [query, topK, "hybrid", 0.6, 0.4]
+            });
+          } else {
+            requestBody = JSON.stringify({
+              query: query,
+              top_k: topK,
+              search_type: 'hybrid',
+              vector_weight: 0.6,
+              bm25_weight: 0.4
+            });
+          }
+          
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: requestBody,
+          });
 
-      if (!response.ok) {
-        throw new Error(`Hugging Face search API error: ${response.status} ${response.statusText}`);
+          if (response.ok) {
+            const data = await response.json();
+            console.log('🔍 Search results received:', data);
+            
+            // Try to extract results from different possible formats
+            if (data.data && Array.isArray(data.data) && data.data[0]) {
+              return data.data[0];
+            } else if (data.results) {
+              return data;
+            } else {
+              return data;
+            }
+          }
+        } catch (error) {
+          console.log(`❌ Search endpoint ${endpoint} failed:`, error);
+          continue;
+        }
       }
-
-      const data = await response.json();
-      console.log('🔍 Search results received:', data);
-      return data.data[0]; // The search results are in data[0]
+      
+      throw new Error('All search endpoints failed');
     } catch (error) {
       console.error('❌ Hugging Face search query error:', error);
       throw error;
@@ -114,27 +180,61 @@ export class HuggingFaceRAGService {
     try {
       console.log('📊 Querying HF stats...');
       
-      const statsUrl = `${this.spaceUrl}/call/get_stats_api`;
-      console.log('📊 Calling stats API:', statsUrl);
+      // Try different possible stats endpoints
+      const possibleEndpoints = [
+        `${this.spaceUrl}/api/predict`,
+        `${this.spaceUrl}/run/stats`,
+        `${this.spaceUrl}/api/stats`,
+        `${this.spaceUrl}/gradio_api/call/stats`
+      ];
       
-      const response = await fetch(statsUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          data: []
-        }),
-      });
+      for (const endpoint of possibleEndpoints) {
+        try {
+          console.log('📊 Trying stats endpoint:', endpoint);
+          
+          let requestBody;
+          if (endpoint.includes('/api/predict')) {
+            requestBody = JSON.stringify({
+              fn_index: 2, // Assuming stats is the third function (index 2)
+              data: []
+            });
+          } else if (endpoint.includes('/run/stats')) {
+            requestBody = JSON.stringify({
+              data: []
+            });
+          } else {
+            requestBody = JSON.stringify({});
+          }
+          
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: requestBody,
+          });
 
-      if (!response.ok) {
-        throw new Error(`Hugging Face stats API error: ${response.status} ${response.statusText}`);
+          if (response.ok) {
+            const data = await response.json();
+            console.log('📊 Stats received:', data);
+            
+            // Try to extract stats from different possible formats
+            if (data.data && Array.isArray(data.data) && data.data[0]) {
+              return data.data[0];
+            } else if (data.stats) {
+              return data.stats;
+            } else {
+              return data;
+            }
+          }
+        } catch (error) {
+          console.log(`❌ Stats endpoint ${endpoint} failed:`, error);
+          continue;
+        }
       }
-
-      const data = await response.json();
-      console.log('📊 Stats received:', data);
-      return data.data[0]; // The stats are in data[0]
+      
+      throw new Error('All stats endpoints failed');
     } catch (error) {
       console.error('❌ Hugging Face stats query error:', error);
       throw error;
