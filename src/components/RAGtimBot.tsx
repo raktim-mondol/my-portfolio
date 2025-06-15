@@ -37,7 +37,7 @@ export default function RAGtimBot() {
       return {
         name: 'Hybrid RAG',
         description: 'Advanced AI Assistant',
-        icon: '🔥',
+        icon: '🤖',
         color: 'bg-[#94c973] hover:bg-[#7fb95e]'
       };
     } else if (isUsingHuggingFace) {
@@ -250,7 +250,7 @@ export default function RAGtimBot() {
                 className="absolute -top-16 right-0 bg-[#94c973] hover:bg-[#7fb95e] text-white rounded-xl px-3 py-2 shadow-lg transition-all duration-300 hover:scale-105 text-sm font-medium flex items-center gap-2"
                 title="Try Hybrid System on Hugging Face"
               >
-                <span>🔥</span>
+                <span>🤖</span>
                 <span>Hybrid</span>
                 <ExternalLink className="h-3 w-3" />
               </button>
