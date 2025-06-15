@@ -67,7 +67,7 @@ export class HuggingFaceRAGService {
         return result;
       }
       
-      throw new Error('Invalid response format from AI Space');
+      throw new Error('Invalid response format from Hugging Face Space');
     } catch (error) {
       throw error;
     }
@@ -114,7 +114,7 @@ export class HuggingFaceRAGService {
     try {
       const isHealthy = await this.checkSpaceHealth();
       if (!isHealthy) {
-        return "The AI Space is currently starting up. Free AI Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
+        return "The Hugging Face Space is currently starting up. Free Hugging Face Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
       }
 
       const response = await this.queryHuggingFaceChat(userQuery);
@@ -122,19 +122,19 @@ export class HuggingFaceRAGService {
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes('connect') || error.message.includes('Client')) {
-          return "The AI Space is currently starting up or unavailable. Free AI Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
+          return "The Hugging Face Space is currently starting up or unavailable. Free Hugging Face Spaces go to sleep after inactivity and take 30-60 seconds to wake up. Please wait a moment and try again.";
         }
         
         if (error.message.includes('network') || error.message.includes('fetch')) {
-          return "Network error occurred. The AI Space might be starting up. Please wait 30-60 seconds and try again.";
+          return "Network error occurred. The Hugging Face Space might be starting up. Please wait 30-60 seconds and try again.";
         }
         
         if (error.message.includes('API error') || error.message.includes('404') || error.message.includes('500')) {
-          return "The AI Space is currently starting up or the API endpoints are not ready yet. Free spaces go to sleep after inactivity. Please wait a moment and try again.";
+          return "The Hugging Face Space is currently starting up or the API endpoints are not ready yet. Free spaces go to sleep after inactivity. Please wait a moment and try again.";
         }
       }
       
-      return "I apologize, but I'm experiencing technical difficulties. The AI Space may be starting up. Please try again in a moment.";
+      return "I apologize, but I'm experiencing technical difficulties. The Hugging Face Space may be starting up. Please try again in a moment.";
     }
   }
 
@@ -145,26 +145,26 @@ export class HuggingFaceRAGService {
       return {
         ...stats,
         searchCapabilities: [
-          'Advanced Transformers', 
+          'Hugging Face Transformers', 
           'Hybrid Search (Vector + BM25)',
           'Semantic Search', 
           'GPU Accelerated'
         ],
         isVectorSearchEnabled: true,
-        backendType: 'AI Space',
+        backendType: 'Hugging Face Space',
         modelName: 'sentence-transformers/all-MiniLM-L6-v2',
         embeddingDimension: 384,
-        architecture: 'AI Client Integration'
+        architecture: 'Gradio Client Integration'
       };
     } catch (error) {
       return {
         totalDocuments: 64,
-        searchCapabilities: ['AI Space (Starting Up)'],
+        searchCapabilities: ['Hugging Face Space (Starting Up)'],
         isVectorSearchEnabled: true,
-        backendType: 'AI Space',
+        backendType: 'Hugging Face Space',
         modelName: 'sentence-transformers/all-MiniLM-L6-v2',
         embeddingDimension: 384,
-        architecture: 'AI Client Integration',
+        architecture: 'Gradio Client Integration',
         status: 'starting'
       };
     }

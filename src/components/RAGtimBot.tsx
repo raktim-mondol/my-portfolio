@@ -30,30 +30,30 @@ export default function RAGtimBot() {
     if (isUsingHybrid) {
       return {
         name: 'Hybrid RAG',
-        description: 'Advanced Search + LLM',
+        description: 'HuggingFace Search + DeepSeek LLM',
         icon: '🔥',
-        color: 'from-[#94c973] to-[#7fb95e]'
+        color: 'from-purple-500 to-pink-500'
       };
     } else if (isUsingHuggingFace) {
       return {
-        name: 'AI Search',
+        name: 'HuggingFace',
         description: 'Powered by Transformers',
         icon: '🤗',
-        color: 'from-[#94c973] to-[#7fb95e]'
+        color: 'from-yellow-500 to-orange-500'
       };
     } else if (isUsingBackend) {
       return {
         name: 'Backend Server',
-        description: 'Local Transformers + LLM',
+        description: 'Local Transformers + DeepSeek',
         icon: '🖥️',
-        color: 'from-[#94c973] to-[#7fb95e]'
+        color: 'from-blue-500 to-cyan-500'
       };
     } else {
       return {
-        name: 'Serverless AI',
-        description: 'Cloud Functions + LLM',
+        name: 'Netlify Functions',
+        description: 'Serverless + DeepSeek',
         icon: '⚡',
-        color: 'from-[#94c973] to-[#7fb95e]'
+        color: 'from-green-500 to-teal-500'
       };
     }
   };
@@ -66,12 +66,12 @@ export default function RAGtimBot() {
       id: Date.now().toString(),
       role: 'assistant',
       content: isUsingHybrid
-        ? "Hello! I'm RAGtim Bot powered by a cutting-edge hybrid system! I use advanced transformers for GPU-accelerated semantic search and state-of-the-art LLM for natural response generation. This gives you the best of both worlds - fast, accurate search with intelligent conversational responses. Ask me anything about Raktim Mondol!"
+        ? "Hello! I'm RAGtim Bot powered by a cutting-edge hybrid system! I use Hugging Face Transformers for GPU-accelerated semantic search and DeepSeek LLM for natural response generation via Gradio API. This gives you the best of both worlds - fast, accurate search with intelligent conversational responses. Ask me anything about Raktim Mondol!"
         : isUsingHuggingFace 
-          ? "Hello! I'm RAGtim Bot, powered by advanced AI transformers! I'm an AI assistant trained on Raktim Mondol's portfolio and can answer questions about his research, publications, skills, experience, and more. What would you like to know?"
+          ? "Hello! I'm RAGtim Bot, powered by Hugging Face Transformers via Gradio API! I'm an AI assistant trained on Raktim Mondol's portfolio and can answer questions about his research, publications, skills, experience, and more. What would you like to know?"
           : ragService.hasApiKey()
             ? "Hello! I'm RAGtim Bot, your enhanced AI assistant powered by advanced hybrid search technology. I combine semantic vector search with BM25 ranking to provide comprehensive and accurate answers about Raktim Mondol. I can provide detailed information about his education, research, publications, skills, experience, and more. What would you like to know?"
-            : "⚠️ The chatbot is currently unavailable. The API key needs to be configured in the environment variables. Please contact the site administrator.",
+            : "⚠️ The chatbot is currently unavailable. The API key needs to be configured in the Netlify environment variables. Please contact the site administrator.",
       timestamp: new Date()
     };
     setMessages([welcomeMessage]);
@@ -119,8 +119,21 @@ export default function RAGtimBot() {
     setInputMessage('');
     setIsLoading(true);
 
+    // Show loading toast for Hugging Face Space
+    let loadingToast: string | undefined;
+    if (isUsingHuggingFace || isUsingHybrid) {
+      loadingToast = toast.loading('Connecting to Hugging Face Space...', {
+        duration: 10000
+      });
+    }
+
     try {
       const response = await ragService.generateResponse(userMessage.content, messages);
+      
+      // Dismiss loading toast
+      if (loadingToast) {
+        toast.dismiss(loadingToast);
+      }
       
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -133,14 +146,19 @@ export default function RAGtimBot() {
       
       // Show success toast for first successful interaction
       if (messages.length <= 1) {
-        toast.success('Connected successfully!');
+        toast.success('Connected to Hugging Face Space!');
       }
     } catch (error) {
+      // Dismiss loading toast
+      if (loadingToast) {
+        toast.dismiss(loadingToast);
+      }
+      
       let errorMessage = 'Failed to send message. Please try again.';
       
       if (error instanceof Error) {
-        if (error.message.includes('Space')) {
-          errorMessage = 'AI Space is starting up. Please wait 30-60 seconds and try again.';
+        if (error.message.includes('Gradio') || error.message.includes('Space')) {
+          errorMessage = 'Hugging Face Space is starting up. Please wait 30-60 seconds and try again.';
         } else if (error.message.includes('network')) {
           errorMessage = 'Network error. Please check your connection and try again.';
         }
@@ -151,7 +169,7 @@ export default function RAGtimBot() {
       const errorResponseMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "I apologize, but I encountered an error while processing your request. The AI Space may be starting up. Please try again in a moment.",
+        content: "I apologize, but I encountered an error while processing your request. The Hugging Face Space may be starting up. Please try again in a moment.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorResponseMessage]);
@@ -214,12 +232,12 @@ export default function RAGtimBot() {
               {systemInfo.name}
             </div>
             
-            {/* Alternative Option Button */}
+            {/* Hugging Face Option Button */}
             {!isUsingHuggingFace && !isUsingHybrid && (
               <button
                 onClick={openHuggingFaceSpace}
-                className="absolute -top-16 right-0 bg-gradient-to-r from-[#94c973] to-[#7fb95e] hover:from-[#7fb95e] hover:to-[#6ba84d] text-white rounded-xl px-3 py-2 shadow-lg transition-all duration-300 hover:scale-105 text-sm font-medium flex items-center gap-2"
-                title="Try Hybrid System"
+                className="absolute -top-16 right-0 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white rounded-xl px-3 py-2 shadow-lg transition-all duration-300 hover:scale-105 text-sm font-medium flex items-center gap-2"
+                title="Try Hybrid System on Hugging Face"
               >
                 <span>🔥</span>
                 <span>Hybrid</span>
@@ -252,11 +270,14 @@ export default function RAGtimBot() {
                 <h3 className="font-semibold flex items-center">
                   RAGtim Bot
                   <span className="ml-2 text-xs bg-white/20 px-2 py-1 rounded">
-                    {isUsingHybrid ? 'HYBRID' : isUsingHuggingFace ? 'AI' : isUsingBackend ? 'BE' : 'NF'}
+                    {isUsingHybrid ? 'HYBRID' : isUsingHuggingFace ? 'HF' : isUsingBackend ? 'BE' : 'NF'}
                   </span>
                 </h3>
                 <p className="text-xs opacity-90">
                   {systemInfo.description}
+                  {(isUsingHybrid || isUsingHuggingFace) && (
+                    <span className="block">via Gradio API</span>
+                  )}
                 </p>
               </div>
             </div>
@@ -308,19 +329,13 @@ export default function RAGtimBot() {
                 {knowledgeStats.searchProvider && <div>Search: {knowledgeStats.searchProvider}</div>}
                 {knowledgeStats.responseProvider && <div>LLM: {knowledgeStats.responseProvider}</div>}
                 {knowledgeStats.modelName && (
-                  <div className="text-xs text-[#94c973]">
+                  <div className="text-xs text-blue-600 dark:text-blue-400">
                     Model: {knowledgeStats.modelName}
                   </div>
                 )}
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {knowledgeStats.searchCapabilities?.filter((capability: string) => 
-                    !capability.includes('Advanced Transformers') && 
-                    !capability.includes('BM25 Keyword Search') &&
-                    !capability.includes('Hybrid Fusion') &&
-                    !capability.includes('Transformer Embeddings') &&
-                    !capability.includes('LLM Response Generation')
-                  ).map((capability: string) => (
-                    <span key={capability} className="bg-[#94c973]/20 text-[#94c973] px-2 py-1 rounded text-xs">
+                  {knowledgeStats.searchCapabilities?.map((capability: string) => (
+                    <span key={capability} className="bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 px-2 py-1 rounded text-xs">
                       {capability}
                     </span>
                   ))}
@@ -340,15 +355,15 @@ export default function RAGtimBot() {
                     </div>
                     <p className="text-sm">
                       {isUsingHybrid 
-                        ? 'Hybrid RAG system ready! GPU search + AI responses.'
+                        ? 'Hybrid RAG system ready! GPU search + AI responses via Gradio API.'
                         : isUsingHuggingFace 
-                          ? 'AI Transformers ready! Ask me anything about Raktim Mondol.'
+                          ? 'Hugging Face Transformers ready via Gradio API! Ask me anything about Raktim Mondol.'
                           : 'Advanced RAG system ready! Ask me anything about Raktim Mondol.'
                       }
                     </p>
                     <p className="text-xs mt-2 opacity-70">
                       {isUsingHybrid 
-                        ? 'Powered by advanced search + LLM generation.'
+                        ? 'Powered by HuggingFace search + DeepSeek generation via Gradio.'
                         : 'Powered by semantic search for precise answers.'
                       }
                     </p>
@@ -389,12 +404,12 @@ export default function RAGtimBot() {
               <div className="flex justify-start">
                 <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-[#94c973] rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-[#94c973] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-[#94c973] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Thinking...
+                    {(isUsingHybrid || isUsingHuggingFace) ? 'Connecting to Hugging Face Space...' : 'Thinking...'}
                   </p>
                 </div>
               </div>
@@ -412,7 +427,7 @@ export default function RAGtimBot() {
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder={isAvailable ? "Ask about Raktim's research, skills, experience..." : "Chatbot unavailable"}
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
                 disabled={isLoading || !isAvailable}
               />
               <button
@@ -424,6 +439,11 @@ export default function RAGtimBot() {
                 <Send className="h-4 w-4" />
               </button>
             </div>
+            {(isUsingHybrid || isUsingHuggingFace) && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Powered by Hugging Face Space via Gradio API
+              </p>
+            )}
           </div>
         </div>
       )}
