@@ -489,12 +489,14 @@ export default function RAGtimBot() {
       {/* Chat Window */}
       {isOpen && (
         <>
-          {/* Mobile Overlay - completely transparent to show background */}
+          {/* Mobile Overlay - transparent with gaussian blur */}
           <div 
             className="fixed inset-0 z-40 md:hidden"
             onClick={() => setIsOpen(false)}
             style={{ 
-              backgroundColor: 'rgba(0, 0, 0, 0.05)', // Almost transparent overlay
+              backgroundColor: 'rgba(0, 0, 0, 0.3)', // 70% transparency as requested
+              backdropFilter: 'blur(8px)', // Gaussian blur effect
+              WebkitBackdropFilter: 'blur(8px)', // Safari support
               pointerEvents: 'auto' // Ensure it's clickable
             }}
           />
