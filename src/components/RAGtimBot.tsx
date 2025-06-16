@@ -154,27 +154,33 @@ export default function RAGtimBot() {
       document.body.style.left = '0';
       document.documentElement.style.overflow = 'hidden';
     } else if (!isOpen && isMobile) {
-      // Reset body scroll and restore position
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      document.body.style.left = '';
-      document.documentElement.style.overflow = '';
+      // Restore scroll position and styles in a way that prevents visual jump
+      const scrollTop = scrollPositionRef.current;
       
-      // Restore scroll position immediately
-      window.scrollTo(0, scrollPositionRef.current);
+      // Remove fixed positioning and restore scroll in one atomic operation
+      document.body.style.removeProperty('position');
+      document.body.style.removeProperty('top');
+      document.body.style.removeProperty('width');
+      document.body.style.removeProperty('left');
+      document.body.style.removeProperty('overflow');
+      document.documentElement.style.removeProperty('overflow');
+      
+      // Immediately set scroll position to prevent any visual movement
+      if (scrollTop > 0) {
+        document.documentElement.scrollTop = scrollTop;
+        document.body.scrollTop = scrollTop; // Fallback for older browsers
+      }
     }
 
     // Cleanup on unmount
     return () => {
       if (isMobile) {
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        document.body.style.left = '';
-        document.documentElement.style.overflow = '';
+        document.body.style.removeProperty('position');
+        document.body.style.removeProperty('top');
+        document.body.style.removeProperty('width');
+        document.body.style.removeProperty('left');
+        document.body.style.removeProperty('overflow');
+        document.documentElement.style.removeProperty('overflow');
       }
     };
   }, [isOpen]);
