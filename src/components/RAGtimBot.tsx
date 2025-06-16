@@ -100,35 +100,35 @@ export default function RAGtimBot() {
   const getSystemInfo = () => {
     if (isUsingHybrid) {
       return {
-        name: 'Hybrid AI System',
-        description: 'Advanced semantic search + AI',
-        color: 'bg-gradient-to-r from-purple-600 to-blue-600',
-        icon: '🧠',
-        floatingIcon: '🚀'
+        name: 'Hybrid RAG',
+        description: 'Advanced AI Assistant',
+        icon: '🤖',
+        floatingIcon: '⚡',
+        color: 'bg-[#94c973] hover:bg-[#7fb95e]'
       };
     } else if (isUsingHuggingFace) {
       return {
-        name: 'Hugging Face AI',
-        description: 'Open source AI model',
-        color: 'bg-gradient-to-r from-yellow-500 to-orange-600',
+        name: 'HuggingFace',
+        description: 'AI Assistant',
         icon: '🤗',
-        floatingIcon: '⚡'
+        floatingIcon: '⚡',
+        color: 'bg-[#94c973] hover:bg-[#7fb95e]'
       };
     } else if (ragService.hasApiKey()) {
       return {
         name: 'Enhanced RAG System',
-        description: 'Hybrid search technology',
-        color: 'bg-[#94c973]',
+        description: 'AI Assistant',
         icon: '🤖',
-        floatingIcon: '💡'
+        floatingIcon: '⚡',
+        color: 'bg-[#94c973] hover:bg-[#7fb95e]'
       };
     } else {
       return {
         name: 'RAGtim Bot',
         description: 'Currently unavailable',
-        color: 'bg-gray-500',
         icon: '⚠️',
-        floatingIcon: '❌'
+        floatingIcon: '❌',
+        color: 'bg-gray-500'
       };
     }
   };
