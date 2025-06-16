@@ -135,35 +135,43 @@ export default function RAGtimBot() {
 
   const systemInfo = getSystemInfo();
 
+  // State to store scroll position
+  const [storedScrollY, setStoredScrollY] = useState(0);
+
   // Prevent body scroll when chat is open on mobile while preserving scroll position
   useEffect(() => {
-    let scrollY = 0;
-    
     if (isOpen) {
       // Check if it's mobile
       const isMobile = window.innerWidth < 768;
       if (isMobile) {
         // Store current scroll position
-        scrollY = window.scrollY;
+        const currentScrollY = window.scrollY;
+        setStoredScrollY(currentScrollY);
         
         // Prevent scrolling without changing position
         document.body.style.overflow = 'hidden';
         document.body.style.position = 'fixed';
-        document.body.style.top = `-${scrollY}px`;
+        document.body.style.top = `-${currentScrollY}px`;
         document.body.style.width = '100%';
+        document.body.style.left = '0';
+        document.body.style.right = '0';
       }
     } else {
-      // Reset body scroll and restore position
-      const scrollTop = document.body.style.top;
-      document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.width = '';
-      
-      // Restore scroll position if it was stored
-      if (scrollTop) {
-        const scrollY = Math.abs(parseInt(scrollTop));
-        window.scrollTo(0, scrollY);
+      // Check if it's mobile when closing
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        // Reset body scroll and restore position
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        
+        // Restore scroll position
+        setTimeout(() => {
+          window.scrollTo(0, storedScrollY);
+        }, 0);
       }
     }
 
@@ -173,8 +181,10 @@ export default function RAGtimBot() {
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
     };
-  }, [isOpen]);
+  }, [isOpen, storedScrollY]);
 
   useEffect(() => {
     // Initialize suggested questions when component mounts
@@ -485,8 +495,9 @@ export default function RAGtimBot() {
             className="fixed inset-0 z-40 md:hidden"
             onClick={() => setIsOpen(false)}
             style={{ 
-              background: 'rgba(0, 0, 0, 0.3)', // Light overlay to show it's modal but keep background visible
-              backdropFilter: 'blur(2px)' // Slight blur to indicate modal state
+              backgroundColor: 'rgba(0, 0, 0, 0.2)', // Very light overlay to show background content
+              backdropFilter: 'blur(1px)', // Very subtle blur
+              WebkitBackdropFilter: 'blur(1px)' // Safari support
             }}
           />
           
