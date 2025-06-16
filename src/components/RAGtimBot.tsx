@@ -135,27 +135,43 @@ export default function RAGtimBot() {
 
   const systemInfo = getSystemInfo();
 
-  // Prevent body scroll when chat is open on mobile
+  // Prevent body scroll when chat is open on mobile while preserving scroll position
   useEffect(() => {
+    let scrollY = 0;
+    
     if (isOpen) {
       // Check if it's mobile
       const isMobile = window.innerWidth < 768;
       if (isMobile) {
+        // Store current scroll position
+        scrollY = window.scrollY;
+        
+        // Prevent scrolling without changing position
         document.body.style.overflow = 'hidden';
         document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollY}px`;
         document.body.style.width = '100%';
       }
     } else {
-      // Reset body scroll
+      // Reset body scroll and restore position
+      const scrollTop = document.body.style.top;
       document.body.style.overflow = '';
       document.body.style.position = '';
+      document.body.style.top = '';
       document.body.style.width = '';
+      
+      // Restore scroll position if it was stored
+      if (scrollTop) {
+        const scrollY = Math.abs(parseInt(scrollTop));
+        window.scrollTo(0, scrollY);
+      }
     }
 
     // Cleanup on unmount
     return () => {
       document.body.style.overflow = '';
       document.body.style.position = '';
+      document.body.style.top = '';
       document.body.style.width = '';
     };
   }, [isOpen]);
@@ -456,18 +472,7 @@ export default function RAGtimBot() {
               {systemInfo.name}
             </div>
             
-            {/* Hugging Face Option Button - Hidden on mobile */}
-            {!isUsingHuggingFace && !isUsingHybrid && (
-              <button
-                onClick={openHuggingFaceSpace}
-                className="hidden sm:block absolute -top-16 right-0 bg-[#94c973] hover:bg-[#7fb95e] text-white rounded-xl px-3 py-2 shadow-lg transition-all duration-300 hover:scale-105 text-sm font-medium items-center gap-2"
-                title="Try Hybrid System on Hugging Face"
-              >
-                <span>🤖</span>
-                <span>Hybrid</span>
-                <ExternalLink className="h-3 w-3" />
-              </button>
-            )}
+
           </div>
         )}
       </div>
@@ -475,10 +480,14 @@ export default function RAGtimBot() {
       {/* Chat Window */}
       {isOpen && (
         <>
-          {/* Mobile Overlay */}
+          {/* Mobile Overlay - transparent to show background */}
           <div 
-            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            className="fixed inset-0 z-40 md:hidden"
             onClick={() => setIsOpen(false)}
+            style={{ 
+              background: 'rgba(0, 0, 0, 0.3)', // Light overlay to show it's modal but keep background visible
+              backdropFilter: 'blur(2px)' // Slight blur to indicate modal state
+            }}
           />
           
           {/* Chat Container */}
@@ -524,16 +533,7 @@ export default function RAGtimBot() {
                     <BarChart3 className="h-3 w-3" />
                   </button>
                 )}
-                {/* Hugging Face button for mobile */}
-                {!isUsingHuggingFace && !isUsingHybrid && (
-                  <button
-                    onClick={openHuggingFaceSpace}
-                    className="md:hidden p-1 hover:bg-white/20 rounded transition-colors text-xs px-1 py-1"
-                    title="Try Hybrid System"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                  </button>
-                )}
+
                 <button
                   onClick={clearChat}
                   className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-1 sm:px-2 py-1"
@@ -717,7 +717,7 @@ export default function RAGtimBot() {
         </>
       )}
 
-      <style jsx>{`
+      <style>{`
         @keyframes flash {
           0%, 50% { opacity: 1; }
           25%, 75% { opacity: 0.3; }
