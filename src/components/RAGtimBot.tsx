@@ -465,11 +465,11 @@ export default function RAGtimBot() {
           <div className="relative">
             <button
               onClick={() => setIsOpen(true)}
-              className={`${systemInfo.color} text-white rounded-2xl p-3 sm:p-4 shadow-lg transition-all duration-300 hover:scale-110 group relative`}
+              className={`${systemInfo.color} text-white rounded-2xl p-4 sm:p-4 shadow-lg transition-all duration-300 hover:scale-110 group relative`}
               aria-label="Open RAGtim Bot"
             >
-              <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
-              <div className="absolute -top-2 -left-3 text-lg sm:text-xl z-10" style={{
+              <MessageCircle className="h-7 w-7 sm:h-6 sm:w-6" />
+              <div className="absolute -top-2 -left-3 text-xl sm:text-xl z-10" style={{
                 animation: isAvailable ? 'bounce 1s infinite, flash 2s infinite' : 'none'
               }}>
                 <span>{systemInfo.floatingIcon}</span>
@@ -519,16 +519,16 @@ export default function RAGtimBot() {
             }}
           >
             {/* Header */}
-            <div className={`flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 ${systemInfo.color} text-white rounded-t-lg`}>
+            <div className={`flex items-center justify-between p-4 sm:p-4 border-b border-gray-200 dark:border-gray-700 ${systemInfo.color} text-white rounded-t-lg`}>
               <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center">
-                  <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+                <div className="w-8 h-8 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <MessageCircle className="h-4 w-4 sm:h-4 sm:w-4" />
                 </div>
                 <div>
-                  <h3 className="text-sm sm:text-base font-semibold flex items-center">
+                  <h3 className="text-base sm:text-base font-semibold flex items-center">
                     RAGtim Bot
                   </h3>
-                  <p className="text-xs opacity-90">
+                  <p className="text-sm sm:text-xs opacity-90">
                     {systemInfo.description}
                   </p>
                 </div>
@@ -589,7 +589,7 @@ export default function RAGtimBot() {
 
             {/* Messages Container with proper scroll handling */}
             <div 
-              className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4"
+              className="flex-1 overflow-y-auto p-4 sm:p-4 space-y-4 sm:space-y-4"
               style={{
                 // Ensure scrolling only happens within this container
                 overscrollBehavior: 'contain',
@@ -607,7 +607,7 @@ export default function RAGtimBot() {
                       <div className={`h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 rounded-full ${systemInfo.color} flex items-center justify-center text-white text-xl sm:text-2xl`}>
                         {systemInfo.icon}
                       </div>
-                      <p className="text-sm">
+                      <p className="text-base sm:text-sm">
                         {isUsingHybrid 
                           ? 'AI Assistant ready! Ask me anything about Raktim Mondol.'
                           : isUsingHuggingFace 
@@ -615,15 +615,15 @@ export default function RAGtimBot() {
                             : 'Advanced RAG system ready! Ask me anything about Raktim Mondol.'
                         }
                       </p>
-                      <p className="text-xs mt-2 opacity-70">
+                      <p className="text-sm sm:text-xs mt-2 opacity-70">
                         Powered by advanced AI technology for precise answers.
                       </p>
                     </>
                   ) : (
                     <>
                       <AlertCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 opacity-50 text-red-500" />
-                      <p className="text-sm">The chatbot is currently unavailable.</p>
-                      <p className="text-xs mt-2 opacity-70">API key needs to be configured.</p>
+                      <p className="text-base sm:text-sm">The chatbot is currently unavailable.</p>
+                      <p className="text-sm sm:text-xs mt-2 opacity-70">API key needs to be configured.</p>
                     </>
                   )}
                 </div>
@@ -641,7 +641,7 @@ export default function RAGtimBot() {
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
                     }`}
                   >
-                    <p className="text-xs sm:text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm sm:text-sm whitespace-pre-wrap">{message.content}</p>
                     <p className={`text-xs mt-1 opacity-70 ${
                       message.role === 'user' ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'
                     }`}>
@@ -657,7 +657,7 @@ export default function RAGtimBot() {
                   <div className="flex items-center justify-center">
                     <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
                       <HelpCircle className="h-4 w-4" />
-                      <span className="text-sm font-medium">Suggested Questions</span>
+                      <span className="text-base sm:text-sm font-medium">Suggested Questions</span>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -668,7 +668,7 @@ export default function RAGtimBot() {
                         disabled={isLoading}
                         className="w-full text-left p-2 sm:p-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-all duration-200 hover:shadow-md group disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors">
+                        <p className="text-sm sm:text-xs leading-relaxed text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors">
                           {question}
                         </p>
                       </button>
@@ -702,7 +702,7 @@ export default function RAGtimBot() {
             </div>
 
             {/* Input Section */}
-            <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+            <div className="p-4 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
               <div className="flex space-x-2">
                 <input
                   ref={inputRef}
@@ -711,13 +711,13 @@ export default function RAGtimBot() {
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder={isAvailable ? "Ask about Raktim's research, skills, experience..." : "Chatbot unavailable"}
-                  className="flex-1 px-3 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973] bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                  className="flex-1 px-3 py-3 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973] bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-base sm:text-sm"
                   disabled={isLoading || !isAvailable}
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={isLoading || !inputMessage.trim() || !isAvailable}
-                  className={`px-3 sm:px-4 py-2 sm:py-2.5 ${systemInfo.color} text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-md`}
+                  className={`px-4 sm:px-4 py-3 sm:py-2.5 ${systemInfo.color} text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-md`}
                   aria-label="Send message"
                 >
                   <Send className="h-4 w-4" />
