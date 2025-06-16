@@ -135,56 +135,49 @@ export default function RAGtimBot() {
 
   const systemInfo = getSystemInfo();
 
-  // State to store scroll position
-  const [storedScrollY, setStoredScrollY] = useState(0);
+  // Ref to store scroll position to avoid state updates
+  const scrollPositionRef = useRef(0);
 
   // Prevent body scroll when chat is open on mobile while preserving scroll position
   useEffect(() => {
-    if (isOpen) {
-      // Check if it's mobile
-      const isMobile = window.innerWidth < 768;
-      if (isMobile) {
-        // Store current scroll position
-        const currentScrollY = window.scrollY;
-        setStoredScrollY(currentScrollY);
-        
-        // Prevent scrolling without changing position
-        document.body.style.overflow = 'hidden';
-        document.body.style.position = 'fixed';
-        document.body.style.top = `-${currentScrollY}px`;
-        document.body.style.width = '100%';
-        document.body.style.left = '0';
-        document.body.style.right = '0';
-      }
-    } else {
-      // Check if it's mobile when closing
-      const isMobile = window.innerWidth < 768;
-      if (isMobile) {
-        // Reset body scroll and restore position
-        document.body.style.overflow = '';
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.width = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
-        
-        // Restore scroll position
-        setTimeout(() => {
-          window.scrollTo(0, storedScrollY);
-        }, 0);
-      }
-    }
-
-    // Cleanup on unmount
-    return () => {
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
+    
+    if (isOpen && isMobile) {
+      // Store current scroll position
+      scrollPositionRef.current = window.pageYOffset || document.documentElement.scrollTop;
+      
+      // Prevent scrolling without changing position
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollPositionRef.current}px`;
+      document.body.style.width = '100%';
+      document.body.style.left = '0';
+      document.documentElement.style.overflow = 'hidden';
+    } else if (!isOpen && isMobile) {
+      // Reset body scroll and restore position
       document.body.style.overflow = '';
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
       document.body.style.left = '';
-      document.body.style.right = '';
+      document.documentElement.style.overflow = '';
+      
+      // Restore scroll position immediately
+      window.scrollTo(0, scrollPositionRef.current);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (isMobile) {
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.left = '';
+        document.documentElement.style.overflow = '';
+      }
     };
-  }, [isOpen, storedScrollY]);
+  }, [isOpen]);
 
   useEffect(() => {
     // Initialize suggested questions when component mounts
@@ -490,14 +483,13 @@ export default function RAGtimBot() {
       {/* Chat Window */}
       {isOpen && (
         <>
-          {/* Mobile Overlay - transparent to show background */}
+          {/* Mobile Overlay - completely transparent to show background */}
           <div 
             className="fixed inset-0 z-40 md:hidden"
             onClick={() => setIsOpen(false)}
             style={{ 
-              backgroundColor: 'rgba(0, 0, 0, 0.2)', // Very light overlay to show background content
-              backdropFilter: 'blur(1px)', // Very subtle blur
-              WebkitBackdropFilter: 'blur(1px)' // Safari support
+              backgroundColor: 'rgba(0, 0, 0, 0.05)', // Almost transparent overlay
+              pointerEvents: 'auto' // Ensure it's clickable
             }}
           />
           
