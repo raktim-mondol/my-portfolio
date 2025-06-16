@@ -593,10 +593,21 @@ export default function RAGtimBot() {
               style={{
                 // Ensure scrolling only happens within this container
                 overscrollBehavior: 'contain',
-                WebkitOverflowScrolling: 'touch'
+                WebkitOverflowScrolling: 'touch',
+                // Enhanced mobile scrolling performance
+                scrollBehavior: 'smooth',
+                transform: 'translateZ(0)', // Force hardware acceleration
+                willChange: 'scroll-position',
+                // Chrome mobile optimizations
+                contain: 'layout style paint',
+                isolation: 'isolate'
               }}
               onTouchMove={(e) => {
                 // Allow scrolling within the chat container
+                e.stopPropagation();
+              }}
+              onTouchStart={(e) => {
+                // Prevent momentum scrolling interference
                 e.stopPropagation();
               }}
             >
@@ -747,6 +758,38 @@ export default function RAGtimBot() {
           }
           60% {
             transform: translateY(-3px);
+          }
+        }
+
+        /* Enhanced mobile scrolling */
+        @media (max-width: 767px) {
+          .flex-1.overflow-y-auto {
+            -webkit-overflow-scrolling: touch !important;
+            scroll-behavior: smooth !important;
+            transform: translateZ(0) !important;
+            backface-visibility: hidden !important;
+            perspective: 1000px !important;
+            /* Chrome mobile optimizations */
+            contain: layout style paint !important;
+            isolation: isolate !important;
+            scroll-snap-type: none !important;
+            overscroll-behavior-y: contain !important;
+            -webkit-transform: translate3d(0,0,0) !important;
+            transform: translate3d(0,0,0) !important;
+          }
+        }
+
+        /* Chrome-specific mobile optimizations */
+        @supports (-webkit-appearance: none) {
+          @media (max-width: 767px) and (pointer: coarse) {
+            .flex-1.overflow-y-auto {
+              -webkit-overflow-scrolling: touch !important;
+              -webkit-backface-visibility: hidden !important;
+              -webkit-transform-style: preserve-3d !important;
+              -webkit-perspective: 1000px !important;
+              transform-style: preserve-3d !important;
+              will-change: transform, scroll-position !important;
+            }
           }
         }
       `}</style>
