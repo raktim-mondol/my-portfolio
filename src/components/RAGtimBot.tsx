@@ -495,10 +495,10 @@ export default function RAGtimBot() {
             onClick={() => setIsOpen(false)}
             style={{ 
               backgroundColor: 'rgba(0, 0, 0, 0.3)', // 70% transparency as requested
-              backdropFilter: 'blur(8px)', // Gaussian blur effect
-              WebkitBackdropFilter: 'blur(8px)', // Safari support
+              backdropFilter: 'blur(8px)', // Standard - Chrome 76+, Firefox 103+
+              WebkitBackdropFilter: 'blur(8px)', // Safari and older Chrome/WebKit
               pointerEvents: 'auto' // Ensure it's clickable
-            }}
+            } as React.CSSProperties}
           />
           
           {/* Chat Container */}
