@@ -78,6 +78,7 @@ export default function RAGtimBot() {
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Check which system is being used
   const isUsingHybrid = import.meta.env.VITE_USE_HYBRID === 'true';
@@ -99,40 +100,65 @@ export default function RAGtimBot() {
   const getSystemInfo = () => {
     if (isUsingHybrid) {
       return {
-        name: 'Hybrid RAG',
-        description: 'Advanced AI Assistant',
-        icon: '🤖',
-        floatingIcon: '⚡',
-        color: 'bg-[#94c973] hover:bg-[#7fb95e]'
+        name: 'Hybrid AI System',
+        description: 'Advanced semantic search + AI',
+        color: 'bg-gradient-to-r from-purple-600 to-blue-600',
+        icon: '🧠',
+        floatingIcon: '🚀'
       };
     } else if (isUsingHuggingFace) {
       return {
-        name: 'HuggingFace',
-        description: 'AI Assistant',
+        name: 'Hugging Face AI',
+        description: 'Open source AI model',
+        color: 'bg-gradient-to-r from-yellow-500 to-orange-600',
         icon: '🤗',
-        floatingIcon: '⚡',
-        color: 'bg-[#94c973] hover:bg-[#7fb95e]'
+        floatingIcon: '⚡'
       };
-    } else if (isUsingBackend) {
+    } else if (ragService.hasApiKey()) {
       return {
-        name: 'Backend Server',
-        description: 'AI Assistant',
-        icon: '🖥️',
-        floatingIcon: '⚡',
-        color: 'bg-[#94c973] hover:bg-[#7fb95e]'
+        name: 'Enhanced RAG System',
+        description: 'Hybrid search technology',
+        color: 'bg-[#94c973]',
+        icon: '🤖',
+        floatingIcon: '💡'
       };
     } else {
       return {
-        name: 'Netlify Functions',
-        description: 'AI Assistant',
-        icon: '⚡',
-        floatingIcon: '⚡',
-        color: 'bg-[#94c973] hover:bg-[#7fb95e]'
+        name: 'RAGtim Bot',
+        description: 'Currently unavailable',
+        color: 'bg-gray-500',
+        icon: '⚠️',
+        floatingIcon: '❌'
       };
     }
   };
 
   const systemInfo = getSystemInfo();
+
+  // Prevent body scroll when chat is open on mobile
+  useEffect(() => {
+    if (isOpen) {
+      // Check if it's mobile
+      const isMobile = window.innerWidth < 768;
+      if (isMobile) {
+        document.body.style.overflow = 'hidden';
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+      }
+    } else {
+      // Reset body scroll
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     // Initialize suggested questions when component mounts
@@ -409,16 +435,16 @@ export default function RAGtimBot() {
   return (
     <>
       {/* Chat Widget Button */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
         {!isOpen && (
           <div className="relative">
             <button
               onClick={() => setIsOpen(true)}
-              className={`${systemInfo.color} text-white rounded-2xl p-4 shadow-lg transition-all duration-300 hover:scale-110 group relative`}
+              className={`${systemInfo.color} text-white rounded-2xl p-3 sm:p-4 shadow-lg transition-all duration-300 hover:scale-110 group relative`}
               aria-label="Open RAGtim Bot"
             >
-              <MessageCircle className="h-6 w-6" />
-              <div className="absolute -top-2 -left-3 text-xl z-10" style={{
+              <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
+              <div className="absolute -top-2 -left-3 text-lg sm:text-xl z-10" style={{
                 animation: isAvailable ? 'bounce 1s infinite, flash 2s infinite' : 'none'
               }}>
                 <span>{systemInfo.floatingIcon}</span>
@@ -430,11 +456,11 @@ export default function RAGtimBot() {
               {systemInfo.name}
             </div>
             
-            {/* Hugging Face Option Button */}
+            {/* Hugging Face Option Button - Hidden on mobile */}
             {!isUsingHuggingFace && !isUsingHybrid && (
               <button
                 onClick={openHuggingFaceSpace}
-                className="absolute -top-16 right-0 bg-[#94c973] hover:bg-[#7fb95e] text-white rounded-xl px-3 py-2 shadow-lg transition-all duration-300 hover:scale-105 text-sm font-medium flex items-center gap-2"
+                className="hidden sm:block absolute -top-16 right-0 bg-[#94c973] hover:bg-[#7fb95e] text-white rounded-xl px-3 py-2 shadow-lg transition-all duration-300 hover:scale-105 text-sm font-medium items-center gap-2"
                 title="Try Hybrid System on Hugging Face"
               >
                 <span>🤖</span>
@@ -448,211 +474,247 @@ export default function RAGtimBot() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 w-96 h-[600px] bg-white dark:bg-gray-900 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50 flex flex-col">
-          {/* Header */}
-          <div className={`flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 ${systemInfo.color} text-white rounded-t-lg`}>
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <MessageCircle className="h-4 w-4" />
-              </div>
-              <div>
-                <h3 className="font-semibold flex items-center">
-                  RAGtim Bot
-                </h3>
-                <p className="text-xs opacity-90">
-                  {systemInfo.description}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              {isAvailable && (
-                <button
-                  onClick={toggleStats}
-                  className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
-                  title="System stats"
-                >
-                  <BarChart3 className="h-3 w-3" />
-                </button>
-              )}
-              {!isUsingHuggingFace && !isUsingHybrid && (
-                <button
-                  onClick={openHuggingFaceSpace}
-                  className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
-                  title="Try Hybrid System"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                </button>
-              )}
-              <button
-                onClick={clearChat}
-                className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-2 py-1"
-                title="Clear chat"
-              >
-                Clear
-              </button>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1 hover:bg-white/20 rounded transition-colors"
-                aria-label="Close chat"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* System Stats */}
-          {showStats && knowledgeStats && (
-            <div className="p-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
-                <Target className="h-4 w-4 mr-1" />
-                {knowledgeStats.architecture || systemInfo.name}
-              </h4>
-              <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                {knowledgeStats.totalDocuments && <div>Documents: {knowledgeStats.totalDocuments}</div>}
-                {knowledgeStats.modelName && (
-                  <div className="text-xs text-[#94c973] dark:text-[#94c973]">
-                    Model: {knowledgeStats.modelName}
-                  </div>
-                )}
-                <div className="flex flex-wrap gap-1 mt-2">
-                  {knowledgeStats.searchCapabilities?.map((capability: string) => (
-                    <span key={capability} className="bg-[#94c973]/10 text-[#94c973] dark:bg-[#94c973]/20 dark:text-[#94c973] px-2 py-1 rounded text-xs">
-                      {capability}
-                    </span>
-                  ))}
+        <>
+          {/* Mobile Overlay */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setIsOpen(false)}
+          />
+          
+          {/* Chat Container */}
+          <div 
+            ref={chatContainerRef}
+            className={`
+              fixed z-50 bg-white dark:bg-gray-900 shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col
+              // Mobile: Full screen
+              inset-4 rounded-lg
+              // Tablet and up: Positioned bottom-right
+              md:inset-auto md:bottom-6 md:right-6 md:w-96 md:h-[600px] md:rounded-lg
+              // Large screens: Bigger size
+              lg:w-[420px] lg:h-[650px]
+            `}
+            style={{
+              // Prevent scroll propagation
+              touchAction: 'none'
+            }}
+          >
+            {/* Header */}
+            <div className={`flex items-center justify-between p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700 ${systemInfo.color} text-white rounded-t-lg`}>
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-white/20 rounded-full flex items-center justify-center">
+                  <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.length === 0 && (
-              <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                {isAvailable ? (
-                  <>
-                    <div className={`h-12 w-12 mx-auto mb-4 rounded-full ${systemInfo.color} flex items-center justify-center text-white text-2xl`}>
-                      {systemInfo.icon}
-                    </div>
-                    <p className="text-sm">
-                      {isUsingHybrid 
-                        ? 'AI Assistant ready! Ask me anything about Raktim Mondol.'
-                        : isUsingHuggingFace 
-                          ? 'AI Assistant ready! Ask me anything about Raktim Mondol.'
-                          : 'Advanced RAG system ready! Ask me anything about Raktim Mondol.'
-                      }
-                    </p>
-                    <p className="text-xs mt-2 opacity-70">
-                      Powered by advanced AI technology for precise answers.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-50 text-red-500" />
-                    <p className="text-sm">The chatbot is currently unavailable.</p>
-                    <p className="text-xs mt-2 opacity-70">API key needs to be configured.</p>
-                  </>
-                )}
-              </div>
-            )}
-            
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[85%] p-3 rounded-lg ${
-                    message.role === 'user'
-                      ? `${systemInfo.color} text-white`
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
-                  }`}
-                >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  <p className={`text-xs mt-1 opacity-70 ${
-                    message.role === 'user' ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'
-                  }`}>
-                    {formatTime(message.timestamp)}
+                <div>
+                  <h3 className="text-sm sm:text-base font-semibold flex items-center">
+                    RAGtim Bot
+                  </h3>
+                  <p className="text-xs opacity-90">
+                    {systemInfo.description}
                   </p>
                 </div>
               </div>
-            ))}
-
-            {/* Suggested Questions */}
-            {showSuggestions && isAvailable && messages.length <= 1 && !isLoading && (
-              <div className="space-y-3">
-                <div className="flex items-center justify-center">
-                  <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
-                    <HelpCircle className="h-4 w-4" />
-                    <span className="text-sm font-medium">Suggested Questions</span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  {suggestedQuestions.map((question, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleSuggestedQuestion(question)}
-                      disabled={isLoading}
-                      className="w-full text-left p-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-all duration-200 hover:shadow-md group disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <p className="text-xs text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors leading-relaxed">
-                        {question}
-                      </p>
-                    </button>
-                  ))}
-                </div>
-                <div className="text-center">
+              
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                {isAvailable && (
                   <button
-                    onClick={() => setSuggestedQuestions(getRandomQuestions())}
-                    disabled={isLoading}
-                    className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center space-x-1 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={toggleStats}
+                    className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-1 sm:px-2 py-1"
+                    title="System stats"
                   >
-                    <Search className="h-3 w-3" />
-                    <span>Get different questions</span>
+                    <BarChart3 className="h-3 w-3" />
                   </button>
-                </div>
+                )}
+                {/* Hugging Face button for mobile */}
+                {!isUsingHuggingFace && !isUsingHybrid && (
+                  <button
+                    onClick={openHuggingFaceSpace}
+                    className="md:hidden p-1 hover:bg-white/20 rounded transition-colors text-xs px-1 py-1"
+                    title="Try Hybrid System"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                  </button>
+                )}
+                <button
+                  onClick={clearChat}
+                  className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-1 sm:px-2 py-1"
+                  title="Clear chat"
+                >
+                  <span className="text-xs">Clear</span>
+                </button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 hover:bg-white/20 rounded transition-colors"
+                  aria-label="Close chat"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-            )}
-            
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-custom"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-custom" style={{ animationDelay: '0.15s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-custom" style={{ animationDelay: '0.3s' }}></div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Input */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex space-x-2">
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder={isAvailable ? "Ask about Raktim's research, skills, experience..." : "Chatbot unavailable"}
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973] bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
-                disabled={isLoading || !isAvailable}
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={isLoading || !inputMessage.trim() || !isAvailable}
-                className={`px-3 py-2 ${systemInfo.color} text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all`}
-                aria-label="Send message"
-              >
-                <Send className="h-4 w-4" />
-              </button>
             </div>
 
+            {/* System Stats */}
+            {showStats && knowledgeStats && (
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
+                  <Target className="h-4 w-4 mr-1" />
+                  {knowledgeStats.architecture || systemInfo.name}
+                </h4>
+                <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                  {knowledgeStats.totalDocuments && <div>Documents: {knowledgeStats.totalDocuments}</div>}
+                  {knowledgeStats.modelName && (
+                    <div className="text-xs text-[#94c973] dark:text-[#94c973]">
+                      Model: {knowledgeStats.modelName}
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {knowledgeStats.searchCapabilities?.map((capability: string) => (
+                      <span key={capability} className="bg-[#94c973]/10 text-[#94c973] dark:bg-[#94c973]/20 dark:text-[#94c973] px-2 py-1 rounded text-xs">
+                        {capability}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Messages Container with proper scroll handling */}
+            <div 
+              className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4"
+              style={{
+                // Ensure scrolling only happens within this container
+                overscrollBehavior: 'contain',
+                WebkitOverflowScrolling: 'touch'
+              }}
+              onTouchMove={(e) => {
+                // Allow scrolling within the chat container
+                e.stopPropagation();
+              }}
+            >
+              {messages.length === 0 && (
+                <div className="text-center text-gray-500 dark:text-gray-400 py-6 sm:py-8">
+                  {isAvailable ? (
+                    <>
+                      <div className={`h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 rounded-full ${systemInfo.color} flex items-center justify-center text-white text-xl sm:text-2xl`}>
+                        {systemInfo.icon}
+                      </div>
+                      <p className="text-sm">
+                        {isUsingHybrid 
+                          ? 'AI Assistant ready! Ask me anything about Raktim Mondol.'
+                          : isUsingHuggingFace 
+                            ? 'AI Assistant ready! Ask me anything about Raktim Mondol.'
+                            : 'Advanced RAG system ready! Ask me anything about Raktim Mondol.'
+                        }
+                      </p>
+                      <p className="text-xs mt-2 opacity-70">
+                        Powered by advanced AI technology for precise answers.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-4 opacity-50 text-red-500" />
+                      <p className="text-sm">The chatbot is currently unavailable.</p>
+                      <p className="text-xs mt-2 opacity-70">API key needs to be configured.</p>
+                    </>
+                  )}
+                </div>
+              )}
+              
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[85%] sm:max-w-[80%] p-2.5 sm:p-3 rounded-lg ${
+                      message.role === 'user'
+                        ? `${systemInfo.color} text-white`
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                    }`}
+                  >
+                    <p className="text-xs sm:text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className={`text-xs mt-1 opacity-70 ${
+                      message.role === 'user' ? 'text-white/70' : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {formatTime(message.timestamp)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+
+              {/* Suggested Questions */}
+              {showSuggestions && isAvailable && messages.length <= 1 && !isLoading && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center">
+                    <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
+                      <HelpCircle className="h-4 w-4" />
+                      <span className="text-sm font-medium">Suggested Questions</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {suggestedQuestions.map((question, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestedQuestion(question)}
+                        disabled={isLoading}
+                        className="w-full text-left p-2 sm:p-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-all duration-200 hover:shadow-md group disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors">
+                          {question}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="text-center">
+                    <button
+                      onClick={() => setSuggestedQuestions(getRandomQuestions())}
+                      disabled={isLoading}
+                      className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors flex items-center space-x-1 mx-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Search className="h-3 w-3" />
+                      <span>Get different questions</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-custom"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-custom" style={{ animationDelay: '0.15s' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce-custom" style={{ animationDelay: '0.3s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Section */}
+            <div className="p-3 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+              <div className="flex space-x-2">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={isAvailable ? "Ask about Raktim's research, skills, experience..." : "Chatbot unavailable"}
+                  className="flex-1 px-3 py-2 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973] bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm"
+                  disabled={isLoading || !isAvailable}
+                />
+                <button
+                  onClick={handleSendMessage}
+                  disabled={isLoading || !inputMessage.trim() || !isAvailable}
+                  className={`px-3 sm:px-4 py-2 sm:py-2.5 ${systemInfo.color} text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-md`}
+                  aria-label="Send message"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       <style jsx>{`
