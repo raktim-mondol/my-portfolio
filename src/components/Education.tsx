@@ -12,7 +12,6 @@ const education = [
     certUrl: "https://www.myequals.net/sharelink/2785473a-d952-4638-bf0a-cfcc7e000a83/d0aaa7fa-d4fb-434c-b68e-46b980d5f726",
     thesisUrl: "http://hdl.handle.net/1959.4/105627",
     audioSummary: "/assets/audio/phd_podcast.mp3",
-    thesisMindMap: "/assets/images/full_thesis_mind_map_.png",
     logo: {
       light: "/assets/images/unsw-logo.png",
       dark: "/assets/images/unsw-logo-dm.png"
@@ -378,3 +377,4 @@ export default function Education() {
   );
 
 }
+
