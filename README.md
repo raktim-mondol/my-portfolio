@@ -45,6 +45,7 @@ This Space loads comprehensive information from:
 - Contact information and collaboration opportunities
 
 ## 🚀 API Usage
+https://huggingface.co/raktimhugging
 
 ### Search API
 ```python
@@ -89,4 +90,5 @@ For questions about Raktim Mondol or collaboration opportunities:
 ---
 
 **Built with**: Gradio, Hugging Face Transformers, PyTorch
+
 **Powered by**: GPU-accelerated semantic search and comprehensive markdown knowledge base
