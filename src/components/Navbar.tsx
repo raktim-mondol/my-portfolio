@@ -53,11 +53,11 @@ export default function Navbar() {
               }`}
               onClick={handleNameClick}
             >
-              <strong>Dr.</strong> Raktim
+              Dr. <strong>Raktim</strong>
             </a>
           </div>
           
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden lg:flex items-center space-x-6">
             {navLinks.map((link) => (
               <a 
                 key={link.href}
@@ -77,7 +77,40 @@ export default function Navbar() {
             </button>
           </div>
 
-          <div className="md:hidden flex items-center space-x-2">
+          {/* Tablet layout - shows condensed version with better spacing */}
+          <div className="hidden md:lg:hidden md:flex items-center space-x-2">
+            {/* Show only essential links on tablet */}
+            <a 
+              href="#education" 
+              className="text-gray-700 dark:text-gray-300 hover:text-[#94c973] dark:hover:text-[#94c973] transition text-sm px-2"
+              onClick={handleLinkClick}
+            >
+              Education
+            </a>
+            <a 
+              href="#experience" 
+              className="text-gray-700 dark:text-gray-300 hover:text-[#94c973] dark:hover:text-[#94c973] transition text-sm px-2"
+              onClick={handleLinkClick}
+            >
+              Experience
+            </a>
+            <a 
+              href="#research" 
+              className="text-gray-700 dark:text-gray-300 hover:text-[#94c973] dark:hover:text-[#94c973] transition text-sm px-2"
+              onClick={handleLinkClick}
+            >
+              Research
+            </a>
+            <ThemeToggle />
+            <button 
+              onClick={handleDownloadCV}
+              className="bg-[#94c973] text-white px-3 py-1.5 rounded-md hover:bg-[#7fb95e] transition text-sm ml-1"
+            >
+              CV
+            </button>
+          </div>
+
+          <div className="lg:hidden flex items-center space-x-2">
             <ThemeToggle />
             <button 
               onClick={() => setIsOpen(!isOpen)} 
@@ -90,7 +123,7 @@ export default function Navbar() {
       </div>
 
       {isOpen && (
-        <div className="md:hidden absolute w-full bg-white dark:bg-gray-900 shadow-lg">
+        <div className="lg:hidden absolute w-full bg-white dark:bg-gray-900 shadow-lg">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navLinks.map((link) => (
               <a 
@@ -117,5 +150,3 @@ export default function Navbar() {
     </nav>
   );
 }
-
-
