@@ -37,7 +37,7 @@ export default function Hero() {
 
           <div className="max-w-2xl text-center sm:text-left">
             <h1 className="text-4xl tracking-tight font-bold text-gray-900 dark:text-white sm:text-5xl">
-              <span className="block">Dr Raktim <strong>Mondol</strong></span>
+              <span className="block">Dr. Raktim <strong>Mondol</strong></span>
               <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start mt-2">
                 <span className="text-2xl sm:text-3xl dark:text-gray-200">I'm</span>
                 <div className="words-wrapper mt-2 sm:mt-0">
@@ -69,4 +69,5 @@ export default function Hero() {
     </div>
   );
 }
+
 
