@@ -53,7 +53,7 @@ export default function Navbar() {
               }`}
               onClick={handleNameClick}
             >
-              <strong>Dr</strong> Raktim
+              <strong>Dr.</strong> Raktim
             </a>
           </div>
           
@@ -117,4 +117,5 @@ export default function Navbar() {
     </nav>
   );
 }
+
 
