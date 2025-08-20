@@ -53,7 +53,7 @@ export default function Navbar() {
               }`}
               onClick={handleNameClick}
             >
-              Dr. <strong>Raktim</strong>
+              Dr <strong>Raktim</strong>
             </a>
           </div>
           
@@ -139,3 +139,4 @@ export default function Navbar() {
     </nav>
   );
 }
+
