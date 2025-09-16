@@ -23,7 +23,7 @@ const education = [
     year: "2017-2019",
     thesis: "Deep learning in classifying cancer subtypes, extracting relevant genes and identifying novel mutations",
     description: "Graduated with High Distinction",
-    certUrl: "https://www.myequals.net/sharelink/78e7c7d7-5a73-4e7c-9711-f163f5dd1604/af0d807a-8392-45be-9104-d26b95f5aa7a",
+    certUrl: "https://www.myequals.net/sharelink/b8eb4bae-6dea-4212-812f-1f327f82846f/af0d807a-8392-45be-9104-d26b95f5aa7a",
     thesisUrl: "https://research-repository.rmit.edu.au/articles/thesis/Deep_learning_in_classifying_cancer_subtypes_extracting_relevant_genes_and_identifying_novel_mutations/27589272",
     audioSummary: "/assets/audio/masters-thesis-summary.mp3",
     logo: {
@@ -117,4 +117,5 @@ export default function Education() {
   );
 
 }
+
 
