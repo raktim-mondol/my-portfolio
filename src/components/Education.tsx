@@ -9,7 +9,7 @@ const education = [
     institution: "UNSW Sydney",
     year: "2021-2025 (August)",
     thesis: "Deep Learning Based Prognosis and Explainability for Breast Cancer",
-    certUrl: "https://www.myequals.net/sharelink/2785473a-d952-4638-bf0a-cfcc7e000a83/d0aaa7fa-d4fb-434c-b68e-46b980d5f726",
+    certUrl: "https://www.myequals.net/sharelink/0d5ce2e5-5404-48ac-8e56-c837404a8e8c/fb0308d4-af85-4111-94ac-48af00093f2f",
     thesisUrl: "http://hdl.handle.net/1959.4/105627",
     audioSummary: "/assets/audio/phd_podcast.mp3",
     logo: {
@@ -117,3 +117,4 @@ export default function Education() {
   );
 
 }
+
