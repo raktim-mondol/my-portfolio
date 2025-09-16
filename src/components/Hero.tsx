@@ -3,7 +3,7 @@ import { Linkedin } from 'lucide-react';
 
 export default function Hero() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const words = ['Researcher', 'Data Scientist', 'Bioinformatician', 'LLM Engineer', 'Father', 'Biostatistician'];
+  const words = ['Researcher', 'Data Scientist', 'Bioinformatician', 'AI/LLM/ML Engineer', 'Father', 'Biostatistician'];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -20,7 +20,7 @@ export default function Hero() {
           <div className="relative">
             <img
               className="h-48 w-48 rounded-full object-cover shadow-lg"
-              src="/assets/images/profile.jpg"
+              src="/assets/images/profile.png"
               alt="Raktim Mondol"
             />
             <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-md">
@@ -69,6 +69,7 @@ export default function Hero() {
     </div>
   );
 }
+
 
 
 
