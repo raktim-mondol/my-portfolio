@@ -21,7 +21,10 @@ export default function Hero() {
             <img
               className="h-48 w-48 rounded-full object-cover shadow-lg"
               src="/assets/images/profile.png"
-              alt="Raktim Mondol"
+              alt="Dr Raktim Mondol - AI/ML Engineer, Data Scientist & Bioinformatics Researcher"
+              loading="eager"
+              width="192"
+              height="192"
             />
             <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-md">
               <a 

@@ -56,10 +56,13 @@ export default function Education() {
                     <h3 className="ml-4 text-2xl font-bold text-gray-900 dark:text-white">{edu.degree}</h3>
                   </div>
                   <div className="flex-shrink-0 w-32 h-16 flex items-center justify-center">
-                    <img 
+                    <img
                       src={theme === 'dark' ? edu.logo.dark : edu.logo.light}
                       alt={`${edu.institution} logo`}
                       className="max-w-full max-h-full object-contain"
+                      loading="lazy"
+                      width="128"
+                      height="64"
                     />
                   </div>
                 </div>
