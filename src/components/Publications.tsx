@@ -4,11 +4,20 @@ import AudioPlayer from './AudioPlayer';
 
 const publications = [
   {
+    title: "GRAPHITE: Graph-based interpretable tissue examination for enhanced explainability in breast cancer histopathology",
+    journal: "Computers in Biology and Medicine",
+    year: 2025,
+    authors: "Mondol, R.K.; Millar, E.K.A.; Graham, P.H.; Browne, L.; Sowmya, A.; Meijering, E.",
+    paperUrl: "https://doi.org/10.1016/j.compbiomed.2025.111106",
+    codeUrl: "https://github.com/raktim-mondol/GRAPHITE",
+    audioSummary: "/assets/audio/graphite-summary.mp3"
+  },
+  {
     title: "BioFusionNet: Deep Learning-Based Survival Risk Stratification in ER+ Breast Cancer Through Multifeature and Multimodal Data Fusion",
     journal: "IEEE Journal of Biomedical and Health Informatics",
     year: 2024,
     authors: "Mondol, R.K.; Millar, E.K.A.; Sowmya, A.; Meijering, E.",
-    paperUrl: "https://ieeexplore.ieee.org/document/10568932",
+    paperUrl: "https://doi.org/10.1109/JBHI.2024.3396679",
     codeUrl: "https://github.com/raktim-mondol/BioFusionNet",
     audioSummary: "/assets/audio/biofusionnet-summary.mp3"
   },
