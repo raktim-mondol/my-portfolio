@@ -18,7 +18,7 @@ export default function Hero() {
     <div id="about" className="relative bg-white dark:bg-gray-900 overflow-hidden py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-8">
-          <div className="relative">
+          <div className="relative flex flex-col items-center">
             <img
               className="h-48 w-48 rounded-full object-cover shadow-lg"
               src="/assets/images/profile.png"
@@ -28,15 +28,22 @@ export default function Hero() {
               height="192"
             />
             <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-md">
-              <a 
+              <a
                 href="https://www.linkedin.com/in/rmondol/"
                 target="_blank"
-                rel="noopener noreferrer" 
+                rel="noopener noreferrer"
                 className="text-gray-400 hover:text-[#94c973] transition-colors"
               >
                 <Linkedin className="h-5 w-5" />
               </a>
             </div>
+            <Link
+              to="/thoughts"
+              className="mt-8 flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
+            >
+              <BookOpen className="w-4 h-4 mr-1.5" />
+              thoughts (my blog)
+            </Link>
           </div>
 
           <div className="max-w-2xl text-center sm:text-left">
@@ -59,20 +66,13 @@ export default function Hero() {
               </div>
             </h1>
             
-            <div className="mt-6 flex flex-col sm:flex-row gap-4">
+            <div className="mt-6">
               <a
                 href="#contact"
                 className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[#94c973] hover:bg-[#7fb95e] transition-colors"
               >
                 Contact Me
               </a>
-              <Link
-                to="/thoughts"
-                className="inline-flex items-center justify-center px-8 py-3 border-2 border-[#94c973] text-base font-medium rounded-md text-[#94c973] bg-transparent hover:bg-[#94c973] hover:text-white transition-colors"
-              >
-                <BookOpen className="w-5 h-5 mr-2" />
-                My Thoughts
-              </Link>
             </div>
           </div>
         </div>
