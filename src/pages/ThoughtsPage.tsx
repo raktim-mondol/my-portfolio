@@ -782,7 +782,7 @@ const ThoughtsPage: React.FC = () => {
                   AI/ML Engineer, Data Scientist & Bioinformatics Researcher sharing insights on AI, research, and innovation.
                 </p>
                 <Link
-                  to="/"
+                  to="/#about"
                   className="inline-flex items-center mt-4 text-[#94c973] hover:text-[#7fb95e] transition-colors font-medium text-sm"
                 >
                   <Home className="w-4 h-4 mr-2" />
@@ -984,7 +984,7 @@ const ThoughtsPage: React.FC = () => {
                 AI/ML Engineer, Data Scientist & Bioinformatics Researcher sharing insights on AI, research, and innovation.
               </p>
               <Link
-                to="/"
+                to="/#about"
                 className="inline-flex items-center mt-4 text-[#94c973] hover:text-[#7fb95e] transition-colors font-medium text-sm"
               >
                 <Home className="w-4 h-4 mr-2" />
