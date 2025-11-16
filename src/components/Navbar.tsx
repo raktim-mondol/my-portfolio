@@ -17,6 +17,7 @@ export default function Navbar() {
     { href: "#skills", text: "Skills" },
     { href: "#research", text: "Research" },
     { href: "#publications", text: "Publications" },
+    { href: "#thoughts", text: "Thoughts" },
     { href: "#awards", text: "Awards" }
   ];
 

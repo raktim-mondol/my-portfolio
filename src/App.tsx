@@ -6,6 +6,7 @@ import Experience from './components/Experience';
 import Skills from './components/Skills';
 import Research from './components/Research';
 import Publications from './components/Publications';
+import Thoughts from './components/Thoughts';
 import Awards from './components/Awards';
 import Contact from './components/Contact';
 import ScrollProgress from './components/ScrollProgress';
@@ -27,6 +28,7 @@ function App() {
             <Skills />
             <Research />
             <Publications />
+            <Thoughts />
             <Awards />
             <Contact />
           </div>
