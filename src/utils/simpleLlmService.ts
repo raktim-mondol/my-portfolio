@@ -834,14 +834,4 @@ NOW RESPOND TO THE USER'S QUESTION while adhering strictly to ALL guidelines abo
       return "I apologize, but I'm experiencing technical difficulties. Please try again later.";
     }
   }
-
-  public async getKnowledgeBaseStats(): Promise<any> {
-    return {
-      architecture: 'Direct LLM',
-      modelName: 'DeepSeek Chat',
-      totalDocuments: 6,
-      searchCapabilities: ['LLM-Based', 'Direct Knowledge'],
-      description: 'All information embedded in system prompt for direct LLM access'
-    };
-  }
 }

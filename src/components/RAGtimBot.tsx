@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Shield, AlertCircle, Database, BarChart3, Search, Zap, Target, ExternalLink, Bot, Cpu, Brain, HelpCircle } from 'lucide-react';
+import { MessageCircle, X, Send, AlertCircle, Search, HelpCircle } from 'lucide-react';
 import { ragService } from '../utils/ragService';
 import toast from 'react-hot-toast';
 
@@ -69,8 +69,6 @@ export default function RAGtimBot() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showStats, setShowStats] = useState(false);
-  const [knowledgeStats, setKnowledgeStats] = useState<any>(null);
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
@@ -197,18 +195,6 @@ export default function RAGtimBot() {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const loadKnowledgeStats = async () => {
-    try {
-      console.log('📊 Loading knowledge stats...');
-      const stats = await ragService.getKnowledgeBaseStats();
-      console.log('📊 Stats loaded:', stats);
-      setKnowledgeStats(stats);
-    } catch (error) {
-      console.error('❌ Failed to load knowledge base stats:', error);
-      toast.error('Failed to load system statistics');
-    }
   };
 
   const wordTypewriterEffect = async (
@@ -407,13 +393,6 @@ export default function RAGtimBot() {
     setSuggestedQuestions(getRandomQuestions());
   };
 
-  const toggleStats = async () => {
-    if (!showStats && !knowledgeStats) {
-      await loadKnowledgeStats();
-    }
-    setShowStats(!showStats);
-  };
-
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
@@ -502,18 +481,8 @@ export default function RAGtimBot() {
                   </p>
                 </div>
               </div>
-              
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                {isAvailable && (
-                  <button
-                    onClick={toggleStats}
-                    className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-1 sm:px-2 py-1"
-                    title="System stats"
-                  >
-                    <BarChart3 className="h-3 w-3" />
-                  </button>
-                )}
 
+              <div className="flex items-center space-x-1 sm:space-x-2">
                 <button
                   onClick={clearChat}
                   className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-1 sm:px-2 py-1"
@@ -530,31 +499,6 @@ export default function RAGtimBot() {
                 </button>
               </div>
             </div>
-
-            {/* System Stats */}
-            {showStats && knowledgeStats && (
-              <div className="p-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center">
-                  <Target className="h-4 w-4 mr-1" />
-                  {knowledgeStats.architecture || systemInfo.name}
-                </h4>
-                <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                  {knowledgeStats.totalDocuments && <div>Documents: {knowledgeStats.totalDocuments}</div>}
-                  {knowledgeStats.modelName && (
-                    <div className="text-xs text-[#94c973] dark:text-[#94c973]">
-                      Model: {knowledgeStats.modelName}
-                    </div>
-                  )}
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {knowledgeStats.searchCapabilities?.map((capability: string) => (
-                      <span key={capability} className="bg-[#94c973]/10 text-[#94c973] dark:bg-[#94c973]/20 dark:text-[#94c973] px-2 py-1 rounded text-xs">
-                        {capability}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Messages Container with proper scroll handling */}
             <div 
