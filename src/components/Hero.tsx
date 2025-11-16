@@ -39,7 +39,7 @@ export default function Hero() {
             </div>
             <Link
               to="/thoughts"
-              className="mt-8 flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
+              className="mt-14 flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
             >
               <BookOpen className="w-4 h-4 mr-1.5" />
               thoughts (my blog)
