@@ -1,0 +1,11 @@
+# robots.txt for Dr Raktim Mondol's Portfolio
+# Allow all crawlers to index the entire site
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://raktim-mondol.netlify.app/sitemap.xml
+
+# Crawl-delay (optional, adjust if needed)
+# Crawl-delay: 1
