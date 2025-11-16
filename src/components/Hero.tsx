@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Linkedin } from 'lucide-react';
+import { Linkedin, BookOpen } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Hero() {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -58,13 +59,20 @@ export default function Hero() {
               </div>
             </h1>
             
-            <div className="mt-6">
+            <div className="mt-6 flex flex-col sm:flex-row gap-4">
               <a
                 href="#contact"
                 className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-[#94c973] hover:bg-[#7fb95e] transition-colors"
               >
                 Contact Me
               </a>
+              <Link
+                to="/thoughts"
+                className="inline-flex items-center justify-center px-8 py-3 border-2 border-[#94c973] text-base font-medium rounded-md text-[#94c973] bg-transparent hover:bg-[#94c973] hover:text-white transition-colors"
+              >
+                <BookOpen className="w-5 h-5 mr-2" />
+                My Thoughts
+              </Link>
             </div>
           </div>
         </div>
