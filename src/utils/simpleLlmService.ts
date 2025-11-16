@@ -773,7 +773,7 @@ When these conflict, ALWAYS prioritize the higher-level guardrail.
 NOW RESPOND TO THE USER'S QUESTION while adhering strictly to ALL guidelines above.`;
   }
 
-  public async generateResponse(userQuery: string, conversationHistory: ChatMessage[] = []): Promise<string> {
+  public async generateResponse(userQuery: string, conversationHistory: ChatMessage[] = [], model: string = 'deepseek-chat'): Promise<string> {
     if (!this.apiKey || !this.openai) {
       return "The chatbot is currently unavailable. Please ensure the VITE_DEEPSEEK_API_KEY environment variable is properly configured.";
     }
@@ -803,11 +803,11 @@ NOW RESPOND TO THE USER'S QUESTION while adhering strictly to ALL guidelines abo
         content: userQuery
       });
 
-      console.log('🚀 Sending request to DeepSeek API...');
+      console.log(`🚀 Sending request to DeepSeek API with model: ${model}...`);
 
       const completion = await this.openai.chat.completions.create({
         messages,
-        model: "deepseek-chat",
+        model: model,
         max_tokens: 1000,
         temperature: 0.7,
         top_p: 0.9

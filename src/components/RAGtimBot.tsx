@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, AlertCircle, Search, HelpCircle } from 'lucide-react';
+import { MessageCircle, X, Send, AlertCircle, Search, HelpCircle, Brain } from 'lucide-react';
 import { ragService } from '../utils/ragService';
 import toast from 'react-hot-toast';
 
@@ -73,7 +73,11 @@ export default function RAGtimBot() {
   const [isTyping, setIsTyping] = useState(false);
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(true);
-  
+  const [isDeepThinkEnabled, setIsDeepThinkEnabled] = useState(() => {
+    const saved = localStorage.getItem('deepThinkEnabled');
+    return saved ? JSON.parse(saved) : false;
+  });
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -193,6 +197,10 @@ export default function RAGtimBot() {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    localStorage.setItem('deepThinkEnabled', JSON.stringify(isDeepThinkEnabled));
+  }, [isDeepThinkEnabled]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -249,7 +257,8 @@ export default function RAGtimBot() {
 
     try {
       console.log('🚀 Generating response for suggested question:', question);
-      const response = await ragService.generateResponse(question, messages);
+      const model = isDeepThinkEnabled ? 'deepseek-reasoner' : 'deepseek-chat';
+      const response = await ragService.generateResponse(question, messages, model);
       console.log('✅ Response received:', response.substring(0, 100) + '...');
       
       // Create assistant message with empty content initially
@@ -323,7 +332,8 @@ export default function RAGtimBot() {
 
     try {
       console.log('🚀 Generating response...');
-      const response = await ragService.generateResponse(userMessage.content, messages);
+      const model = isDeepThinkEnabled ? 'deepseek-reasoner' : 'deepseek-chat';
+      const response = await ragService.generateResponse(userMessage.content, messages, model);
       console.log('✅ Response received:', response.substring(0, 100) + '...');
       
       // Dismiss loading toast
@@ -391,6 +401,15 @@ export default function RAGtimBot() {
     // Reset suggestions when clearing chat
     setShowSuggestions(true);
     setSuggestedQuestions(getRandomQuestions());
+  };
+
+  const toggleDeepThink = () => {
+    setIsDeepThinkEnabled(prev => !prev);
+    toast.success(
+      !isDeepThinkEnabled
+        ? 'DeepThink mode enabled - Using deepseek-reasoner'
+        : 'DeepThink mode disabled - Using deepseek-chat'
+    );
   };
 
   const formatTime = (date: Date) => {
@@ -483,6 +502,18 @@ export default function RAGtimBot() {
               </div>
 
               <div className="flex items-center space-x-1 sm:space-x-2">
+                <button
+                  onClick={toggleDeepThink}
+                  className={`p-1 rounded transition-all text-xs px-1 sm:px-2 py-1 flex items-center space-x-1 ${
+                    isDeepThinkEnabled
+                      ? 'bg-white/30 hover:bg-white/40'
+                      : 'hover:bg-white/20'
+                  }`}
+                  title={isDeepThinkEnabled ? "DeepThink: ON (using deepseek-reasoner)" : "DeepThink: OFF (using deepseek-chat)"}
+                >
+                  <Brain className={`h-3 w-3 ${isDeepThinkEnabled ? 'animate-pulse' : ''}`} />
+                  <span className="text-xs hidden sm:inline">DeepThink</span>
+                </button>
                 <button
                   onClick={clearChat}
                   className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-1 sm:px-2 py-1"
