@@ -17,7 +17,7 @@ const publications = [
     journal: "IEEE Journal of Biomedical and Health Informatics",
     year: 2024,
     authors: "Mondol, R.K.; Millar, E.K.A.; Sowmya, A.; Meijering, E.",
-    paperUrl: "https://doi.org/10.1109/JBHI.2024.3396679",
+    paperUrl: "https://ieeexplore.ieee.org/document/10568932",
     codeUrl: "https://github.com/raktim-mondol/BioFusionNet",
     audioSummary: "/assets/audio/biofusionnet-summary.mp3"
   },
@@ -109,4 +109,5 @@ export default function Publications() {
       </div>
     </section>
   );
+
 }
