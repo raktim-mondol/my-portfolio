@@ -503,18 +503,6 @@ export default function RAGtimBot() {
 
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <button
-                  onClick={toggleDeepThink}
-                  className={`p-1 rounded transition-all text-xs px-1 sm:px-2 py-1 flex items-center space-x-1 ${
-                    isDeepThinkEnabled
-                      ? 'bg-white/30 hover:bg-white/40'
-                      : 'hover:bg-white/20'
-                  }`}
-                  title={isDeepThinkEnabled ? "DeepThink: ON (using deepseek-reasoner)" : "DeepThink: OFF (using deepseek-chat)"}
-                >
-                  <Brain className={`h-3 w-3 ${isDeepThinkEnabled ? 'animate-pulse' : ''}`} />
-                  <span className="text-xs hidden sm:inline">DeepThink</span>
-                </button>
-                <button
                   onClick={clearChat}
                   className="p-1 hover:bg-white/20 rounded transition-colors text-xs px-1 sm:px-2 py-1"
                   title="Clear chat"
@@ -653,6 +641,15 @@ export default function RAGtimBot() {
 
             {/* Input Section */}
             <div className="p-4 sm:p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+              {/* Model indicator */}
+              {isDeepThinkEnabled && (
+                <div className="mb-2 flex items-center justify-center">
+                  <div className="flex items-center space-x-1.5 px-2.5 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium">
+                    <Brain className="h-3 w-3 animate-pulse" />
+                    <span>DeepThink Mode - Using deepseek-reasoner</span>
+                  </div>
+                </div>
+              )}
               <div className="flex space-x-2">
                 <input
                   ref={inputRef}
@@ -664,6 +661,19 @@ export default function RAGtimBot() {
                   className="flex-1 px-3 py-3 sm:py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#94c973] focus:border-[#94c973] bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-base sm:text-sm"
                   disabled={isLoading || !isAvailable}
                 />
+                <button
+                  onClick={toggleDeepThink}
+                  disabled={!isAvailable}
+                  className={`px-3 sm:px-3 py-3 sm:py-2.5 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isDeepThinkEnabled
+                      ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-md'
+                      : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
+                  }`}
+                  title={isDeepThinkEnabled ? "DeepThink: ON (using deepseek-reasoner)" : "DeepThink: OFF (using deepseek-chat)"}
+                  aria-label="Toggle DeepThink mode"
+                >
+                  <Brain className={`h-4 w-4 ${isDeepThinkEnabled ? 'animate-pulse' : ''}`} />
+                </button>
                 <button
                   onClick={handleSendMessage}
                   disabled={isLoading || !inputMessage.trim() || !isAvailable}
