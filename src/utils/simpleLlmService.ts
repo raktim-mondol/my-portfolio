@@ -122,10 +122,10 @@ Raktim Mondol is an experienced data scientist and programmer with deep expertis
 
 ## EDUCATION
 
-PhD, Computer Science & Engineering (2021 - 2025)
-- Institution: UNSW, Sydney, Australia
-- Research Topic: Deep Learning For Breast Cancer Prognosis & Explainability
-- Status: Thesis Submitted
+PhD, Computer Science & Engineering (2021 - 2025, August)
+- Institution: UNSW Sydney, Australia
+- Research Topic: Deep Learning Based Prognosis and Explainability for Breast Cancer
+- Status: Completed (Thesis Submitted and Under Examination)
 
 Masters by Research, Computer Science & Bioinformatics (2017 - 2019)
 - Institution: RMIT University, Melbourne, Australia
@@ -136,7 +136,16 @@ BSc in Electrical and Electronic Engineering (2013)
 - Grade: High Distinction
 - Institution: BRAC University
 
-## CURRENT POSITION
+## CURRENT POSITIONS
+
+Postdoctoral Research Fellow at UNSW Sydney (July 2025 - Present)
+- School: School of Minerals and Energy Resources Engineering
+- Location: Sydney, NSW
+- Project: SCANDY - A handheld Imaging System for Real Time Spoil Categorisation
+- Responsibilities:
+  - Developing advanced imaging algorithms for real-time spoil categorisation
+  - Conducting field trials and data collection
+  - Collaborating with industry partners on practical implementations
 
 Casual Academic at UNSW Sydney (July 2021 - Present)
 - Department: Computer Science & Engineering, School of Computer Science and Engineering
@@ -168,6 +177,15 @@ Research Integration:
 - Organizes workshops on AI and machine learning topics
 
 ## PREVIOUS WORK EXPERIENCE
+
+Postdoctoral Writing Fellow at UNSW (April 2025 - July 2025)
+- Location: Sydney, NSW
+- Focus: Writing and finalizing GRAPHITE paper for publication
+- Achievements:
+  - Authored comprehensive research paper on graph-based explainable AI (XAI) method for breast cancer histopathology
+  - Conducted extensive literature review and comparative analysis
+  - Prepared manuscript for high-impact journal submission
+  - Successfully published in Computers in Biology and Medicine (2025)
 
 Teaching Assistant (Casual) at RMIT University (July 2017 - Oct 2019)
 - Department: Electrical and Biomedical Engineering
@@ -328,16 +346,19 @@ Research and Academic Skills:
 
 ## MAJOR PUBLICATIONS
 
-1. GRAPHITE: Graph-Based Interpretable Tissue Examination (Submitted, Under Review, 2024)
-- Full Title: "GRAPHITE: Graph-Based Interpretable Tissue Examination for Enhanced Explainability in Breast Cancer Histopathology"
-- Authors: R. K. Mondol, E. K. A. Millar, P. H. Graham, L. Browne, A. Sowmya, and E. Meijering
-- Status: Submitted, Under Review
-- Year: 2024
-- arXiv: https://arxiv.org/abs/2501.04206
+1. GRAPHITE: Graph-Based Interpretable Tissue Examination (Published, 2025)
+- Full Title: "GRAPHITE: Graph-based interpretable tissue examination for enhanced explainability in breast cancer histopathology"
+- Authors: Mondol, R.K.; Millar, E.K.A.; Graham, P.H.; Browne, L.; Sowmya, A.; Meijering, E.
+- Journal: Computers in Biology and Medicine
+- Year: 2025
+- DOI: https://doi.org/10.1016/j.compbiomed.2025.111106
+- GitHub: https://github.com/raktim-mondol/GRAPHITE
+- Key Contributions: Novel graph-based explainable AI method for breast cancer histopathology; Enhanced interpretability for clinical decision-making; Spatial relationship modeling for tissue analysis
+- Impact: Provides clinicians with transparent and interpretable AI decisions for cancer diagnosis
 
 2. BioFusionNet (IEEE JBHI, 2024)
 - Full Title: "BioFusionNet: Deep Learning-Based Survival Risk Stratification in ER+ Breast Cancer Through Multifeature and Multimodal Data Fusion"
-- Authors: R. K. Mondol, E. K. A. Millar, A. Sowmya, and E. Meijering
+- Authors: Mondol, R.K.; Millar, E.K.A.; Sowmya, A.; Meijering, E.
 - Journal: IEEE Journal of Biomedical and Health Informatics
 - Year: 2024
 - URL: https://ieeexplore.ieee.org/document/10568932
@@ -349,7 +370,7 @@ Research and Academic Skills:
 
 3. hist2RNA (Cancers, 2023)
 - Full Title: "hist2RNA: An Efficient Deep Learning Architecture to Predict Gene Expression from Breast Cancer Histopathology Images"
-- Authors: R. K. Mondol, E. K. A. Millar, P. H. Graham, L. Browne, A. Sowmya, and E. Meijering
+- Authors: Mondol, R.K.; Millar, E.K.A.; Graham, P.H.; Browne, L.; Sowmya, A.; Meijering, E.
 - Journal: Cancers
 - Year: 2023
 - URL: https://www.mdpi.com/2072-6694/15/9/2569
@@ -361,11 +382,11 @@ Research and Academic Skills:
 
 4. AFExNet (IEEE/ACM TCBB, 2021)
 - Full Title: "AFExNet: An Adversarial Autoencoder for Differentiating Breast Cancer Sub-types and Extracting Biologically Relevant Genes"
-- Authors: R. K. Mondol, N. D. Truong, M. Reza, S. Ippolito, E. Ebrahimie, and O. Kavehei
+- Authors: Mondol, R.K.; Truong, N.D.; Reza, M.; Ippolito, S.; Ebrahimie, E.; Kavehei, O.
 - Journal: IEEE/ACM Transactions on Computational Biology and Bioinformatics
 - Year: 2021
 - URL: https://ieeexplore.ieee.org/document/9378938
-- GitHub: https://github.com/raktim-mondol/breast-cancer-sub-types
+- GitHub: https://github.com/NeuroSyd/breast-cancer-sub-types
 - Key Contributions: Adversarial training for robust feature learning; Automatic biomarker discovery; Cancer subtype classification; Biologically interpretable features
 - Technical Details: Adversarial autoencoder architecture; Gene selection based on reconstruction importance; Validation on TCGA datasets; Pathway enrichment analysis
 - Statistical Methods: Hypothesis Testing (Paired and One-Tailed T-tests); Paired t-tests to compare AFExNet against PCA, VAE, DAE; Statistical significance with p-values less than 0.10
@@ -373,7 +394,7 @@ Research and Academic Skills:
 
 5. MM-Survnet (ISBI 2024 Conference)
 - Full Title: "MM-Survnet: Deep Learning-Based Survival Risk Stratification in Breast Cancer Through Multimodal Data Fusion"
-- Authors: R. K. Mondol, E. K. A. Millar, A. Sowmya, and E. Meijering
+- Authors: Mondol, R.K.; Millar, E.K.A.; Sowmya, A.; Meijering, E.
 - Conference: 2024 IEEE International Symposium on Biomedical Imaging (ISBI)
 - Location: Athens, Greece
 - Year: 2024
