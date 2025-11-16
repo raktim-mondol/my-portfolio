@@ -664,7 +664,7 @@ export default function RAGtimBot() {
                       ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-md'
                       : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
                   }`}
-                  title={isDeepThinkEnabled ? "DeepThink: ON (using deepseek-reasoner)" : "DeepThink: OFF (using deepseek-chat)"}
+                  title={isDeepThinkEnabled ? "DeepThink: ON" : "DeepThink: OFF"}
                   aria-label="Toggle DeepThink mode"
                 >
                   <Brain className={`h-4 w-4 ${isDeepThinkEnabled ? 'animate-pulse' : ''}`} />
