@@ -18,28 +18,30 @@ export default function Hero() {
     <div id="about" className="relative bg-white dark:bg-gray-900 overflow-hidden py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-8">
-          <div className="relative flex flex-col items-center">
-            <img
-              className="h-48 w-48 rounded-full object-cover shadow-lg"
-              src="/assets/images/profile.png"
-              alt="Dr Raktim Mondol - AI/ML Engineer, Data Scientist & Bioinformatics Researcher"
-              loading="eager"
-              width="192"
-              height="192"
-            />
-            <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-md">
-              <a
-                href="https://www.linkedin.com/in/rmondol/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-[#94c973] transition-colors"
-              >
-                <Linkedin className="h-5 w-5" />
-              </a>
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative">
+              <img
+                className="h-48 w-48 rounded-full object-cover shadow-lg"
+                src="/assets/images/profile.png"
+                alt="Dr Raktim Mondol - AI/ML Engineer, Data Scientist & Bioinformatics Researcher"
+                loading="eager"
+                width="192"
+                height="192"
+              />
+              <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center bg-white dark:bg-gray-800 px-4 py-2 rounded-full shadow-md">
+                <a
+                  href="https://www.linkedin.com/in/rmondol/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-[#94c973] transition-colors"
+                >
+                  <Linkedin className="h-5 w-5" />
+                </a>
+              </div>
             </div>
             <Link
               to="/thoughts"
-              className="mt-14 flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
+              className="mt-4 flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
             >
               <BookOpen className="w-4 h-4 mr-1.5" />
               thoughts (my blog)
