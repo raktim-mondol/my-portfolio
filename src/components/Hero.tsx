@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Linkedin, BookOpen } from 'lucide-react';
+import { Linkedin, Feather } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Hero() {
@@ -43,7 +43,7 @@ export default function Hero() {
               to="/thoughts"
               className="mt-4 flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
             >
-              <BookOpen className="w-4 h-4 mr-1.5" />
+              <Feather className="w-4 h-4 mr-1.5" />
               thoughts (my blog)
             </Link>
           </div>
