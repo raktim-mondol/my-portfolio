@@ -80,15 +80,8 @@ export default function RAGtimBot() {
   const inputRef = useRef<HTMLInputElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Check which system is being used
-  const isUsingHybrid = import.meta.env.VITE_USE_HYBRID === 'true';
-  const isUsingHuggingFace = import.meta.env.VITE_USE_HUGGING_FACE === 'true';
-  const isUsingBackend = import.meta.env.VITE_USE_BACKEND === 'true';
-
   console.log('🤖 RAGtimBot Component:');
-  console.log('- isUsingHybrid:', isUsingHybrid);
-  console.log('- isUsingHuggingFace:', isUsingHuggingFace);
-  console.log('- isUsingBackend:', isUsingBackend);
+  console.log('- Using SimpleLLMService (Direct LLM)');
   console.log('- ragService has API key:', ragService.hasApiKey());
 
   // Function to get 3 random questions from the list
@@ -98,25 +91,9 @@ export default function RAGtimBot() {
   };
 
   const getSystemInfo = () => {
-    if (isUsingHybrid) {
+    if (ragService.hasApiKey()) {
       return {
-        name: 'Hybrid RAG',
-        description: 'Advanced AI Assistant',
-        icon: '🤖',
-        floatingIcon: '⚡',
-        color: 'bg-[#94c973] hover:bg-[#7fb95e]'
-      };
-    } else if (isUsingHuggingFace) {
-      return {
-        name: 'HuggingFace',
-        description: 'AI Assistant',
-        icon: '🤗',
-        floatingIcon: '⚡',
-        color: 'bg-[#94c973] hover:bg-[#7fb95e]'
-      };
-    } else if (ragService.hasApiKey()) {
-      return {
-        name: 'Enhanced RAG System',
+        name: 'RAGtim Bot',
         description: 'AI Assistant',
         icon: '🤖',
         floatingIcon: '⚡',
@@ -193,17 +170,13 @@ export default function RAGtimBot() {
     const welcomeMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'assistant',
-      content: isUsingHybrid
-        ? "Hello! I'm RAGtim Bot powered by a cutting-edge hybrid system! I use advanced semantic search and AI language models for natural response generation. This gives you the best of both worlds - fast, accurate search with intelligent conversational responses. Ask me anything about Raktim Mondol!"
-        : isUsingHuggingFace 
-          ? "Hello! I'm RAGtim Bot, an AI assistant trained on Raktim Mondol's portfolio! I can answer questions about his research, publications, skills, experience, and more. What would you like to know?"
-          : ragService.hasApiKey()
-            ? "Hello! I'm RAGtim Bot, your enhanced AI assistant powered by advanced hybrid search technology. I combine semantic vector search with BM25 ranking to provide comprehensive and accurate answers about Raktim Mondol. I can provide detailed information about his education, research, publications, skills, experience, and more. What would you like to know?"
-            : "⚠️ The chatbot is currently unavailable. The API key needs to be configured in the Netlify environment variables. Please contact the site administrator.",
+      content: ragService.hasApiKey()
+        ? "Hello! I'm RAGtim Bot, your AI assistant with comprehensive knowledge about Raktim Mondol! I can answer questions about his research, publications, skills, experience, education, and more. What would you like to know?"
+        : "⚠️ The chatbot is currently unavailable. The API key needs to be configured. Please contact the site administrator.",
       timestamp: new Date()
     };
     setMessages([welcomeMessage]);
-  }, [isUsingHybrid, isUsingHuggingFace]);
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
@@ -271,8 +244,8 @@ export default function RAGtimBot() {
   // Handle clicking on suggested questions
   const handleSuggestedQuestion = async (question: string) => {
     setShowSuggestions(false);
-    
-    if (!isUsingHuggingFace && !ragService.hasApiKey()) {
+
+    if (!ragService.hasApiKey()) {
       toast.error('The chatbot is currently unavailable. Please contact the site administrator.');
       return;
     }
@@ -313,17 +286,17 @@ export default function RAGtimBot() {
       console.error('❌ Error sending suggested question:', error);
       
       let errorMessage = 'Failed to process question. Please try again.';
-      
+
       if (error instanceof Error) {
-        if (error.message.includes('Gradio') || error.message.includes('Space')) {
-          errorMessage = 'Hugging Face Space is starting up. Please wait 30-60 seconds and try again.';
-        } else if (error.message.includes('network')) {
+        if (error.message.includes('network')) {
           errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message.includes('API')) {
+          errorMessage = 'API error. Please try again in a moment.';
         }
       }
-      
+
       toast.error(errorMessage);
-      
+
       const errorResponseMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -340,7 +313,7 @@ export default function RAGtimBot() {
 
     console.log('💬 Sending message:', inputMessage);
 
-    if (!isUsingHuggingFace && !ragService.hasApiKey()) {
+    if (!ragService.hasApiKey()) {
       toast.error('The chatbot is currently unavailable. Please contact the site administrator.');
       return;
     }
@@ -398,21 +371,21 @@ export default function RAGtimBot() {
       }
       
       let errorMessage = 'Failed to send message. Please try again.';
-      
+
       if (error instanceof Error) {
-        if (error.message.includes('Gradio') || error.message.includes('Space')) {
-          errorMessage = 'Hugging Face Space is starting up. Please wait 30-60 seconds and try again.';
-        } else if (error.message.includes('network')) {
+        if (error.message.includes('network')) {
           errorMessage = 'Network error. Please check your connection and try again.';
+        } else if (error.message.includes('API')) {
+          errorMessage = 'API error. Please try again in a moment.';
         }
       }
-      
+
       toast.error(errorMessage);
-      
+
       const errorResponseMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "I apologize, but I encountered an error while processing your request. The Hugging Face Space may be starting up. Please try again in a moment.",
+        content: "I apologize, but I encountered an error while processing your request. Please try again in a moment.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorResponseMessage]);
@@ -441,16 +414,12 @@ export default function RAGtimBot() {
     setShowStats(!showStats);
   };
 
-  const openHuggingFaceSpace = () => {
-    window.open('https://huggingface.co/spaces/raktimhugging/ragtim-bot', '_blank');
-  };
-
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const hasApiKey = ragService.hasApiKey();
-  const isAvailable = isUsingHuggingFace || hasApiKey;
+  const isAvailable = hasApiKey;
 
   console.log('🔍 Component state:');
   console.log('- hasApiKey:', hasApiKey);
@@ -619,12 +588,7 @@ export default function RAGtimBot() {
                         {systemInfo.icon}
                       </div>
                       <p className="text-base sm:text-sm">
-                        {isUsingHybrid 
-                          ? 'AI Assistant ready! Ask me anything about Raktim Mondol.'
-                          : isUsingHuggingFace 
-                            ? 'AI Assistant ready! Ask me anything about Raktim Mondol.'
-                            : 'Advanced RAG system ready! Ask me anything about Raktim Mondol.'
-                        }
+                        AI Assistant ready! Ask me anything about Raktim Mondol.
                       </p>
                       <p className="text-sm sm:text-xs mt-2 opacity-70">
                         Powered by advanced AI technology for precise answers.
