@@ -20,7 +20,6 @@ export default function Navbar() {
     { href: "#skills", text: "Skills", isRoute: false },
     { href: "#research", text: "Research", isRoute: false },
     { href: "#publications", text: "Publications", isRoute: false },
-    { href: "/thoughts", text: "Thoughts", isRoute: true },
     { href: "#awards", text: "Awards", isRoute: false }
   ];
 

@@ -144,29 +144,25 @@ const ThoughtsPage: React.FC = () => {
 
   if (selectedPost) {
     return (
-      <div className="min-h-screen bg-white dark:bg-gray-900 py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-4 mb-8">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 mr-2" />
-              Back to portfolio
-            </button>
-            <button
-              onClick={() => setSelectedPost(null)}
-              className="flex items-center text-[#94c973] hover:text-[#7fb95e] transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 mr-2" />
-              All thoughts
-            </button>
-          </div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 sm:py-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <button
+            onClick={() => setSelectedPost(null)}
+            className="mb-8 flex items-center text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors group"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+            <span className="font-medium">All thoughts</span>
+          </button>
 
-          <article className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg">
-            <div className="mb-6">
-              <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-gray-600 dark:text-gray-400">
-                <span className="flex items-center">
+          <article className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
+            {/* Header Section */}
+            <div className="border-b border-gray-200 dark:border-gray-700 px-8 sm:px-12 py-10">
+              <div className="flex flex-wrap items-center gap-3 mb-6">
+                <span className="px-4 py-1.5 bg-[#94c973] bg-opacity-10 text-[#94c973] rounded-full text-sm font-semibold">
+                  {selectedPost.category}
+                </span>
+                <span className="text-gray-500 dark:text-gray-400 text-sm">•</span>
+                <span className="flex items-center text-gray-600 dark:text-gray-400 text-sm">
                   <Calendar className="w-4 h-4 mr-2" />
                   {new Date(selectedPost.date).toLocaleDateString('en-US', {
                     year: 'numeric',
@@ -174,21 +170,19 @@ const ThoughtsPage: React.FC = () => {
                     day: 'numeric'
                   })}
                 </span>
-                <span className="px-3 py-1 bg-[#94c973] bg-opacity-10 text-[#94c973] rounded-full text-xs font-medium">
-                  {selectedPost.category}
-                </span>
-                <span>{selectedPost.readTime}</span>
+                <span className="text-gray-500 dark:text-gray-400 text-sm">•</span>
+                <span className="text-gray-600 dark:text-gray-400 text-sm">{selectedPost.readTime}</span>
               </div>
 
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
                 {selectedPost.title}
               </h1>
 
-              <div className="flex flex-wrap gap-2 mb-6">
+              <div className="flex flex-wrap gap-2">
                 {selectedPost.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm"
+                    className="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     #{tag}
                   </span>
@@ -196,12 +190,53 @@ const ThoughtsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="prose prose-lg dark:prose-invert max-w-none">
-              {selectedPost.content.split('\n\n').map((paragraph, index) => (
-                <p key={index} className="mb-4 text-gray-700 dark:text-gray-300 leading-relaxed">
-                  {paragraph}
-                </p>
-              ))}
+            {/* Content Section */}
+            <div className="px-8 sm:px-12 py-10">
+              <div className="max-w-3xl">
+                <div className="prose prose-lg dark:prose-invert max-w-none">
+                  {selectedPost.content.split('\n\n').map((paragraph, index) => {
+                    // Check if paragraph is a heading or list
+                    if (paragraph.startsWith('Key points') || paragraph.startsWith('Topics covered') ||
+                        paragraph.startsWith('Key insights') || paragraph.startsWith('Lessons learned') ||
+                        paragraph.startsWith('Discussion points') || paragraph.startsWith('Key principles')) {
+                      return (
+                        <h2 key={index} className="text-2xl font-bold text-gray-900 dark:text-white mt-10 mb-6 first:mt-0">
+                          {paragraph}
+                        </h2>
+                      );
+                    } else if (paragraph.startsWith('- ')) {
+                      // Handle bullet points
+                      const items = paragraph.split('\n').filter(item => item.trim());
+                      return (
+                        <ul key={index} className="space-y-3 my-6 ml-6">
+                          {items.map((item, i) => (
+                            <li key={i} className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg pl-2">
+                              {item.replace(/^- /, '')}
+                            </li>
+                          ))}
+                        </ul>
+                      );
+                    } else {
+                      return (
+                        <p key={index} className="mb-6 text-gray-700 dark:text-gray-300 leading-relaxed text-lg">
+                          {paragraph}
+                        </p>
+                      );
+                    }
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Section */}
+            <div className="border-t border-gray-200 dark:border-gray-700 px-8 sm:px-12 py-8 bg-gray-50 dark:bg-gray-800/50">
+              <button
+                onClick={() => setSelectedPost(null)}
+                className="flex items-center text-[#94c973] hover:text-[#7fb95e] transition-colors font-medium group"
+              >
+                <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+                Back to all thoughts
+              </button>
             </div>
           </article>
         </div>
@@ -212,14 +247,6 @@ const ThoughtsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <button
-          onClick={() => navigate('/')}
-          className="mb-8 flex items-center text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to portfolio
-        </button>
-
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
             <BookOpen className="w-12 h-12 text-[#94c973]" />
