@@ -405,11 +405,6 @@ export default function RAGtimBot() {
 
   const toggleDeepThink = () => {
     setIsDeepThinkEnabled(prev => !prev);
-    toast.success(
-      !isDeepThinkEnabled
-        ? 'DeepThink mode enabled - Using deepseek-reasoner'
-        : 'DeepThink mode disabled - Using deepseek-chat'
-    );
   };
 
   const formatTime = (date: Date) => {
@@ -646,7 +641,7 @@ export default function RAGtimBot() {
                 <div className="mb-2 flex items-center justify-center">
                   <div className="flex items-center space-x-1.5 px-2.5 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs font-medium">
                     <Brain className="h-3 w-3 animate-pulse" />
-                    <span>DeepThink Mode - Using deepseek-reasoner</span>
+                    <span>DeepThink Mode - Activated</span>
                   </div>
                 </div>
               )}
