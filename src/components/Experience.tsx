@@ -3,6 +3,30 @@ import { Briefcase, Calendar } from 'lucide-react';
 
 const experiences = [
   {
+    title: "Postdoctoral Research Fellow",
+    company: "School of Minerals and Energy Resources Engineering",
+    period: "July 2025 - Present",
+    location: "Sydney, NSW",
+    description: "Working on SCANDY - A handheld Imaging System for Real Time Spoil Categorisation.",
+    achievements: [
+      "Developing advanced imaging algorithms for real-time spoil categorisation",
+      "Conducting field trials and data collection",
+      "Collaborating with industry partners on practical implementations"
+    ]
+  },
+  {
+    title: "Postdoctoral Writing Fellow",
+    company: "UNSW",
+    period: "April 2025 - July 2025",
+    location: "Sydney, NSW",
+    description: "Focused on writing and finalizing GRAPHITE: Graph-based interpretable tissue examination for enhanced explainability in breast cancer histopathology paper for publication.",
+    achievements: [
+      "Authored comprehensive research paper on graph-based tissue examination",
+      "Conducted extensive literature review and comparative analysis",
+      "Prepared manuscript for high-impact journal submission"
+    ]
+  },
+  {
     title: "Casual Academic",
     company: "UNSW",
     period: "July 2021 - Present",
