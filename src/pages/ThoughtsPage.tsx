@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { BookOpen, Calendar, Tag, ArrowRight, Search } from 'lucide-react';
+import { BookOpen, Calendar, Tag, ArrowRight, Search, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface BlogPost {
   id: string;
@@ -125,7 +126,8 @@ Applying biostatistical principles to ML research ensures our findings are not j
   }
 ];
 
-const Thoughts: React.FC = () => {
+const ThoughtsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -142,17 +144,26 @@ const Thoughts: React.FC = () => {
 
   if (selectedPost) {
     return (
-      <section id="thoughts" className="py-20 bg-white dark:bg-gray-900">
+      <div className="min-h-screen bg-white dark:bg-gray-900 py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <button
-            onClick={() => setSelectedPost(null)}
-            className="mb-8 flex items-center text-[#94c973] hover:text-[#7fb95e] transition-colors"
-          >
-            <ArrowRight className="w-5 h-5 mr-2 rotate-180" />
-            Back to all thoughts
-          </button>
+          <div className="flex gap-4 mb-8">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              Back to portfolio
+            </button>
+            <button
+              onClick={() => setSelectedPost(null)}
+              className="flex items-center text-[#94c973] hover:text-[#7fb95e] transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" />
+              All thoughts
+            </button>
+          </div>
 
-          <article className="bg-white dark:bg-gray-800 rounded-lg p-8">
+          <article className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg">
             <div className="mb-6">
               <div className="flex flex-wrap items-center gap-4 mb-4 text-sm text-gray-600 dark:text-gray-400">
                 <span className="flex items-center">
@@ -194,21 +205,29 @@ const Thoughts: React.FC = () => {
             </div>
           </article>
         </div>
-      </section>
+      </div>
     );
   }
 
   return (
-    <section id="thoughts" className="py-20 bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900 py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <button
+          onClick={() => navigate('/')}
+          className="mb-8 flex items-center text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to portfolio
+        </button>
+
         <div className="text-center mb-12">
           <div className="flex justify-center mb-4">
             <BookOpen className="w-12 h-12 text-[#94c973]" />
           </div>
-          <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
             Thoughts
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Research reviews, innovative ideas, and insights from the intersection of AI, bioinformatics, and data science.
           </p>
         </div>
@@ -308,8 +327,8 @@ const Thoughts: React.FC = () => {
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
 };
 
-export default Thoughts;
+export default ThoughtsPage;
