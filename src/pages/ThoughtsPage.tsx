@@ -782,7 +782,7 @@ const ThoughtsPage: React.FC = () => {
                   AI/ML Engineer, Data Scientist & Bioinformatics Researcher sharing insights on AI, research, and innovation.
                 </p>
                 <Link
-                  to="/"
+                  to="/#about"
                   className="inline-flex items-center mt-4 text-[#94c973] hover:text-[#7fb95e] transition-colors font-medium text-sm"
                 >
                   <Home className="w-4 h-4 mr-2" />
@@ -820,30 +820,30 @@ const ThoughtsPage: React.FC = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h3>
                 <div className="space-y-2 text-sm">
-                  <a
-                    href="/#about"
+                  <Link
+                    to="/#about"
                     className="block text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
                   >
                     About
-                  </a>
-                  <a
-                    href="/#research"
+                  </Link>
+                  <Link
+                    to="/#research"
                     className="block text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
                   >
                     Research
-                  </a>
-                  <a
-                    href="/#publications"
+                  </Link>
+                  <Link
+                    to="/#publications"
                     className="block text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
                   >
                     Publications
-                  </a>
-                  <a
-                    href="/#contact"
+                  </Link>
+                  <Link
+                    to="/#contact"
                     className="block text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
                   >
                     Get in Touch
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -984,7 +984,7 @@ const ThoughtsPage: React.FC = () => {
                 AI/ML Engineer, Data Scientist & Bioinformatics Researcher sharing insights on AI, research, and innovation.
               </p>
               <Link
-                to="/"
+                to="/#about"
                 className="inline-flex items-center mt-4 text-[#94c973] hover:text-[#7fb95e] transition-colors font-medium text-sm"
               >
                 <Home className="w-4 h-4 mr-2" />
@@ -1022,30 +1022,30 @@ const ThoughtsPage: React.FC = () => {
             <div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h3>
               <div className="space-y-2 text-sm">
-                <a
-                  href="/#about"
+                <Link
+                  to="/#about"
                   className="block text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
                 >
                   About
-                </a>
-                <a
-                  href="/#research"
+                </Link>
+                <Link
+                  to="/#research"
                   className="block text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
                 >
                   Research
-                </a>
-                <a
-                  href="/#publications"
+                </Link>
+                <Link
+                  to="/#publications"
                   className="block text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
                 >
                   Publications
-                </a>
-                <a
-                  href="/#contact"
+                </Link>
+                <Link
+                  to="/#contact"
                   className="block text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
                 >
                   Get in Touch
-                </a>
+                </Link>
               </div>
             </div>
           </div>
