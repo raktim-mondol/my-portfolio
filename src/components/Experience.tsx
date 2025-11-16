@@ -4,7 +4,7 @@ import { Briefcase, Calendar } from 'lucide-react';
 const experiences = [
   {
     title: "Postdoctoral Research Fellow",
-    company: "School of Minerals and Energy Resources Engineering",
+    company: "School of Minerals and Energy Resources Engineering, UNSW",
     period: "July 2025 - Present",
     location: "Sydney, NSW",
     description: "Working on SCANDY - A handheld Imaging System for Real Time Spoil Categorisation.",
@@ -16,7 +16,7 @@ const experiences = [
   },
   {
     title: "Postdoctoral Writing Fellow",
-    company: "UNSW",
+    company: "School of Computer Science and Engineering, UNSW",
     period: "April 2025 - July 2025",
     location: "Sydney, NSW",
     description: "Focused on writing and finalizing GRAPHITE: Graph-based interpretable tissue examination for enhanced explainability in breast cancer histopathology paper for publication.",
@@ -117,4 +117,5 @@ export default function Experience() {
     </section>
   );
 }
+
 
