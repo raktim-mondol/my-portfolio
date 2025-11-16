@@ -21,7 +21,7 @@ const experiences = [
     location: "Sydney, NSW",
     description: "Focused on writing and finalizing GRAPHITE: Graph-based interpretable tissue examination for enhanced explainability in breast cancer histopathology paper for publication.",
     achievements: [
-      "Authored comprehensive research paper on graph-based tissue examination",
+      "Authored comprehensive research paper on graph-based explainable AI (XAI) method",
       "Conducted extensive literature review and comparative analysis",
       "Prepared manuscript for high-impact journal submission"
     ]
@@ -117,3 +117,4 @@ export default function Experience() {
     </section>
   );
 }
+
