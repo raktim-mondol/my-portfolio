@@ -654,6 +654,20 @@ As both a biostatistician and an ML researcher, I'm convinced we can have the be
   }
 ];
 
+// Helper function to extract first 2-3 sentences from content
+const getContentPreview = (content: string, sentenceCount: number = 3): string => {
+  // Remove extra whitespace and newlines
+  const cleanContent = content.replace(/\n+/g, ' ').trim();
+
+  // Split by sentence-ending punctuation (., !, ?) followed by space and capital letter
+  const sentences = cleanContent.match(/[^.!?]+[.!?]+(?=\s+[A-Z]|$)/g) || [];
+
+  // Get first N sentences
+  const preview = sentences.slice(0, sentenceCount).join(' ');
+
+  return preview || cleanContent.substring(0, 200) + '...';
+};
+
 const ThoughtsPage: React.FC = () => {
   const navigate = useNavigate();
   const { postId } = useParams<{ postId: string }>();
@@ -849,7 +863,7 @@ const ThoughtsPage: React.FC = () => {
                         </h3>
 
                         <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
-                          {post.excerpt}
+                          {getContentPreview(post.content, 3)}
                         </p>
 
                         <div className="flex flex-wrap gap-2 mb-4">
