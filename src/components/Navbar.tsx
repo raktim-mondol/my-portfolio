@@ -79,11 +79,11 @@ export default function Navbar() {
             <BookOpen className="h-8 w-8 text-[#94c973]" />
             <button
               onClick={handleNameClick}
-              className={`ml-2 text-xl text-gray-900 dark:text-white hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors ${
+              className={`ml-2 text-xl text-gray-900 dark:text-white hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors author-name ${
                 isNameActive ? 'text-[#94c973] dark:text-[#94c973]' : ''
               }`}
             >
-              Dr <strong>Raktim</strong>
+              dr raktim
             </button>
           </div>
 
