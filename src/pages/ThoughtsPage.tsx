@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Feather, Calendar, Tag, ArrowRight, Search, ArrowLeft, Mail, MapPin, Phone, Home } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 
 interface BlogPost {
   id: string;
@@ -656,11 +656,13 @@ As both a biostatistician and an ML researcher, I'm convinced we can have the be
 
 const ThoughtsPage: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  const { postId } = useParams<{ postId: string }>();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
   const categories = ['All', ...Array.from(new Set(blogPosts.map(post => post.category)))];
+
+  const selectedPost = postId ? blogPosts.find(post => post.id === postId) : null;
 
   const filteredPosts = blogPosts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -670,18 +672,38 @@ const ThoughtsPage: React.FC = () => {
     return matchesSearch && matchesCategory;
   });
 
-  if (selectedPost) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
-        <div className="flex-grow py-12 sm:py-20">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            <button
-              onClick={() => setSelectedPost(null)}
-              className="mb-8 flex items-center text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors group"
-            >
-              <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-              <span className="font-medium">All thoughts</span>
-            </button>
+  // Scroll to top when post changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [postId]);
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
+      <div className="flex-grow py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header - Always visible */}
+          <div className="text-center mb-12">
+            <div className="flex justify-center mb-4">
+              <Feather className="w-12 h-12 text-[#94c973]" />
+            </div>
+            <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
+              Thoughts
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+              Research reviews, innovative ideas, and insights from the intersection of AI, bioinformatics, and data science.
+            </p>
+          </div>
+
+          {selectedPost ? (
+            /* Blog Post View */
+            <div className="max-w-5xl mx-auto">
+              <button
+                onClick={() => navigate('/thoughts')}
+                className="mb-8 flex items-center text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors group"
+              >
+                <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+                <span className="font-medium">All thoughts</span>
+              </button>
 
             <article className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
               {/* Header Section */}
@@ -760,7 +782,7 @@ const ThoughtsPage: React.FC = () => {
               {/* Article Footer Section */}
               <div className="border-t border-gray-200 dark:border-gray-700 px-8 sm:px-12 py-8 bg-gray-50 dark:bg-gray-800/50">
                 <button
-                  onClick={() => setSelectedPost(null)}
+                  onClick={() => navigate('/thoughts')}
                   className="flex items-center text-[#94c973] hover:text-[#7fb95e] transition-colors font-medium group"
                 >
                   <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
@@ -768,12 +790,112 @@ const ThoughtsPage: React.FC = () => {
                 </button>
               </div>
             </article>
-          </div>
-        </div>
+            </div>
+          ) : (
+            /* Blog Grid View */
+            <>
+              {/* Search and Filter */}
+              <div className="mb-8 flex flex-col md:flex-row gap-4 justify-between items-center">
+                <div className="relative w-full md:w-96">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search thoughts..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#94c973] focus:border-transparent"
+                  />
+                </div>
 
-        {/* Footer */}
-        <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex gap-2 flex-wrap justify-center">
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`px-4 py-2 rounded-lg transition-colors ${
+                        selectedCategory === category
+                          ? 'bg-[#94c973] text-white'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Blog Posts Grid */}
+              {filteredPosts.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-600 dark:text-gray-400 text-lg">
+                    No thoughts found matching your search.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredPosts.map((post) => (
+                    <article
+                      key={post.id}
+                      className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden cursor-pointer"
+                      onClick={() => navigate(`/thoughts/${post.id}`)}
+                    >
+                      <div className="p-6">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="px-3 py-1 bg-[#94c973] bg-opacity-10 text-[#94c973] rounded-full text-xs font-medium">
+                            {post.category}
+                          </span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                            {post.readTime}
+                          </span>
+                        </div>
+
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2">
+                          {post.title}
+                        </h3>
+
+                        <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                          {post.excerpt}
+                        </p>
+
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {post.tags.map((tag) => (
+                            <span
+                              key={tag}
+                              className="inline-flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
+                            >
+                              <Tag className="w-3 h-3 mr-1" />
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="flex items-center text-gray-500 dark:text-gray-400">
+                            <Calendar className="w-4 h-4 mr-2" />
+                            {new Date(post.date).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </span>
+                          <span className="text-[#94c973] hover:text-[#7fb95e] font-medium flex items-center">
+                            Read more
+                            <ArrowRight className="w-4 h-4 ml-1" />
+                          </span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* About Section */}
               <div>
@@ -858,208 +980,6 @@ const ThoughtsPage: React.FC = () => {
         </footer>
       </div>
     );
-  }
-
-  return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
-      <div className="flex-grow py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="flex justify-center mb-4">
-              <Feather className="w-12 h-12 text-[#94c973]" />
-            </div>
-            <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
-              Thoughts
-            </h1>
-            <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Research reviews, innovative ideas, and insights from the intersection of AI, bioinformatics, and data science.
-            </p>
-          </div>
-
-          {/* Search and Filter */}
-          <div className="mb-8 flex flex-col md:flex-row gap-4 justify-between items-center">
-            <div className="relative w-full md:w-96">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search thoughts..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#94c973] focus:border-transparent"
-              />
-            </div>
-
-            <div className="flex gap-2 flex-wrap justify-center">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    selectedCategory === category
-                      ? 'bg-[#94c973] text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Blog Posts Grid */}
-          {filteredPosts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
-                No thoughts found matching your search.
-              </p>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredPosts.map((post) => (
-                <article
-                  key={post.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow overflow-hidden cursor-pointer"
-                  onClick={() => setSelectedPost(post)}
-                >
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="px-3 py-1 bg-[#94c973] bg-opacity-10 text-[#94c973] rounded-full text-xs font-medium">
-                        {post.category}
-                      </span>
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {post.readTime}
-                      </span>
-                    </div>
-
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2">
-                      {post.title}
-                    </h3>
-
-                    <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
-                      {post.excerpt}
-                    </p>
-
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {post.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="inline-flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs"
-                        >
-                          <Tag className="w-3 h-3 mr-1" />
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center text-gray-500 dark:text-gray-400">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        {new Date(post.date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </span>
-                      <span className="text-[#94c973] hover:text-[#7fb95e] font-medium flex items-center">
-                        Read more
-                        <ArrowRight className="w-4 h-4 ml-1" />
-                      </span>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Footer */}
-      <footer className="bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* About Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Dr Raktim Mondol</h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-                AI/ML Engineer, Data Scientist & Bioinformatics Researcher sharing insights on AI, research, and innovation.
-              </p>
-              <Link
-                to="/#about"
-                className="inline-flex items-center mt-4 text-[#94c973] hover:text-[#7fb95e] transition-colors font-medium text-sm"
-              >
-                <Home className="w-4 h-4 mr-2" />
-                Back to Portfolio
-              </Link>
-            </div>
-
-            {/* Contact Information */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Contact</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex items-start">
-                  <Mail className="w-4 h-4 text-[#94c973] mr-3 mt-0.5 flex-shrink-0" />
-                  <a
-                    href="mailto:r.mondol@unsw.edu.au"
-                    className="text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
-                  >
-                    r.mondol@unsw.edu.au
-                  </a>
-                </div>
-                <div className="flex items-start">
-                  <Phone className="w-4 h-4 text-[#94c973] mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-600 dark:text-gray-400">+61 412 936 237</span>
-                </div>
-                <div className="flex items-start">
-                  <MapPin className="w-4 h-4 text-[#94c973] mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-600 dark:text-gray-400">
-                    UNSW Sydney, NSW 2052
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Quick Links</h3>
-              <div className="space-y-2 text-sm">
-                <Link
-                  to="/#about"
-                  className="block text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
-                >
-                  About
-                </Link>
-                <Link
-                  to="/#research"
-                  className="block text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
-                >
-                  Research
-                </Link>
-                <Link
-                  to="/#publications"
-                  className="block text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
-                >
-                  Publications
-                </Link>
-                <Link
-                  to="/#contact"
-                  className="block text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
-                >
-                  Get in Touch
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Bar */}
-          <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {new Date().getFullYear()} Dr Raktim Mondol. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
 };
 
 export default ThoughtsPage;

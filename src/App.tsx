@@ -44,6 +44,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Portfolio />} />
                 <Route path="/thoughts" element={<ThoughtsPage />} />
+                <Route path="/thoughts/:postId" element={<ThoughtsPage />} />
               </Routes>
             </div>
             <RAGtimBot />
