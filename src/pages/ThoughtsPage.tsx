@@ -15,7 +15,7 @@ interface BlogPost {
 
 const blogPosts: BlogPost[] = [
   {
-    id: '1',
+    id: '12847',
     title: 'The Future of Agentic AI in Healthcare',
     excerpt: 'Exploring how autonomous AI agents can revolutionize patient care and clinical decision-making systems.',
     content: `I still remember the moment when it hit me—the real potential of agentic AI in healthcare. I was sitting in a research meeting at UNSW, reviewing a particularly complex case of cancer genomics data, and we were drowning in information. Multiple specialists, countless data points, conflicting treatment options. That's when I thought: what if we had an AI agent that could autonomously navigate this complexity, not to replace clinicians, but to augment their decision-making process?
@@ -59,7 +59,7 @@ As someone who bridges the gap between AI research and biomedical applications, 
     readTime: '12 min read'
   },
   {
-    id: '2',
+    id: '38291',
     title: 'Rethinking RAG: Beyond Vector Similarity',
     excerpt: 'A deep dive into advanced Retrieval-Augmented Generation techniques that go beyond traditional vector search.',
     content: `I've been working with RAG systems for the past two years, and I have a confession to make: when I first started, I thought vector similarity search was the answer to everything. Build good embeddings, use cosine similarity, retrieve the top-k results, and voilà—you have a functioning RAG system. Boy, was I wrong.
@@ -135,7 +135,7 @@ Building effective RAG systems is as much art as it is science. It requires unde
     readTime: '14 min read'
   },
   {
-    id: '3',
+    id: '56473',
     title: 'Explainable AI in Genomics: Bridging the Gap',
     excerpt: 'How interpretable machine learning models can help researchers understand complex genomic patterns.',
     content: `There's a moment that every computational biologist dreads: you've built this incredibly accurate machine learning model, it's predicting outcomes with 95% accuracy, and then a wet-lab scientist asks you, "But why did the model make that prediction?" And you're standing there with your neural network that has millions of parameters, and all you can say is... "Well, it's complicated."
@@ -211,7 +211,7 @@ Explainable AI in genomics isn't just a technical challenge—it's a bridge betw
     readTime: '13 min read'
   },
   {
-    id: '4',
+    id: '74125',
     title: 'Building Production-Ready LLM Applications',
     excerpt: 'Lessons learned from deploying large language models in real-world production environments.',
     content: `My first LLM production deployment failed spectacularly. Well, not failed exactly—it worked in the demo. It worked in our staging environment. But two hours after we released it to real users, our costs had skyrocketed, latency was through the roof, and about 15% of queries were producing completely nonsensical outputs. That was my brutal introduction to the gap between prototype and production.
@@ -361,7 +361,7 @@ If you're building LLM applications, my advice: start with production considerat
     readTime: '15 min read'
   },
   {
-    id: '5',
+    id: '91038',
     title: 'Multimodal AI: Connecting Vision and Language',
     excerpt: 'Exploring the synergy between computer vision and natural language processing in modern AI systems.',
     content: `I'll never forget the first time I saw a multimodal AI system truly "understand" an image. It wasn't just identifying objects—it was reasoning about relationships, context, and even the implicit narrative. A radiologist colleague showed me a chest X-ray and asked, "Can you describe what's wrong here?" I, with no medical training, saw some gray blobs. The AI system, however, generated: "Bilateral pulmonary infiltrates consistent with pneumonia, more pronounced in the lower lobes. Small right-sided pleural effusion also noted."
@@ -461,7 +461,7 @@ As I write this, I'm looking at a chest X-ray on my screen, with an AI-generated
     readTime: '13 min read'
   },
   {
-    id: '6',
+    id: '23695',
     title: 'Statistical Rigor in Machine Learning Research',
     excerpt: 'Why biostatistical principles are crucial for valid and reproducible ML research.',
     content: `I need to tell you about the paper that almost ruined my week. A highly-cited machine learning study claimed a breakthrough in predicting disease outcomes. The accuracy numbers were impressive—95% on their test set! The methods seemed solid. I was excited to build on their work.
