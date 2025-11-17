@@ -687,7 +687,7 @@ const ThoughtsPage: React.FC = () => {
               <Feather className="w-12 h-12 text-[#94c973]" />
             </div>
             <h1
-              className={`text-5xl font-bold text-gray-900 dark:text-white mb-4 ${selectedPost ? 'cursor-pointer hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors' : ''}`}
+              className={`text-5xl font-bold text-gray-900 dark:text-white mb-4 select-none ${selectedPost ? 'cursor-pointer hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors' : ''}`}
               onClick={() => selectedPost && navigate('/thoughts')}
             >
               Thoughts<sup className="text-2xl ml-1">blog</sup>
