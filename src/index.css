@@ -23,8 +23,9 @@
 }
 
 .author-name {
-  font-family: 'FK Grotesk Semi Mono', monospace;
-  text-transform: lowercase;
+  font-family: 'FK Grotesk Semi Mono', monospace !important;
+  text-transform: lowercase !important;
+  font-weight: 500 !important;
 }
 
 body {
