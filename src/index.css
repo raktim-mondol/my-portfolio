@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'FK Grotesk Semi Mono';
+  src: url('/assets/fonts/FKGroteskSemiMonoTrial-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -12,6 +20,11 @@
   input, textarea {
     @apply border border-gray-300 rounded-md;
   }
+}
+
+.author-name {
+  font-family: 'FK Grotesk Semi Mono', monospace;
+  text-transform: lowercase;
 }
 
 body {
