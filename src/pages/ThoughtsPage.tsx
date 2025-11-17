@@ -690,7 +690,7 @@ const ThoughtsPage: React.FC = () => {
               className={`text-5xl font-bold text-gray-900 dark:text-white mb-4 ${selectedPost ? 'cursor-pointer hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors' : ''}`}
               onClick={() => selectedPost && navigate('/thoughts')}
             >
-              Thoughts
+              Thoughts<sup className="text-2xl ml-1">blog</sup>
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
               Research reviews, innovative ideas, and insights from the intersection of AI, bioinformatics, and data science.
