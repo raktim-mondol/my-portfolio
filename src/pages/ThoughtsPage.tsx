@@ -862,7 +862,7 @@ const ThoughtsPage: React.FC = () => {
                           {post.title}
                         </h3>
 
-                        <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                        <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3 blog-post-body">
                           {getContentPreview(post.content, 3)}
                         </p>
 
