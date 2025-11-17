@@ -31,11 +31,9 @@
 }
 
 .author-name {
-  font-family: 'Stack Sans Notch', sans-serif;
-  text-transform: lowercase;
-  font-family: 'FK Grotesk Semi Mono', monospace !important;
+  font-family: 'Stack Sans Notch', sans-serif !important;
   text-transform: lowercase !important;
-  font-weight: 500 !important;
+  font-weight: 700 !important;
 }
 
 .blog-post-title {
