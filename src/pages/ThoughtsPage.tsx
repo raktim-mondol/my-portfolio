@@ -686,7 +686,10 @@ const ThoughtsPage: React.FC = () => {
             <div className="flex justify-center mb-4">
               <Feather className="w-12 h-12 text-[#94c973]" />
             </div>
-            <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
+            <h1
+              className={`text-5xl font-bold text-gray-900 dark:text-white mb-4 ${selectedPost ? 'cursor-pointer hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors' : ''}`}
+              onClick={() => selectedPost && navigate('/thoughts')}
+            >
               Thoughts
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
@@ -697,14 +700,6 @@ const ThoughtsPage: React.FC = () => {
           {selectedPost ? (
             /* Blog Post View */
             <div className="max-w-5xl mx-auto">
-              <button
-                onClick={() => navigate('/thoughts')}
-                className="mb-8 flex items-center text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors group"
-              >
-                <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-                <span className="font-medium">All thoughts</span>
-              </button>
-
             <article className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden">
               {/* Header Section */}
               <div className="border-b border-gray-200 dark:border-gray-700 px-8 sm:px-12 py-10">
@@ -778,18 +773,18 @@ const ThoughtsPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-
-              {/* Article Footer Section */}
-              <div className="border-t border-gray-200 dark:border-gray-700 px-8 sm:px-12 py-8 bg-gray-50 dark:bg-gray-800/50">
-                <button
-                  onClick={() => navigate('/thoughts')}
-                  className="flex items-center text-[#94c973] hover:text-[#7fb95e] transition-colors font-medium group"
-                >
-                  <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-                  Back to all thoughts
-                </button>
-              </div>
             </article>
+
+            {/* Back button - Outside the article */}
+            <div className="mt-8">
+              <button
+                onClick={() => navigate('/thoughts')}
+                className="flex items-center text-[#94c973] hover:text-[#7fb95e] transition-colors font-medium group"
+              >
+                <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+                Back to all thoughts
+              </button>
+            </div>
             </div>
           ) : (
             /* Blog Grid View */
