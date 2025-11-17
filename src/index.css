@@ -3,9 +3,17 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'FK Grotesk Semi Mono';
-  src: url('/assets/fonts/FKGroteskSemiMonoTrial-Medium.otf') format('opentype');
-  font-weight: 500;
+  font-family: 'Stack Sans Notch';
+  src: url('/assets/fonts/StackSansNotch-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'EB Garamond';
+  src: url('/assets/fonts/EBGaramond-Regular.ttf') format('truetype');
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
@@ -23,9 +31,19 @@
 }
 
 .author-name {
+  font-family: 'Stack Sans Notch', sans-serif;
+  text-transform: lowercase;
   font-family: 'FK Grotesk Semi Mono', monospace !important;
   text-transform: lowercase !important;
   font-weight: 500 !important;
+}
+
+.blog-post-title {
+  font-family: 'EB Garamond', serif;
+}
+
+.blog-post-body {
+  font-family: Georgia, serif;
 }
 
 body {
