@@ -720,7 +720,7 @@ const ThoughtsPage: React.FC = () => {
                   <span className="text-gray-600 dark:text-gray-400 text-sm">{selectedPost.readTime}</span>
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight blog-post-title">
                   {selectedPost.title}
                 </h1>
 
@@ -739,7 +739,7 @@ const ThoughtsPage: React.FC = () => {
               {/* Content Section */}
               <div className="px-8 sm:px-12 py-10">
                 <div className="max-w-3xl">
-                  <div className="prose prose-lg dark:prose-invert max-w-none">
+                  <div className="prose prose-lg dark:prose-invert max-w-none blog-post-body">
                     {selectedPost.content.split('\n\n').map((paragraph, index) => {
                       // Check if paragraph is a heading or list
                       if (paragraph.startsWith('Key points') || paragraph.startsWith('Topics covered') ||
@@ -764,7 +764,7 @@ const ThoughtsPage: React.FC = () => {
                         );
                       } else {
                         return (
-                          <p key={index} className="mb-6 text-gray-700 dark:text-gray-300 leading-relaxed text-lg">
+                          <p key={index} className="mb-6 text-gray-700 dark:text-gray-300 leading-relaxed text-lg blog-post-body">
                             {paragraph}
                           </p>
                         );
@@ -844,7 +844,7 @@ const ThoughtsPage: React.FC = () => {
                           </span>
                         </div>
 
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 blog-post-title">
                           {post.title}
                         </h3>
 
