@@ -44,7 +44,7 @@ export default function Hero() {
               className="mt-4 flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-[#94c973] dark:hover:text-[#94c973] transition-colors"
             >
               <Feather className="w-4 h-4 mr-1.5" />
-              thoughts (my blog)
+              Thoughts<sup className="text-xs">blog</sup>
             </Link>
           </div>
 
