@@ -23,7 +23,7 @@ export default function Hero() {
               <img
                 className="h-48 w-48 rounded-full object-cover shadow-lg"
                 src="/assets/images/profile.png"
-                alt="Dr Raktim Mondol - AI/ML Engineer, Data Scientist & Bioinformatics Researcher"
+                alt="dr raktim mondol - AI/ML Engineer, Data Scientist & Bioinformatics Researcher"
                 loading="eager"
                 width="192"
                 height="192"
@@ -50,7 +50,7 @@ export default function Hero() {
 
           <div className="max-w-2xl text-center sm:text-left">
             <h1 className="text-4xl tracking-tight font-bold text-gray-900 dark:text-white sm:text-5xl">
-              <span className="block">Dr Raktim <strong>Mondol</strong></span>
+              <span className="block author-name">dr raktim mondol</span>
               <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start mt-2">
                 <span className="text-2xl sm:text-3xl dark:text-gray-200">I'm</span>
                 <div className="words-wrapper mt-2 sm:mt-0">
